@@ -1,0 +1,248 @@
+<title>操作手冊｜AI 賦能課程盤點系統</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<style>
+  :root{
+    color-scheme: light;
+    --page:#f9f9f7; --surface:#fcfcfb; --surface-raised:#ffffff;
+    --ink:#0b0b0b; --ink-2:#52514e; --muted:#898781;
+    --grid:#e1e0d9; --border:rgba(11,11,11,0.10);
+    --accent:#a3711f; --accent-ink:#ffffff;
+    --good:#0ca30c; --good-bg:rgba(12,163,12,0.12);
+    --warning:#a06600; --warning-bg:rgba(250,178,25,0.20);
+    --dim-a:#2a78d6; --dim-b:#eb6834; --dim-c:#1baf7a; --dim-d:#4a3aa7;
+    --dim-a-bg:rgba(42,120,214,0.10); --dim-b-bg:rgba(235,104,52,0.10); --dim-c-bg:rgba(27,175,122,0.10); --dim-d-bg:rgba(74,58,167,0.10);
+    --shadow: 0 1px 2px rgba(11,11,11,0.06), 0 8px 24px -12px rgba(11,11,11,0.18);
+    --font-display:"Noto Serif TC","PMingLiU","Songti TC",serif;
+    --font-body:"Noto Sans TC","PingFang TC","Microsoft JhengHei","Segoe UI",sans-serif;
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      color-scheme: dark;
+      --page:#0d0d0d; --surface:#1a1a19; --surface-raised:#212120;
+      --ink:#ffffff; --ink-2:#c3c2b7; --muted:#8b8a84;
+      --grid:#2c2c2a; --border:rgba(255,255,255,0.12);
+      --accent:#c99640; --accent-ink:#1a1200;
+      --good-bg:rgba(12,163,12,0.18); --warning:#fab219; --warning-bg:rgba(250,178,25,0.18);
+      --dim-a:#3987e5; --dim-b:#d95926; --dim-c:#199e70; --dim-d:#9085e9;
+      --dim-a-bg:rgba(57,135,229,0.16); --dim-b-bg:rgba(217,89,38,0.18); --dim-c-bg:rgba(25,158,112,0.18); --dim-d-bg:rgba(144,133,233,0.16);
+      --shadow: 0 1px 2px rgba(0,0,0,0.4), 0 8px 24px -12px rgba(0,0,0,0.6);
+    }
+  }
+  :root[data-theme="dark"]{
+    color-scheme: dark;
+    --page:#0d0d0d; --surface:#1a1a19; --surface-raised:#212120;
+    --ink:#ffffff; --ink-2:#c3c2b7; --muted:#8b8a84;
+    --grid:#2c2c2a; --border:rgba(255,255,255,0.12);
+    --accent:#c99640; --accent-ink:#1a1200;
+    --good-bg:rgba(12,163,12,0.18); --warning:#fab219; --warning-bg:rgba(250,178,25,0.18);
+    --dim-a:#3987e5; --dim-b:#d95926; --dim-c:#199e70; --dim-d:#9085e9;
+    --dim-a-bg:rgba(57,135,229,0.16); --dim-b-bg:rgba(217,89,38,0.18); --dim-c-bg:rgba(25,158,112,0.18); --dim-d-bg:rgba(144,133,233,0.16);
+  }
+  :root[data-theme="light"]{
+    color-scheme: light;
+    --page:#f9f9f7; --surface:#fcfcfb; --surface-raised:#ffffff;
+    --ink:#0b0b0b; --ink-2:#52514e; --muted:#898781;
+    --grid:#e1e0d9; --border:rgba(11,11,11,0.10);
+    --accent:#a3711f; --accent-ink:#ffffff;
+    --good-bg:rgba(12,163,12,0.12); --warning:#a06600; --warning-bg:rgba(250,178,25,0.20);
+    --dim-a:#2a78d6; --dim-b:#eb6834; --dim-c:#1baf7a; --dim-d:#4a3aa7;
+    --dim-a-bg:rgba(42,120,214,0.10); --dim-b-bg:rgba(235,104,52,0.10); --dim-c-bg:rgba(27,175,122,0.10); --dim-d-bg:rgba(74,58,167,0.10);
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;background:var(--page);color:var(--ink);font-family:var(--font-body);font-size:15px;line-height:1.7;}
+  .wrap{max-width:760px;margin:0 auto;padding:40px 24px 90px;}
+  h1{font-family:var(--font-display);font-size:27px;margin:0 0 6px;text-wrap:balance;}
+  h2{font-family:var(--font-display);font-size:19px;margin:0 0 12px;}
+  h3{font-size:14.5px;font-weight:700;margin:0 0 6px;}
+  .eyebrow{font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--accent);font-weight:700;}
+  .lede{color:var(--ink-2);font-size:14px;margin-top:10px;max-width:60ch;}
+  .toc{background:var(--surface-raised);border:1px solid var(--border);border-radius:12px;padding:16px 20px;margin:26px 0 34px;box-shadow:var(--shadow);}
+  .toc-title{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:700;margin-bottom:8px;}
+  .toc a{display:block;font-size:13.5px;color:var(--ink-2);text-decoration:none;padding:3px 0;}
+  .toc a:hover{color:var(--accent);}
+  section{margin-bottom:38px;scroll-margin-top:20px;}
+  .step-list{list-style:none;margin:16px 0 0;padding:0;counter-reset:step;}
+  .step{display:grid;grid-template-columns:34px 1fr;gap:14px;padding:14px 0;border-top:1px solid var(--border);}
+  .step:first-child{border-top:none;padding-top:0;}
+  .step-num{counter-increment:step;width:30px;height:30px;border-radius:50%;background:var(--accent);color:var(--accent-ink);
+    display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13px;flex:none;}
+  .step-num::before{content:counter(step);}
+  .step-body p{margin:0 0 6px;}
+  .step-body .hint{font-size:12.5px;color:var(--muted);}
+  .card{background:var(--surface-raised);border:1px solid var(--border);border-radius:12px;padding:18px 20px;box-shadow:var(--shadow);margin-top:14px;}
+  .rubric-table{width:100%;border-collapse:collapse;font-size:13px;margin-top:10px;}
+  .rubric-table th,.rubric-table td{text-align:left;padding:8px 10px;border-bottom:1px solid var(--border);vertical-align:top;}
+  .rubric-table th{color:var(--muted);font-size:11px;text-transform:uppercase;letter-spacing:.04em;}
+  .lv-badge{display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;border-radius:50%;
+    background:var(--grid);color:var(--ink-2);font-weight:700;font-size:12px;}
+  .dim-legend{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:14px;}
+  @media (max-width:560px){ .dim-legend{grid-template-columns:1fr;} }
+  .dim-item{display:flex;gap:10px;padding:11px 13px;border-radius:10px;font-size:13px;}
+  .dim-item b{display:block;font-size:13.5px;margin-bottom:2px;}
+  .status-row{display:flex;flex-wrap:wrap;gap:10px;margin-top:14px;}
+  .status-chip{display:inline-flex;align-items:center;gap:7px;padding:7px 13px;border-radius:99px;font-size:12.5px;font-weight:600;border:1px solid var(--border);}
+  .status-chip .dot{width:7px;height:7px;border-radius:50%;}
+  details.faq{background:var(--surface-raised);border:1px solid var(--border);border-radius:12px;margin-bottom:10px;overflow:hidden;}
+  details.faq summary{padding:13px 16px;cursor:pointer;font-weight:600;font-size:13.5px;list-style:none;display:flex;justify-content:space-between;align-items:center;}
+  details.faq summary::-webkit-details-marker{display:none;}
+  details.faq summary::after{content:"+";font-size:16px;color:var(--muted);}
+  details.faq[open] summary::after{content:"−";}
+  details.faq .a{padding:0 16px 15px;font-size:13.5px;color:var(--ink-2);}
+  .contact-card{background:var(--surface-raised);border:1px solid var(--border);border-radius:12px;padding:18px 20px;box-shadow:var(--shadow);}
+  .contact-card .field{display:flex;justify-content:space-between;gap:12px;padding:8px 0;border-top:1px solid var(--border);font-size:13.5px;}
+  .contact-card .field:first-child{border-top:none;}
+  .contact-card .field b{color:var(--ink-2);font-weight:600;}
+  .btn-link{display:inline-block;margin-top:6px;background:var(--accent);color:var(--accent-ink);text-decoration:none;
+    padding:11px 20px;border-radius:9px;font-weight:700;font-size:13.5px;}
+  footer{margin-top:50px;padding-top:20px;border-top:1px solid var(--border);font-size:12px;color:var(--muted);}
+  .table-wrap{overflow-x:auto;}
+</style>
+
+<div class="wrap">
+  <div class="eyebrow">實踐大學・114 學年度課程盤點</div>
+  <h1>AI 賦能課程盤點系統操作手冊</h1>
+  <div class="lede">給各系所承辦人／授課教師使用：依「未來人才 AI 能力圖像－高教學生培育目標」四面向 11 項指標，盤點課程與 AI 能力之關聯程度。全程約 3–5 分鐘可完成一門課程的填寫。</div>
+
+  <div class="toc">
+    <div class="toc-title">本手冊內容</div>
+    <a href="#start">一、開始使用</a>
+    <a href="#fill">二、如何填寫一門課程</a>
+    <a href="#rubric">三、11 項指標與 0–5 級判定標準</a>
+    <a href="#status">四、儲存草稿 vs 標記完成</a>
+    <a href="#dashboard">五、查看儀表板與彙整結果</a>
+    <a href="#faq">六、常見問題</a>
+    <a href="#contact">七、需要協助</a>
+  </div>
+
+  <section id="start">
+    <h2>一、開始使用</h2>
+    <ol class="step-list">
+      <li class="step"><span class="step-num"></span>
+        <div class="step-body">
+          <p>開啟系統網址：<a href="https://winnie-sketch.github.io/ai-course-audit/" target="_blank" rel="noopener">winnie-sketch.github.io/ai-course-audit</a>（建議加入書籤，或使用學院／系所公告的協作平台頁面連結）。</p>
+        </div>
+      </li>
+      <li class="step"><span class="step-num"></span>
+        <div class="step-body">
+          <p>在左側依序選擇：<b>1．校區 → 2．學院 → 3．系所</b>。三層都選完後，該系所本學年度的課程清單會自動出現。</p>
+          <p class="hint">若您是從系所專屬連結進入，系統可能已自動幫您選好、並鎖定選單，此步驟可略過。</p>
+        </div>
+      </li>
+      <li class="step"><span class="step-num"></span>
+        <div class="step-body">
+          <p>在課程清單中，可用上方搜尋框找課程或教師名稱，也可用「全部／必修／選修」篩選，找到要填寫的課程後點一下該列即可展開填寫表單。</p>
+        </div>
+      </li>
+    </ol>
+  </section>
+
+  <section id="fill">
+    <h2>二、如何填寫一門課程</h2>
+    <ol class="step-list">
+      <li class="step"><span class="step-num"></span>
+        <div class="step-body">
+          <p><b>課程是否涉及 AI</b>：先判斷這門課的教學內容、活動、作業或評量，是否涉及 AI 的理解、使用或應用。</p>
+          <p class="hint">選「完全不涉及 AI」的課程，不需再往下填 11 項指標，可直接跳到步驟四「標記完成」。</p>
+        </div>
+      </li>
+      <li class="step"><span class="step-num"></span>
+        <div class="step-body">
+          <p><b>逐項勾選 11 項指標關聯程度</b>：畫面會列出 A、B、C、D 四個面向、共 11 項指標，每項指標點選 0～5 其中一個等級。詳細判定標準見下方第三節，表單裡也有同樣的說明可隨時展開查看。</p>
+        </div>
+      </li>
+      <li class="step"><span class="step-num"></span>
+        <div class="step-body">
+          <p><b>填寫教學與評量佐證</b>：任一指標勾選 3 級（含）以上，畫面會自動出現該指標的佐證欄位，請簡要說明對應的教學活動、學生產出或評量方式。2 級以下不需填寫佐證。</p>
+        </div>
+      </li>
+    </ol>
+  </section>
+
+  <section id="rubric">
+    <h2>三、11 項指標與 0–5 級判定標準</h2>
+    <p>每一項指標都用同一套 0–5 級量尺判定，數字越大代表該能力在這門課中的比重越高：</p>
+    <div class="table-wrap">
+      <table class="rubric-table">
+        <thead><tr><th>等級</th><th>判定標準</th></tr></thead>
+        <tbody>
+          <tr><td><span class="lv-badge">0</span></td><td>教學內容、活動與評量完全未涉及此項能力。</td></tr>
+          <tr><td><span class="lv-badge">1</span></td><td>僅在課堂中偶爾提及或簡短介紹，未安排任何練習、作業或評量。</td></tr>
+          <tr><td><span class="lv-badge">2</span></td><td>課程中有小部分單元或作業觸及此能力，屬輔助性質、非教學重點。</td></tr>
+          <tr><td><span class="lv-badge">3</span></td><td>課程明確安排至少一項教學活動、作業或評量對應此能力，但非主要學習目標。</td></tr>
+          <tr><td><span class="lv-badge">4</span></td><td>此能力是課程重要學習目標之一，有專門設計的教學單元與對應評量方式。</td></tr>
+          <tr><td><span class="lv-badge">5</span></td><td>此能力是本課程的核心目標，貫穿整體教學設計、主要活動與評量方式。</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="card">
+      <h3>四大能力面向（每面向下轄 2–3 項細項指標）</h3>
+      <div class="dim-legend">
+        <div class="dim-item" style="background:var(--dim-a-bg);"><div><b style="color:var(--dim-a)">A．運用 AI 學習的能力</b>掌握並善用 AI 工具、以 AI 協助自主與終身學習</div></div>
+        <div class="dim-item" style="background:var(--dim-b-bg);"><div><b style="color:var(--dim-b)">B．負責任使用 AI 的能力</b>AI 倫理法律素養、資安風險意識、社會影響判斷</div></div>
+        <div class="dim-item" style="background:var(--dim-c-bg);"><div><b style="color:var(--dim-c)">C．運用 AI 解決問題的能力</b>AI 分析問題、整合設計解方、人機協作實踐</div></div>
+        <div class="dim-item" style="background:var(--dim-d-bg);"><div><b style="color:var(--dim-d)">D．AI 無法取代的能力</b>價值判斷與決策、社會關懷與同理心、真實世界洞察與創造力</div></div>
+      </div>
+    </div>
+  </section>
+
+  <section id="status">
+    <h2>四、儲存草稿 vs 標記完成</h2>
+    <div class="status-row">
+      <span class="status-chip"><span class="dot" style="background:var(--muted)"></span>未開始</span>
+      <span class="status-chip"><span class="dot" style="background:var(--warning)"></span>草稿中</span>
+      <span class="status-chip"><span class="dot" style="background:var(--good)"></span>已完成 ／ 不涉及 AI</span>
+    </div>
+    <p style="margin-top:14px;"><b>儲存草稿</b>：只存在您目前使用的瀏覽器裡，尚未送出，之後可以隨時回來繼續修改，但不會計入系所完成率統計，其他系所同仁與主管也看不到。</p>
+    <p><b>標記完成</b>：確認資料無誤後點這個按鈕，系統會把這門課的填寫結果自動送到校務雲端試算表，並立即反映在系所、學院、校區、全校四個層級的儀表板統計中。<b>正式送出請務必點「標記完成」，只存草稿不會被算進盤點進度。</b></p>
+    <p class="hint">同一門課可以重複「標記完成」修改後再送出，系統會以最新一次送出的內容為準。</p>
+  </section>
+
+  <section id="dashboard">
+    <h2>五、查看儀表板與彙整結果</h2>
+    <p>頁面最上方有四個頁籤，切換即可查看不同層級的盤點進度與 11 項指標覆蓋度雷達圖：</p>
+    <div class="dim-legend">
+      <div class="dim-item" style="background:var(--surface-raised);border:1px solid var(--border);"><div><b>學系儀表板</b>目前選定系所的課程清單與填寫進度</div></div>
+      <div class="dim-item" style="background:var(--surface-raised);border:1px solid var(--border);"><div><b>學院儀表板</b>該學院內各系所的完成率比較</div></div>
+      <div class="dim-item" style="background:var(--surface-raised);border:1px solid var(--border);"><div><b>校區儀表板</b>該校區內各學院的完成率比較</div></div>
+      <div class="dim-item" style="background:var(--surface-raised);border:1px solid var(--border);"><div><b>全校儀表板</b>不需選擇，直接看全校總覽</div></div>
+    </div>
+    <p style="margin-top:14px;">每個層級右側都有「匯出 CSV」按鈕，可隨時下載目前範圍的資料備份。</p>
+  </section>
+
+  <section id="faq">
+    <h2>六、常見問題</h2>
+    <details class="faq">
+      <summary>系所選單裡找不到我開的課怎麼辦？</summary>
+      <div class="a">課程清單是由校務課程主檔（114 學年度）匯入，若您開的課沒有出現，可能是主檔尚未更新或開課單位登記有誤，請聯絡下方「需要協助」窗口確認，暫時不需自行新增。</div>
+    </details>
+    <details class="faq">
+      <summary>換一台電腦或清除瀏覽器資料後，草稿會不見嗎？</summary>
+      <div class="a">會。「儲存草稿」只存在當下瀏覽器裡。已經按過「標記完成」送出的課程不受影響，資料已經在雲端試算表中。建議填寫到一個段落就直接標記完成，不要長時間只存草稿。</div>
+    </details>
+    <details class="faq">
+      <summary>標記完成後發現填錯了，可以修改嗎？</summary>
+      <div class="a">可以。回到同一門課重新調整指標等級或佐證內容，再按一次「標記完成」送出即可，系統會以最新一次的內容為準。</div>
+    </details>
+    <details class="faq">
+      <summary>一堂課要花多久填寫？</summary>
+      <div class="a">若課程完全不涉及 AI，約 10 秒（選擇「不涉及 AI」直接標記完成）。若涉及 AI，逐項勾選 11 個指標並視情況補充佐證，約 3–5 分鐘。</div>
+    </details>
+    <details class="faq">
+      <summary>系所有 80 幾門課，一定要教師自己一門一門填嗎？</summary>
+      <div class="a">不一定。系所也可以指定專人（如系辦助理、系執行秘書）統一協助填寫，尤其在教師不易聯繫的期間，可由系所彙整後代為輸入，不需每門課都由授課教師本人操作。</div>
+    </details>
+  </section>
+
+  <section id="contact">
+    <h2>七、需要協助</h2>
+    <div class="contact-card">
+      <div class="field"><b>系統操作問題</b><span>【請填寫承辦人姓名／分機／Email】</span></div>
+      <div class="field"><b>指標判定標準疑義</b><span>【請填寫教務處或相關單位聯絡窗口】</span></div>
+      <div class="field"><b>課程主檔資料有誤</b><span>【請填寫教務處課務單位聯絡窗口】</span></div>
+    </div>
+    <a class="btn-link" href="https://winnie-sketch.github.io/ai-course-audit/" target="_blank" rel="noopener">前往課程盤點系統 →</a>
+  </section>
+
+  <footer>依教育部「未來人才 AI 能力圖像－高教學生培育目標」四面向・11 項指標・0–5 級量尺｜實踐大學 114 學年度課程盤點</footer>
+</div>
