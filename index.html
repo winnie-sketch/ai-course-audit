@@ -342,6 +342,11 @@
                 </div>
               </div>
 
+              <details class="rubric-details" open style="margin-bottom:16px;">
+                <summary>課程大綱（判斷 AI 涉入程度的參考依據，點一下可收合）</summary>
+                <p id="dcSyllabus" style="white-space:pre-wrap;">—</p>
+              </details>
+
               <div class="card-head"><h3 style="font-size:13.5px;">課程是否涉及 AI</h3><span class="req must">必填</span></div>
               <div class="option-cards" id="aiInvolved" style="margin-bottom:16px;">
                 <div class="option-card" data-choice="no">
@@ -546,9 +551,34 @@
      - doPost 接收每次「標記完成」的課程資料，寫入一列
      - doGet(callback=...) 以 JSONP 回傳全部資料，供各層儀表板彙整全校真實資料 */
   var WEBAPP_URL = 'https://script.google.com/macros/s/AKfycbx6B2b5f0ubwISFqnXoGBhwH_T9eqvYaJW1uj8El3MshUo2r3IjRFjk7Be1GlML0sy_qg/exec';
+  /* 讀取一律改用試算表「發布到網路」的公開 CSV 網址，用 fetch 讀取（不含 Google 帳號登入憑證，
+     不會像 Apps Script /exec 的 JSONP 讀取一樣被已登入帳號的存取檢查卡住）。
+     送出（doPost）仍走 WEBAPP_URL，不受影響。 */
+  var COURSES_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQAovc_N6p4UXT-sAO4FiQYWWEgqeEMgqyxaIDovcqAhefadrIOwJhkzwWGUhEDkJ4JGsKh2RlaKWrx/pub?gid=1374173105&single=true&output=csv';
+  var RATINGS_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQAovc_N6p4UXT-sAO4FiQYWWEgqeEMgqyxaIDovcqAhefadrIOwJhkzwWGUhEDkJ4JGsKh2RlaKWrx/pub?gid=571212204&single=true&output=csv';
+
+  function parseCSV(text){
+    text = text.replace(/^﻿/, '');
+    var rows = [], row = [], field = '', inQuotes = false;
+    for(var i=0; i<text.length; i++){
+      var ch = text[i];
+      if(inQuotes){
+        if(ch === '"'){
+          if(text[i+1] === '"'){ field += '"'; i++; }
+          else { inQuotes = false; }
+        } else field += ch;
+      } else if(ch === '"'){ inQuotes = true; }
+      else if(ch === ','){ row.push(field); field = ''; }
+      else if(ch === '\r'){ /* 略過，換行以 \n 為準 */ }
+      else if(ch === '\n'){ row.push(field); rows.push(row); row = []; field = ''; }
+      else field += ch;
+    }
+    if(field.length > 0 || row.length > 0){ row.push(field); rows.push(row); }
+    return rows;
+  }
 
   /* ================= 課程資料（動態從 Google 試算表『課程主檔』讀取，見 loadCoursesFromCloud）================= */
-  var COURSE_FIELDS = ['campus','college','dept','name','grade','teacher','credits','reqType','term','code'];
+  var COURSE_FIELDS = ['campus','college','dept','name','grade','teacher','credits','reqType','term','code','syllabus'];
   var COURSES = [];
   var courseIdByKey = {};
 
@@ -766,6 +796,7 @@
     document.getElementById('courseDetailCard').style.display = 'block';
     document.getElementById('dcName').textContent = c.name;
     document.getElementById('dcMeta').textContent = c.code + ' ・ ' + c.teacher + ' ・ ' + c.grade + ' ・ ' + c.credits + ' 學分 ・ ' + c.reqType + ' ・ ' + c.term;
+    document.getElementById('dcSyllabus').textContent = c.syllabus || '（課程主檔尚無課程大綱資料）';
 
     renderAiInvolved(rec);
     renderDimGroups(rec);
@@ -1246,30 +1277,32 @@
   }
 
   function loadCloudData(silent){
-    if(!WEBAPP_URL || cloudLoading) return;
+    if(!RATINGS_CSV_URL || cloudLoading) return;
     cloudLoading = true;
     updateSyncPill();
-    var cbName = '__aiAuditCloudCb' + Date.now();
-    window[cbName] = function(rows){
-      mergeCloudRows(rows || []);
+    fetch(RATINGS_CSV_URL, {cache:'no-store'}).then(function(res){
+      if(!res.ok) throw new Error('http ' + res.status);
+      return res.text();
+    }).then(function(text){
+      var table = parseCSV(text);
+      var headers = table.shift() || [];
+      var rows = table.filter(function(r){ return r.length > 1; }).map(function(r){
+        var o = {};
+        headers.forEach(function(h, i){ o[h] = r[i]; });
+        return o;
+      });
+      mergeCloudRows(rows);
       cloudLoaded = true;
       cloudLoading = false;
       updateSyncPill();
       renderCourseTable();
       renderCurrentScope();
-      delete window[cbName];
-      script.remove();
       if(!silent) toast('已讀取全校最新盤點資料');
-    };
-    var script = document.createElement('script');
-    script.src = WEBAPP_URL + '?callback=' + cbName;
-    script.onerror = function(){
+    }).catch(function(){
       cloudLoading = false;
       updateSyncPill();
       if(!silent) toast('雲端資料讀取失敗，稍後可再試一次');
-      delete window[cbName];
-    };
-    document.body.appendChild(script);
+    });
   }
 
   function setCourseLoadState(state){
@@ -1287,28 +1320,23 @@
     }
   }
 
-  // 讀取：用 JSONP 向 Apps Script 要「課程主檔」工作表全部列，取代原本寫死在網頁裡的課程清單。
+  // 讀取：向「課程主檔」試算表發布的公開 CSV 網址要資料，取代原本寫死在網頁裡的課程清單。
   // 系所要新增/修改/停開課程，直接改 Google 試算表的「課程主檔」分頁即可，不用重新部署網頁。
   function loadCoursesFromCloud(done){
-    if(!WEBAPP_URL){ done(false); return; }
-    var cbName = '__aiAuditCoursesCb' + Date.now();
-    window[cbName] = function(rows){
-      COURSES = (rows || []).map(function(r, i){
+    if(!COURSES_CSV_URL){ done(false); return; }
+    fetch(COURSES_CSV_URL, {cache:'no-store'}).then(function(res){
+      if(!res.ok) throw new Error('http ' + res.status);
+      return res.text();
+    }).then(function(text){
+      var table = parseCSV(text);
+      table.shift(); // 表頭
+      COURSES = table.filter(function(r){ return r.length > 1 && r[0] !== ''; }).map(function(r, i){
         var o = {id:i};
         COURSE_FIELDS.forEach(function(f, j){ o[f] = r[j]; });
         return o;
       });
-      delete window[cbName];
-      script.remove();
       done(true);
-    };
-    var script = document.createElement('script');
-    script.src = WEBAPP_URL + '?type=courses&callback=' + cbName;
-    script.onerror = function(){
-      delete window[cbName];
-      done(false);
-    };
-    document.body.appendChild(script);
+    }).catch(function(){ done(false); });
   }
 
   /* ---------- wire up static controls ---------- */
