@@ -295,13 +295,13 @@
 
     <section class="view" id="mainView">
       <div class="chip-toggle scope-tabs" id="scopeTabs">
-        <button type="button" data-scope="dept" class="active">學系儀表板</button>
+        <button type="button" data-scope="dept">學系儀表板</button>
         <button type="button" data-scope="college">學院儀表板</button>
         <button type="button" data-scope="campus">校區儀表板</button>
-        <button type="button" data-scope="all">全校儀表板</button>
+        <button type="button" data-scope="all" class="active">全校儀表板</button>
       </div>
 
-      <div id="scopePanel-dept">
+      <div id="scopePanel-dept" style="display:none;">
       <div id="noDeptState" class="empty-state" style="margin-top:8px;">
         請於左側選單依序選擇校區 > 學院 > 學系，載入該系所 114 學年度課程清單以進行 AI 能力盤點。
       </div>
@@ -492,7 +492,7 @@
         </div>
       </div>
 
-      <div id="scopePanel-all" style="display:none;">
+      <div id="scopePanel-all">
         <h2 style="font-size:18px;margin-bottom:14px;">全校 AI 賦能課程盤點總覽</h2>
         <div class="stat-row">
           <div class="stat-tile"><div class="slabel">課程總數</div><div class="sval" id="allStatTotal">0<small>門</small></div></div>
@@ -631,7 +631,7 @@
     return INDICATORS.filter(function(i){ return rec.ratings[i.code] === undefined; }).map(function(i){ return i.code; });
   }
 
-  var dashboardScope = 'dept';
+  var dashboardScope = 'all';
 
   function isDark(){
     var t = document.documentElement.getAttribute('data-theme');
@@ -746,6 +746,7 @@
     document.getElementById('deptContent').style.display = dept ? 'block' : 'none';
     document.getElementById('topbarDept').textContent = dept || '請選擇校區 > 學院 > 學系';
     if(!dept) return;
+    setScope('dept'); // 選好系所後自動切到「學系儀表板」，直接進入填課程的工作區
     document.getElementById('courseSearch').value = '';
     reqFilterVal = 'all';
     Array.prototype.forEach.call(document.querySelectorAll('#reqFilter button'), function(b){
@@ -1432,6 +1433,7 @@
   });
   initDeptSelect();
   updateSyncPill();
+  renderCurrentScope(); // 先用本機/內嵌資料渲染一次，不用等雲端資料讀取成功才有畫面
   loadCloudData(true);
 })();
 </script>
