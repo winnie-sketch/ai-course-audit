@@ -548,7 +548,7 @@
   var WEBAPP_URL = 'https://script.google.com/macros/s/AKfycbx6B2b5f0ubwISFqnXoGBhwH_T9eqvYaJW1uj8El3MshUo2r3IjRFjk7Be1GlML0sy_qg/exec';
 
   /* ================= 課程資料（動態從 Google 試算表『課程主檔』讀取，見 loadCoursesFromCloud）================= */
-  var COURSE_FIELDS = ['name','college','dept','grade','teacher','credits','reqType','term','code'];
+  var COURSE_FIELDS = ['campus','college','dept','name','grade','teacher','credits','reqType','term','code'];
   var COURSES = [];
   var courseIdByKey = {};
 
@@ -603,19 +603,18 @@
   }
 
   /* ---------- Campus / college / dept cascading select ----------
-     校區依實踐大學官網學術單位頁面對應：
-     臺北校區 https://www.usc.edu.tw/p/412-1000-272.php
-     高雄校區 https://www.kh.usc.edu.tw/p/412-1000-1301.php
-     「共同課程委員會」（博雅學部／通識中心／語言中心／體育室等）暫不歸校區，
-     待校方確認規則後再拆分。 */
+     校區欄位直接來自「課程主檔」試算表的『校區』欄，由填表人（圖資處）維護；
+     collegeToCampus 只是把每門課的 campus 依 college 建索引，方便用學院名反查校區。
+     CAMPUS_MAP 僅作為試算表校區欄位空白時的備援，避免舊資料或漏填造成 initDeptSelect 出錯。 */
   var CAMPUS_MAP = {
     '民生學院':'臺北校區', '法學院':'臺北校區', '設計學院':'臺北校區', '管理學院':'臺北校區', '國際學程':'臺北校區',
     '商學與資訊學院':'高雄校區', '文化與創意學院':'高雄校區',
     '共同課程委員會':'共同課程（未分校區）'
   };
   var CAMPUS_ORDER = ['臺北校區','高雄校區','共同課程（未分校區）'];
+  var collegeToCampus = {};
 
-  function campusOf(college){ return CAMPUS_MAP[college] || '其他'; }
+  function campusOf(college){ return collegeToCampus[college] || CAMPUS_MAP[college] || '其他'; }
 
   function initDeptSelect(){
     var campusSel = document.getElementById('campusSelect');
@@ -1349,7 +1348,11 @@
     }
     setCourseLoadState('ready');
     courseIdByKey = {};
-    COURSES.forEach(function(c){ courseIdByKey[c.dept + '||' + c.code] = c.id; });
+    collegeToCampus = {};
+    COURSES.forEach(function(c){
+      courseIdByKey[c.dept + '||' + c.code] = c.id;
+      if(c.campus) collegeToCampus[c.college] = c.campus;
+    });
     initDeptSelect();
     updateSyncPill();
     loadCloudData(true);
