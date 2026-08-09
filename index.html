@@ -361,6 +361,7 @@
 
               <div id="ratingSections" style="display:none;">
                 <div class="card-head"><h3 style="font-size:13.5px;">未來人才 AI 能力圖像關聯程度</h3><span class="req must">逐項勾選</span></div>
+                <div class="hint" id="ratingProgress" style="margin:0 0 10px;"></div>
                 <div class="level-legend">
                   <span title="教學內容、活動與評量完全未涉及此項能力，學生無需理解或操作 AI 相關概念。"><b>0</b> 無關聯</span>
                   <span title="僅在課堂中偶爾提及或簡短介紹，未安排任何練習、作業或評量與此能力對應。"><b>1</b> 極低</span>
@@ -617,6 +618,13 @@
     var r = peekRecord(course.dept, course.id);
     return r ? r.status : 'notstarted';
   }
+  // 已填了幾項指標／還缺哪幾項——不論狀態是草稿或完成，直接看 ratings 裡實際存在的 key
+  function filledIndicatorCount(rec){
+    return INDICATORS.filter(function(i){ return rec.ratings[i.code] !== undefined; }).length;
+  }
+  function missingIndicatorCodes(rec){
+    return INDICATORS.filter(function(i){ return rec.ratings[i.code] === undefined; }).map(function(i){ return i.code; });
+  }
 
   var dashboardScope = 'dept';
 
@@ -758,10 +766,15 @@
   function courseStatus(c){
     return statusOf(c);
   }
-  function statusBadge(status){
+  function statusBadge(status, rec){
     if(status === 'done') return '<span class="badge good">已完成</span>';
     if(status === 'no-ai') return '<span class="badge muted">不涉及 AI</span>';
-    if(status === 'draft') return '<span class="badge warn">草稿中</span>';
+    if(status === 'draft'){
+      if(rec && rec.aiInvolved === true){
+        return '<span class="badge warn">草稿中（'+filledIndicatorCount(rec)+'/'+INDICATORS.length+'）</span>';
+      }
+      return '<span class="badge warn">草稿中</span>';
+    }
     return '<span class="badge muted">未開始</span>';
   }
   function renderCourseTable(){
@@ -770,6 +783,7 @@
     document.getElementById('courseCountTag').textContent = list.length + ' 門課程';
     body.innerHTML = list.map(function(c){
       var st = courseStatus(c);
+      var rec = peekRecord(c.dept, c.id);
       return '<tr class="course-row'+(c.id===currentCourseId?' active':'')+'" data-id="'+c.id+'">' +
         '<td class="course-name">'+escapeHtml(c.name)+'</td>' +
         '<td>'+escapeHtml(c.teacher)+'</td>' +
@@ -777,7 +791,7 @@
         '<td>'+escapeHtml(c.credits)+'</td>' +
         '<td>'+escapeHtml(c.reqType)+'</td>' +
         '<td>'+escapeHtml(c.term)+'</td>' +
-        '<td>'+statusBadge(st)+'</td></tr>';
+        '<td>'+statusBadge(st, rec)+'</td></tr>';
     }).join('') || '<tr><td colspan="7" style="text-align:center;color:var(--muted);padding:20px;">查無符合條件的課程</td></tr>';
 
     Array.prototype.forEach.call(body.querySelectorAll('tr.course-row'), function(tr){
@@ -831,6 +845,13 @@
   function renderDimGroups(rec){
     var el = document.getElementById('dimGroups');
     el.innerHTML = '';
+    var progressEl = document.getElementById('ratingProgress');
+    var filled = filledIndicatorCount(rec);
+    if(filled >= INDICATORS.length){
+      progressEl.textContent = '已完成 ' + filled + '/' + INDICATORS.length + ' 項。';
+    } else {
+      progressEl.textContent = '已完成 ' + filled + '/' + INDICATORS.length + ' 項，尚缺：' + missingIndicatorCodes(rec).join('、') + '。可先「儲存草稿」，之後再回來補填。';
+    }
     DIMENSIONS.forEach(function(dim){
       var wrap = document.createElement('div');
       wrap.className = 'dim-group';
@@ -992,6 +1013,16 @@
     var rate = total ? Math.round(done/total*100) : 0;
     return {total:total, done:done, pending:pending, rate:rate};
   }
+  // 指標填答完整度：以「涉及AI」課程的11項指標總數為分母，不論該課程是草稿或已完成，
+  // 只要指標有勾選就算——讓學院/校區/全校能看到比「完成率」更細緻的真實填答進度。
+  function indicatorFillStatsFor(courseList){
+    var aiRecs = courseList.map(function(c){ return peekRecord(c.dept, c.id); })
+      .filter(function(r){ return r && r.aiInvolved === true; });
+    var totalSlots = aiRecs.length * INDICATORS.length;
+    var filledSlots = aiRecs.reduce(function(sum, r){ return sum + filledIndicatorCount(r); }, 0);
+    var rate = totalSlots ? Math.round(filledSlots/totalSlots*100) : 0;
+    return {aiCourseCount:aiRecs.length, totalSlots:totalSlots, filledSlots:filledSlots, rate:rate};
+  }
   function ratedRecordsFor(courseList){
     return courseList.map(function(c){ return peekRecord(c.dept, c.id); }).filter(function(r){ return r && r.status === 'done'; });
   }
@@ -1042,17 +1073,19 @@
   function renderBreakdownTable(elId, headerLabel, rows){
     var el = document.getElementById(elId);
     if(!rows.length){ el.innerHTML = '<div class="hint" style="margin:0;">無資料。</div>'; return; }
-    el.innerHTML = '<div class="table-wrap"><table><thead><tr><th>'+headerLabel+'</th><th>課程數</th><th>已完成</th><th>完成率</th></tr></thead><tbody>' +
+    el.innerHTML = '<div class="table-wrap"><table><thead><tr><th>'+headerLabel+'</th><th>課程數</th><th>已完成</th><th>完成率</th><th>指標填答完整度</th></tr></thead><tbody>' +
       rows.map(function(r){
-        return '<tr><td>'+escapeHtml(r.label)+'</td><td>'+r.total+'</td><td>'+r.done+'</td><td>'+rateBadge(r.rate)+'</td></tr>';
+        return '<tr><td>'+escapeHtml(r.label)+'</td><td>'+r.total+'</td><td>'+r.done+'</td><td>'+rateBadge(r.rate)+'</td>' +
+          '<td>'+rateBadge(r.fillRate)+' <span class="hint" style="margin:0;display:inline;">（'+r.filledSlots+'/'+r.totalSlots+' 項，'+r.aiCourseCount+' 門涉及AI課程）</span></td></tr>';
       }).join('') + '</tbody></table></div>';
   }
   function renderAllBreakdownTable(elId, rows){
     var el = document.getElementById(elId);
     if(!rows.length){ el.innerHTML = '<div class="hint" style="margin:0;">無資料。</div>'; return; }
-    el.innerHTML = '<div class="table-wrap"><table><thead><tr><th>校區</th><th>學院</th><th>課程數</th><th>已完成</th><th>完成率</th></tr></thead><tbody>' +
+    el.innerHTML = '<div class="table-wrap"><table><thead><tr><th>校區</th><th>學院</th><th>課程數</th><th>已完成</th><th>完成率</th><th>指標填答完整度</th></tr></thead><tbody>' +
       rows.map(function(r){
-        return '<tr><td>'+escapeHtml(r.campus)+'</td><td>'+escapeHtml(r.college)+'</td><td>'+r.total+'</td><td>'+r.done+'</td><td>'+rateBadge(r.rate)+'</td></tr>';
+        return '<tr><td>'+escapeHtml(r.campus)+'</td><td>'+escapeHtml(r.college)+'</td><td>'+r.total+'</td><td>'+r.done+'</td><td>'+rateBadge(r.rate)+'</td>' +
+          '<td>'+rateBadge(r.fillRate)+' <span class="hint" style="margin:0;display:inline;">（'+r.filledSlots+'/'+r.totalSlots+' 項，'+r.aiCourseCount+' 門涉及AI課程）</span></td></tr>';
       }).join('') + '</tbody></table></div>';
   }
 
@@ -1097,7 +1130,8 @@
     courseList.forEach(function(c){ (byDept[c.dept] = byDept[c.dept] || []).push(c); });
     var rows = Object.keys(byDept).sort().map(function(d){
       var s = statsFor(byDept[d]);
-      return {label:d, total:s.total, done:s.done, rate:s.rate};
+      var f = indicatorFillStatsFor(byDept[d]);
+      return {label:d, total:s.total, done:s.done, rate:s.rate, fillRate:f.rate, filledSlots:f.filledSlots, totalSlots:f.totalSlots, aiCourseCount:f.aiCourseCount};
     });
     renderBreakdownTable('collegeBreakdown', '系所', rows);
     renderMiniBarsInto('collegeCoverage', indicatorAveragesFor(ratedRecordsFor(courseList)), ratedRecordsFor(courseList).length > 0);
@@ -1124,7 +1158,8 @@
     courseList.forEach(function(c){ (byCollege[c.college] = byCollege[c.college] || []).push(c); });
     var rows = Object.keys(byCollege).sort().map(function(col){
       var s = statsFor(byCollege[col]);
-      return {label:col, total:s.total, done:s.done, rate:s.rate};
+      var f = indicatorFillStatsFor(byCollege[col]);
+      return {label:col, total:s.total, done:s.done, rate:s.rate, fillRate:f.rate, filledSlots:f.filledSlots, totalSlots:f.totalSlots, aiCourseCount:f.aiCourseCount};
     });
     renderBreakdownTable('campusBreakdown', '學院', rows);
     renderMiniBarsInto('campusCoverage', indicatorAveragesFor(ratedRecordsFor(courseList)), ratedRecordsFor(courseList).length > 0);
@@ -1148,7 +1183,8 @@
       return a < b ? -1 : 1;
     }).map(function(col){
       var s = statsFor(byCollege[col]);
-      return {campus:campusOf(col), college:col, total:s.total, done:s.done, rate:s.rate};
+      var f = indicatorFillStatsFor(byCollege[col]);
+      return {campus:campusOf(col), college:col, total:s.total, done:s.done, rate:s.rate, fillRate:f.rate, filledSlots:f.filledSlots, totalSlots:f.totalSlots, aiCourseCount:f.aiCourseCount};
     });
     renderAllBreakdownTable('allBreakdown', rows);
     renderMiniBarsInto('allCoverage', indicatorAveragesFor(ratedRecordsFor(courseList)), ratedRecordsFor(courseList).length > 0);
