@@ -1175,7 +1175,7 @@
   /* ---------- CSV export (generic — used by all 4 dashboard scopes) ---------- */
   function exportCsvGeneric(courseList, filenameSuffix){
     if(!courseList.length){ toast('目前範圍內沒有課程資料可匯出'); return; }
-    var header = ['校區','學院','系所','課程名稱','課號','教師','年級','學分','必選修','學期','是否涉及AI','狀態']
+    var header = ['校區','學院','系所','課程名稱','課號','教師','年級','學分','必選修','學期','課程大綱','是否涉及AI','狀態']
       .concat(INDICATORS.map(function(i){ return i.code; }))
       .concat(['佐證說明(合併)']);
     var rows = [header];
@@ -1185,7 +1185,7 @@
       var evidenceMerged = INDICATORS.map(function(i){
         return rec.evidence[i.code] ? (i.code+'：'+rec.evidence[i.code]) : '';
       }).filter(Boolean).join(' ／ ');
-      var row = [campusOf(c.college), c.college, c.dept, c.name, c.code, c.teacher, c.grade, c.credits, c.reqType, c.term, aiText, rec.status]
+      var row = [campusOf(c.college), c.college, c.dept, c.name, c.code, c.teacher, c.grade, c.credits, c.reqType, c.term, c.syllabus || '', aiText, rec.status]
         .concat(INDICATORS.map(function(i){ return rec.ratings[i.code] !== undefined ? rec.ratings[i.code] : ''; }))
         .concat([evidenceMerged]);
       rows.push(row);
