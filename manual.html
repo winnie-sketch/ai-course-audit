@@ -96,12 +96,22 @@
     padding:11px 20px;border-radius:9px;font-weight:700;font-size:13.5px;}
   footer{margin-top:50px;padding-top:20px;border-top:1px solid var(--border);font-size:12px;color:var(--muted);}
   .table-wrap{overflow-x:auto;}
+  .exec-callout{background:var(--warning-bg);border:1px solid var(--border);border-radius:12px;padding:16px 20px;margin:22px 0 30px;}
+  .exec-callout .eyebrow2{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--warning);font-weight:700;margin-bottom:6px;}
+  .exec-callout p{margin:0 0 10px;font-size:13.5px;color:var(--ink-2);}
+  .exec-callout a{color:var(--accent);font-weight:700;text-decoration:none;}
 </style>
 
 <div class="wrap">
   <div class="eyebrow">實踐大學・114 學年度課程盤點</div>
   <h1>AI 賦能課程盤點系統操作手冊</h1>
   <div class="lede">給各系所承辦人／授課教師使用：依「未來人才 AI 能力圖像－高教學生培育目標」四面向 11 項指標，盤點課程與 AI 能力之關聯程度。全程約 3–5 分鐘可完成一門課程的填寫。</div>
+
+  <div class="exec-callout">
+    <div class="eyebrow2">主管只看這裡</div>
+    <p>如果您是系主任、院長或校長，不需要操作填表，只要掌握系所／學院／校區／全校的盤點進度，請直接看
+      <a href="#dashboard">「五、查看儀表板」</a>。網站打開後預設就會顯示全校總覽，不用另外設定。</p>
+  </div>
 
   <div class="toc">
     <div class="toc-title">本手冊內容</div>
@@ -141,18 +151,23 @@
     <ol class="step-list">
       <li class="step"><span class="step-num"></span>
         <div class="step-body">
-          <p><b>課程是否涉及 AI</b>：先判斷這門課的教學內容、活動、作業或評量，是否涉及 AI 的理解、使用或應用。</p>
-          <p class="hint">選「完全不涉及 AI」的課程，不需再往下填 11 項指標，可直接跳到步驟四「標記完成」。</p>
+          <p><b>參考課程大綱</b>：課程明細最上方會顯示該課程的課程大綱，不確定這門課跟 AI 有沒有關聯時，可以先展開看看課程原本規劃的教學內容。</p>
         </div>
       </li>
       <li class="step"><span class="step-num"></span>
         <div class="step-body">
-          <p><b>逐項勾選 11 項指標關聯程度</b>：畫面會列出 A、B、C、D 四個面向、共 11 項指標，每項指標點選 0～5 其中一個等級。詳細判定標準見下方第三節，表單裡也有同樣的說明可隨時展開查看。</p>
+          <p><b>課程是否涉及 AI</b>：判斷這門課的教學內容、活動、作業或評量，是否涉及 AI 的理解、使用或應用。<b>點選後系統會立刻自動存檔</b>，不用再另外按儲存，就算今天只做完這一步、沒空往下填 11 項指標，也已經是有效的盤點紀錄。</p>
+          <p class="hint">選「完全不涉及 AI」的課程，不需再往下填 11 項指標，這門課即視為已判定完畢。</p>
         </div>
       </li>
       <li class="step"><span class="step-num"></span>
         <div class="step-body">
-          <p><b>填寫教學與評量佐證</b>：任一指標勾選 3 級（含）以上，畫面會自動出現該指標的佐證欄位，請簡要說明對應的教學活動、學生產出或評量方式。2 級以下不需填寫佐證。</p>
+          <p><b>逐項勾選 11 項指標關聯程度</b>：畫面會列出 A、B、C、D 四個面向、共 11 項指標，每項指標點選 0～5 其中一個等級。詳細判定標準見下方第三節，表單裡也有同樣的說明可隨時展開查看。填到一半也可以先「儲存草稿」，畫面上會顯示目前已完成幾項、還缺哪幾項，之後回來能馬上接著填。</p>
+        </div>
+      </li>
+      <li class="step"><span class="step-num"></span>
+        <div class="step-body">
+          <p><b>填寫教學與評量佐證（3 級以上必填）</b>：任一指標勾選 3 級（含）以上，畫面會自動出現該指標的佐證欄位，請簡要說明對應的教學活動、學生產出或評量方式。<b>3 級以上若沒有填佐證，系統會擋下「標記完成」</b>，避免只是隨意點等級、卻沒有真正對應的教學內容。2 級以下不需填寫佐證。</p>
         </div>
       </li>
     </ol>
@@ -193,21 +208,31 @@
       <span class="status-chip"><span class="dot" style="background:var(--warning)"></span>草稿中</span>
       <span class="status-chip"><span class="dot" style="background:var(--good)"></span>已完成 ／ 不涉及 AI</span>
     </div>
-    <p style="margin-top:14px;"><b>儲存草稿</b>：只存在您目前使用的瀏覽器裡，尚未送出，之後可以隨時回來繼續修改，但不會計入系所完成率統計，其他系所同仁與主管也看不到。</p>
-    <p><b>標記完成</b>：確認資料無誤後點這個按鈕，系統會把這門課的填寫結果自動送到校務雲端試算表，並立即反映在系所、學院、校區、全校四個層級的儀表板統計中。<b>正式送出請務必點「標記完成」，只存草稿不會被算進盤點進度。</b></p>
+    <p style="margin-top:14px;"><b>是否涉及 AI（點選當下自動存檔）</b>：只要點過「涉及 AI」或「不涉及 AI」，系統就會自動記錄並同步到雲端，計入儀表板的「<b>AI 涉入判定進度</b>」。這一步不用額外按任何按鈕。</p>
+    <p><b>儲存草稿</b>：只存在您目前使用的瀏覽器裡，尚未送出，之後可以隨時回來繼續修改，但不會計入「盤點完成率」，其他系所同仁與主管也看不到細節。</p>
+    <p><b>標記完成</b>：11 項指標都勾選、且 3 級以上都補了佐證後，點這個按鈕，系統會把完整結果送到校務雲端試算表，並立即反映在系所、學院、校區、全校四個層級的儀表板統計中。<b>正式送出請務必點「標記完成」，只存草稿不會被算進「盤點完成率」。</b></p>
     <p class="hint">同一門課可以重複「標記完成」修改後再送出，系統會以最新一次送出的內容為準。</p>
   </section>
 
   <section id="dashboard">
     <h2>五、查看儀表板與彙整結果</h2>
-    <p>頁面最上方有四個頁籤，切換即可查看不同層級的盤點進度與 11 項指標覆蓋度雷達圖：</p>
+    <p>打開網站不用選任何東西，<b>預設就是「全校儀表板」總覽畫面</b>。頁面上方有四個頁籤，可以切換看不同範圍：</p>
     <div class="dim-legend">
-      <div class="dim-item" style="background:var(--surface-raised);border:1px solid var(--border);"><div><b>學系儀表板</b>目前選定系所的課程清單與填寫進度</div></div>
-      <div class="dim-item" style="background:var(--surface-raised);border:1px solid var(--border);"><div><b>學院儀表板</b>該學院內各系所的完成率比較</div></div>
-      <div class="dim-item" style="background:var(--surface-raised);border:1px solid var(--border);"><div><b>校區儀表板</b>該校區內各學院的完成率比較</div></div>
-      <div class="dim-item" style="background:var(--surface-raised);border:1px solid var(--border);"><div><b>全校儀表板</b>不需選擇，直接看全校總覽</div></div>
+      <div class="dim-item" style="background:var(--surface-raised);border:1px solid var(--border);"><div><b>全校儀表板</b>一進網站就會看到，全校總體進度，不需要做任何選擇</div></div>
+      <div class="dim-item" style="background:var(--surface-raised);border:1px solid var(--border);"><div><b>校區儀表板</b>點左側「校區」選單後查看，該校區內各學院的比較</div></div>
+      <div class="dim-item" style="background:var(--surface-raised);border:1px solid var(--border);"><div><b>學院儀表板</b>再點「學院」選單後查看，該學院內各系所的比較</div></div>
+      <div class="dim-item" style="background:var(--surface-raised);border:1px solid var(--border);"><div><b>學系儀表板</b>選到「系所」後會自動跳過來，也是實際填課程的地方</div></div>
     </div>
-    <p style="margin-top:14px;">每個層級右側都有「匯出 CSV」按鈕，可隨時下載目前範圍的資料備份。</p>
+
+    <div class="card">
+      <h3>畫面上兩個「進度」代表不同意思，看數字前先分清楚</h3>
+      <p style="margin:0 0 8px;"><b>AI 涉入判定進度</b>：全校（或該系所／學院）有多少比例的課程，至少已經判定過「涉及 AI」或「不涉及 AI」——這是最基本的第一步，數字越高代表越多課程已經被看過一次。</p>
+      <p style="margin:0;"><b>盤點完成率 ／ 指標填答完整度</b>：對已判定「涉及 AI」的課程，11 項指標實際填答、佐證都補齊的比例——這代表深入盤點做到什麼程度。</p>
+      <p class="hint" style="margin-top:10px;">簡單說：前者看「有沒有先過一遍」，後者看「做得多細」。剛開始推動時，通常「AI 涉入判定進度」會先衝高，「盤點完成率」再慢慢跟上，都是正常現象。</p>
+    </div>
+
+    <p style="margin-top:14px;">校區／學院／全校儀表板中間都有一張明細表（依學院或系所列出），除了完成率，還有一欄「<b>指標填答完整度</b>」，可以看出是哪個系所、哪個學院填答進度比較落後，需要多留意或提醒。</p>
+    <p>每個層級右側都有「匯出 CSV」按鈕，可隨時下載目前範圍的資料備份。</p>
   </section>
 
   <section id="faq">
