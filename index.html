@@ -107,7 +107,8 @@
 
   .view{padding:22px 28px 60px;max-width:1280px;}
 
-  .stat-row{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:18px;}
+  .stat-row{display:grid;grid-template-columns:repeat(5,1fr);gap:14px;margin-bottom:18px;}
+  @media (max-width:980px){ .stat-row{grid-template-columns:repeat(3,1fr);} }
   @media (max-width:820px){ .stat-row{grid-template-columns:repeat(2,1fr);} }
   .stat-tile{background:var(--surface-raised);border:1px solid var(--border);border-radius:14px;padding:15px 17px;box-shadow:var(--shadow);}
   .stat-tile .slabel{font-size:11.5px;color:var(--muted);font-weight:600;}
@@ -308,6 +309,7 @@
       <div id="deptContent" style="display:none;">
         <div class="stat-row">
           <div class="stat-tile"><div class="slabel">課程總數</div><div class="sval" id="statTotal">0<small>門</small></div></div>
+          <div class="stat-tile"><div class="slabel">AI涉入判定進度</div><div class="sval" id="statTriageRate">0<small>%</small></div></div>
           <div class="stat-tile"><div class="slabel">已完成盤點</div><div class="sval" id="statDone">0<small>門</small></div></div>
           <div class="stat-tile"><div class="slabel">尚未盤點</div><div class="sval" id="statPending">0<small>門</small></div></div>
           <div class="stat-tile"><div class="slabel">盤點完成率</div><div class="sval" id="statRate">0<small>%</small></div></div>
@@ -428,6 +430,7 @@
           <h2 id="collegeTitle" style="font-size:18px;margin-bottom:14px;">—</h2>
           <div class="stat-row">
             <div class="stat-tile"><div class="slabel">課程總數</div><div class="sval" id="cgStatTotal">0<small>門</small></div></div>
+            <div class="stat-tile"><div class="slabel">AI涉入判定進度</div><div class="sval" id="cgStatTriageRate">0<small>%</small></div></div>
             <div class="stat-tile"><div class="slabel">已完成盤點</div><div class="sval" id="cgStatDone">0<small>門</small></div></div>
             <div class="stat-tile"><div class="slabel">尚未盤點</div><div class="sval" id="cgStatPending">0<small>門</small></div></div>
             <div class="stat-tile"><div class="slabel">盤點完成率</div><div class="sval" id="cgStatRate">0<small>%</small></div></div>
@@ -462,6 +465,7 @@
           <h2 id="campusTitle" style="font-size:18px;margin-bottom:14px;">—</h2>
           <div class="stat-row">
             <div class="stat-tile"><div class="slabel">課程總數</div><div class="sval" id="cpStatTotal">0<small>門</small></div></div>
+            <div class="stat-tile"><div class="slabel">AI涉入判定進度</div><div class="sval" id="cpStatTriageRate">0<small>%</small></div></div>
             <div class="stat-tile"><div class="slabel">已完成盤點</div><div class="sval" id="cpStatDone">0<small>門</small></div></div>
             <div class="stat-tile"><div class="slabel">尚未盤點</div><div class="sval" id="cpStatPending">0<small>門</small></div></div>
             <div class="stat-tile"><div class="slabel">盤點完成率</div><div class="sval" id="cpStatRate">0<small>%</small></div></div>
@@ -492,6 +496,7 @@
         <h2 style="font-size:18px;margin-bottom:14px;">全校 AI 賦能課程盤點總覽</h2>
         <div class="stat-row">
           <div class="stat-tile"><div class="slabel">課程總數</div><div class="sval" id="allStatTotal">0<small>門</small></div></div>
+          <div class="stat-tile"><div class="slabel">AI涉入判定進度</div><div class="sval" id="allStatTriageRate">0<small>%</small></div></div>
           <div class="stat-tile"><div class="slabel">已完成盤點</div><div class="sval" id="allStatDone">0<small>門</small></div></div>
           <div class="stat-tile"><div class="slabel">尚未盤點</div><div class="sval" id="allStatPending">0<small>門</small></div></div>
           <div class="stat-tile"><div class="slabel">盤點完成率</div><div class="sval" id="allStatRate">0<small>%</small></div></div>
@@ -817,7 +822,7 @@
     document.getElementById('dcMeta').textContent = c.code + ' ・ ' + c.teacher + ' ・ ' + c.grade + ' ・ ' + c.credits + ' 學分 ・ ' + c.reqType + ' ・ ' + c.term;
     document.getElementById('dcSyllabus').textContent = c.syllabus || '（課程主檔尚無課程大綱資料）';
 
-    renderAiInvolved(rec);
+    renderAiInvolved(rec, c);
     renderDimGroups(rec);
     renderEvidence(rec);
     renderRadar(rec);
@@ -827,16 +832,29 @@
     document.getElementById('markDoneBtn').onclick = function(){ finalizeCourse(c, rec); };
   }
 
-  function renderAiInvolved(rec){
+  function renderAiInvolved(rec, c){
     var wrap = document.getElementById('aiInvolved');
     Array.prototype.forEach.call(wrap.querySelectorAll('.option-card'), function(card){
       var choice = card.dataset.choice;
       card.classList.toggle('checked', (choice==='yes' && rec.aiInvolved===true) || (choice==='no' && rec.aiInvolved===false));
       card.onclick = function(){
         rec.aiInvolved = (choice === 'yes');
-        renderAiInvolved(rec);
+        // 「是否涉及AI」本身就算一種盤點進度，點選當下就自動存檔並同步雲端，
+        // 不用等到後面填完11項指標才有紀錄——「不涉及AI」直接視為該課程已判定完畢；
+        // 「涉及AI」則先標記為草稿，後續再慢慢補指標與佐證。
+        if(rec.aiInvolved === false){
+          rec.status = 'no-ai';
+        } else if(rec.status === 'notstarted' || rec.status === 'no-ai'){
+          rec.status = 'draft';
+        }
+        rec.updatedAt = new Date().toISOString();
+        saveState();
+        renderCourseTable();
+        renderCurrentScope();
+        renderAiInvolved(rec, c);
         document.getElementById('ratingSections').style.display = rec.aiInvolved ? 'block' : 'none';
         renderRadar(rec);
+        submitToCloud(c, rec);
       };
     });
     document.getElementById('ratingSections').style.display = rec.aiInvolved ? 'block' : 'none';
@@ -1027,6 +1045,17 @@
     var rate = total ? Math.round(done/total*100) : 0;
     return {total:total, done:done, pending:pending, rate:rate};
   }
+  // AI涉入判定進度：只看「是否涉及AI」這題有沒有回答（不論後續11項指標填了沒），
+  // 讓學系可以先把每一門課至少判定一次涉不涉及AI，這是比「盤點完成率」更基礎的第一層進度。
+  function aiTriageStatsFor(courseList){
+    var total = courseList.length, triaged = 0;
+    courseList.forEach(function(c){
+      var rec = peekRecord(c.dept, c.id);
+      if(rec && rec.aiInvolved !== null) triaged++;
+    });
+    var rate = total ? Math.round(triaged/total*100) : 0;
+    return {total:total, triaged:triaged, rate:rate};
+  }
   // 指標填答完整度：以「涉及AI」課程的11項指標總數為分母，不論該課程是草稿或已完成，
   // 只要指標有勾選就算——讓學院/校區/全校能看到比「完成率」更細緻的真實填答進度。
   function indicatorFillStatsFor(courseList){
@@ -1107,8 +1136,10 @@
   function updateDashboard(){
     var list = deptCourses();
     var stats = statsFor(list);
+    var triage = aiTriageStatsFor(list);
 
     document.getElementById('statTotal').innerHTML = stats.total + '<small>門</small>';
+    document.getElementById('statTriageRate').innerHTML = triage.rate + '<small>%</small>';
     document.getElementById('statDone').innerHTML = stats.done + '<small>門</small>';
     document.getElementById('statPending').innerHTML = stats.pending + '<small>門</small>';
     document.getElementById('statRate').innerHTML = stats.rate + '<small>%</small>';
@@ -1134,8 +1165,10 @@
 
     var courseList = COURSES.filter(function(c){ return c.college === college; });
     var stats = statsFor(courseList);
+    var triage = aiTriageStatsFor(courseList);
     document.getElementById('collegeTitle').textContent = college + ' ・ 學院盤點分析';
     document.getElementById('cgStatTotal').innerHTML = stats.total + '<small>門</small>';
+    document.getElementById('cgStatTriageRate').innerHTML = triage.rate + '<small>%</small>';
     document.getElementById('cgStatDone').innerHTML = stats.done + '<small>門</small>';
     document.getElementById('cgStatPending').innerHTML = stats.pending + '<small>門</small>';
     document.getElementById('cgStatRate').innerHTML = stats.rate + '<small>%</small>';
@@ -1162,8 +1195,10 @@
 
     var courseList = COURSES.filter(function(c){ return campusOf(c.college) === campus; });
     var stats = statsFor(courseList);
+    var triage = aiTriageStatsFor(courseList);
     document.getElementById('campusTitle').textContent = campus + ' ・ 校區盤點分析';
     document.getElementById('cpStatTotal').innerHTML = stats.total + '<small>門</small>';
+    document.getElementById('cpStatTriageRate').innerHTML = triage.rate + '<small>%</small>';
     document.getElementById('cpStatDone').innerHTML = stats.done + '<small>門</small>';
     document.getElementById('cpStatPending').innerHTML = stats.pending + '<small>門</small>';
     document.getElementById('cpStatRate').innerHTML = stats.rate + '<small>%</small>';
@@ -1184,7 +1219,9 @@
   function renderAllDashboard(){
     var courseList = COURSES;
     var stats = statsFor(courseList);
+    var triage = aiTriageStatsFor(courseList);
     document.getElementById('allStatTotal').innerHTML = stats.total + '<small>門</small>';
+    document.getElementById('allStatTriageRate').innerHTML = triage.rate + '<small>%</small>';
     document.getElementById('allStatDone').innerHTML = stats.done + '<small>門</small>';
     document.getElementById('allStatPending').innerHTML = stats.pending + '<small>門</small>';
     document.getElementById('allStatRate').innerHTML = stats.rate + '<small>%</small>';
