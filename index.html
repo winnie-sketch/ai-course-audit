@@ -1347,8 +1347,7 @@
     }).catch(function(){ /* 網路失敗也不影響本機草稿，仍已存在 localStorage */ });
   }
 
-  // 讀取：用 JSONP 讀回試算表全部列（避開 Apps Script 的 CORS 限制），
-  // 同一門課多次送出時取最後一筆（appendRow 為時間先後順序，故直接覆寫即可）
+  // 讀取：讀回試算表全部列，同一門課多次送出時取最後一筆（appendRow 為時間先後順序，故直接覆寫即可）
   function mergeCloudRows(rows){
     rows.forEach(function(row){
       var dept = row['系所'], code = row['課號'];
@@ -1366,7 +1365,35 @@
       rec.ratings = ratings;
       rec.updatedAt = row['時間戳記'] || null;
     });
+    pruneLocalRecordsMissingFromCloud(rows);
     saveState();
+  }
+
+  // 反向偵測：雲端試算表若被清空或刪除，本機瀏覽器快取的舊紀錄不會自動消失
+  // （merge 只會新增/更新，從不刪除），這裡補上「雲端已找不到、本機也歸零」的機制。
+  // 為避免 Google 試算表「發布到網路」有幾分鐘更新延遲，剛送出不久（10分鐘內）的紀錄先不處理，
+  // 避免系所才剛標記完成、儀表板還沒讀到最新發布內容，就被誤判成「雲端沒有」而清空。
+  function pruneLocalRecordsMissingFromCloud(rows){
+    var cloudKeys = {};
+    rows.forEach(function(row){ cloudKeys[row['系所'] + '||' + row['課號']] = true; });
+    var GRACE_MS = 10 * 60 * 1000;
+    var now = Date.now();
+    Object.keys(state).forEach(function(dept){
+      var ds = state[dept];
+      Object.keys(ds).forEach(function(courseIdStr){
+        var rec = ds[courseIdStr];
+        if(!rec || rec.status === 'notstarted') return;
+        var id = Number(courseIdStr);
+        if(dept === currentDept && id === currentCourseId) return; // 不動使用者正在編輯中的課程
+        if(rec.updatedAt){
+          var age = now - new Date(rec.updatedAt).getTime();
+          if(age >= 0 && age < GRACE_MS) return; // 剛送出，給發布延遲一點緩衝時間
+        }
+        var course = COURSES.find(function(c){ return c.dept === dept && c.id === id; });
+        if(!course) return; // 課程主檔本身已異動，交由其他邏輯處理，這裡不猜測
+        if(!cloudKeys[dept + '||' + course.code]) delete ds[courseIdStr];
+      });
+    });
   }
 
   function loadCloudData(silent){
