@@ -383,8 +383,8 @@
                 </details>
                 <div id="dimGroups"></div>
 
-                <div class="card-head" style="margin-top:16px;"><h3 style="font-size:13.5px;">教學與評量佐證</h3><span class="req opt">三級以上建議填寫</span></div>
-                <div class="hint">說明對應之教學活動、學生產出或評量方式，作為判定依據。</div>
+                <div class="card-head" style="margin-top:16px;"><h3 style="font-size:13.5px;">教學與評量佐證</h3><span class="req must">三級以上必填</span></div>
+                <div class="hint">說明對應之教學活動、學生產出或評量方式，作為判定依據；未填寫將無法標記完成，避免僅憑印象勾選等級。</div>
                 <div id="evidenceBody"></div>
               </div>
 
@@ -842,16 +842,24 @@
     document.getElementById('ratingSections').style.display = rec.aiInvolved ? 'block' : 'none';
   }
 
+  function updateRatingProgress(rec){
+    var progressEl = document.getElementById('ratingProgress');
+    var filled = filledIndicatorCount(rec);
+    if(filled < INDICATORS.length){
+      progressEl.textContent = '已完成 ' + filled + '/' + INDICATORS.length + ' 項，尚缺：' + missingIndicatorCodes(rec).join('、') + '。可先「儲存草稿」，之後再回來補填。';
+    } else {
+      var needEvidence = INDICATORS.filter(function(i){ return (rec.ratings[i.code]||0) >= 3 && !(rec.evidence[i.code]||'').trim(); });
+      if(needEvidence.length){
+        progressEl.textContent = '11 項指標已勾選，但 ' + needEvidence.map(function(i){ return i.code; }).join('、') + ' 為3級以上，需補教學佐證說明才能標記完成。';
+      } else {
+        progressEl.textContent = '已完成 ' + filled + '/' + INDICATORS.length + ' 項，佐證說明皆已填寫，可以標記完成。';
+      }
+    }
+  }
   function renderDimGroups(rec){
     var el = document.getElementById('dimGroups');
     el.innerHTML = '';
-    var progressEl = document.getElementById('ratingProgress');
-    var filled = filledIndicatorCount(rec);
-    if(filled >= INDICATORS.length){
-      progressEl.textContent = '已完成 ' + filled + '/' + INDICATORS.length + ' 項。';
-    } else {
-      progressEl.textContent = '已完成 ' + filled + '/' + INDICATORS.length + ' 項，尚缺：' + missingIndicatorCodes(rec).join('、') + '。可先「儲存草稿」，之後再回來補填。';
-    }
+    updateRatingProgress(rec);
     DIMENSIONS.forEach(function(dim){
       var wrap = document.createElement('div');
       wrap.className = 'dim-group';
@@ -901,7 +909,7 @@
         '</div>';
     }).join('');
     Array.prototype.forEach.call(el.querySelectorAll('textarea'), function(ta){
-      ta.addEventListener('input', function(){ rec.evidence[ta.dataset.code] = ta.value; });
+      ta.addEventListener('input', function(){ rec.evidence[ta.dataset.code] = ta.value; updateRatingProgress(rec); });
     });
   }
 
@@ -924,6 +932,12 @@
     } else {
       var missing = INDICATORS.some(function(i){ return rec.ratings[i.code] === undefined; });
       if(missing){ toast('請完成全部 11 項指標的等級勾選'); return; }
+      // 3級（中度）以上必須附佐證說明，避免為了按完成而隨意勾選、卻沒有真的對應教學內容
+      var needEvidence = INDICATORS.filter(function(i){ return (rec.ratings[i.code]||0) >= 3 && !(rec.evidence[i.code]||'').trim(); });
+      if(needEvidence.length){
+        toast('以下指標為3級以上，請填寫對應的教學佐證說明：' + needEvidence.map(function(i){ return i.code; }).join('、'));
+        return;
+      }
       persistCourse(rec, 'done');
     }
     submitToCloud(c, rec);
