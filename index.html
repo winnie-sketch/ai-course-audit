@@ -151,6 +151,9 @@
   .badge::before{content:"";width:6px;height:6px;border-radius:50%;background:currentColor;flex:none;}
   @media (prefers-color-scheme:dark){ .badge.warn{color:#fab219;} }
   :root[data-theme="dark"] .badge.warn{color:#fab219;}
+  .alert-warn{margin:0 0 12px;padding:10px 13px;border-radius:9px;background:var(--warning-bg);color:#a06600;font-size:12.5px;font-weight:700;}
+  @media (prefers-color-scheme:dark){ .alert-warn{color:#fab219;} }
+  :root[data-theme="dark"] .alert-warn{color:#fab219;}
 
   .empty-state{padding:34px 20px;text-align:center;color:var(--muted);font-size:13px;border:1px dashed var(--border);border-radius:12px;}
   .empty-state b{color:var(--ink-2);}
@@ -387,10 +390,10 @@
                     <div class="rubric-item"><dt>5．核心關聯</dt><dd>此能力是本課程的核心目標，貫穿整體教學設計、主要活動與評量方式，為課程不可或缺的核心內容。</dd></div>
                   </dl>
                 </details>
-                <div class="hint" style="margin:0 0 12px;">提醒：任一指標勾選<b>3．中度關聯以上</b>，都要在下方「教學與評量佐證」說明對應之教學活動、學生產出或評量方式，沒有填寫無法標記完成。</div>
+                <div class="alert-warn">提醒：任一指標勾選<b>3．中度關聯以上</b>，都要在下方「教學與評量方式」說明對應之教學活動、學生產出或評量方式，沒有填寫無法標記完成。</div>
                 <div id="dimGroups"></div>
 
-                <div class="card-head" style="margin-top:16px;"><h3 style="font-size:13.5px;">教學與評量佐證</h3><span class="req must">三級以上必填</span></div>
+                <div class="card-head" style="margin-top:16px;"><h3 style="font-size:13.5px;">教學與評量方式</h3><span class="req must">三級以上必填</span></div>
                 <div class="hint">說明對應之教學活動、學生產出或評量方式，作為判定依據；未填寫將無法標記完成，避免僅憑印象勾選等級。</div>
                 <div id="evidenceBody"></div>
               </div>
