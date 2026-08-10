@@ -911,9 +911,9 @@
     } else {
       var needEvidence = INDICATORS.filter(function(i){ return (rec.ratings[i.code]||0) >= 3 && !(rec.evidence[i.code]||'').trim(); });
       if(needEvidence.length){
-        progressEl.textContent = '11 項指標已勾選，但 ' + needEvidence.map(function(i){ return i.code; }).join('、') + ' 為3級以上，需補教學佐證說明才能標記完成。';
+        progressEl.textContent = '11 項指標已勾選，但 ' + needEvidence.map(function(i){ return i.code; }).join('、') + ' 為3級以上，需補教學與評量方式說明才能標記完成。';
       } else {
-        progressEl.textContent = '已完成 ' + filled + '/' + INDICATORS.length + ' 項，佐證說明皆已填寫，可以標記完成。';
+        progressEl.textContent = '已完成 ' + filled + '/' + INDICATORS.length + ' 項，教學與評量方式皆已填寫，可以標記完成。';
       }
     }
   }
@@ -959,7 +959,7 @@
     var el = document.getElementById('evidenceBody');
     var need = INDICATORS.filter(function(i){ return (rec.ratings[i.code]||0) >= 3; });
     if(!need.length){
-      el.innerHTML = '<div class="hint" style="margin:0;">目前無三級以上指標，暫不需填寫佐證。</div>';
+      el.innerHTML = '<div class="hint" style="margin:0;">目前無三級以上指標，暫不需填寫。</div>';
       return;
     }
     el.innerHTML = need.map(function(ind){
@@ -996,7 +996,7 @@
       // 3級（中度）以上必須附佐證說明，避免為了按完成而隨意勾選、卻沒有真的對應教學內容
       var needEvidence = INDICATORS.filter(function(i){ return (rec.ratings[i.code]||0) >= 3 && !(rec.evidence[i.code]||'').trim(); });
       if(needEvidence.length){
-        toast('以下指標為3級以上，請填寫對應的教學佐證說明：' + needEvidence.map(function(i){ return i.code; }).join('、'));
+        toast('以下指標為3級以上，請填寫對應的教學與評量方式說明：' + needEvidence.map(function(i){ return i.code; }).join('、'));
         return;
       }
       persistCourse(rec, 'done');
