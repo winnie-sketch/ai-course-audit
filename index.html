@@ -114,6 +114,7 @@
   .stat-tile .slabel{font-size:11.5px;color:var(--muted);font-weight:600;}
   .stat-tile .sval{font-size:25px;font-weight:700;margin-top:4px;}
   .stat-tile .sval small{font-size:13px;font-weight:600;color:var(--ink-2);margin-left:2px;}
+  .stat-tile .scap{font-size:10.5px;color:var(--muted);margin-top:5px;line-height:1.4;}
 
   .layout-2col{display:grid;grid-template-columns:1fr 320px;gap:18px;align-items:start;}
   @media (max-width:1020px){ .layout-2col{grid-template-columns:1fr;} }
@@ -316,10 +317,10 @@
       <div id="deptContent" style="display:none;">
         <div class="stat-row">
           <div class="stat-tile"><div class="slabel">課程總數</div><div class="sval" id="statTotal">0<small>門</small></div></div>
-          <div class="stat-tile"><div class="slabel">AI涉入判定進度</div><div class="sval" id="statTriageRate">0<small>%</small></div></div>
+          <div class="stat-tile"><div class="slabel">AI涉入判定進度</div><div class="sval" id="statTriageRate">0<small>%</small></div><div class="scap">已判斷「有無涉及AI」的課程比例</div></div>
           <div class="stat-tile"><div class="slabel">已完成盤點</div><div class="sval" id="statDone">0<small>門</small></div></div>
           <div class="stat-tile"><div class="slabel">尚未盤點</div><div class="sval" id="statPending">0<small>門</small></div></div>
-          <div class="stat-tile"><div class="slabel">盤點完成率</div><div class="sval" id="statRate">0<small>%</small></div></div>
+          <div class="stat-tile"><div class="slabel">盤點完成率</div><div class="sval" id="statRate">0<small>%</small></div><div class="scap">已按下「標記完成」的課程比例</div></div>
         </div>
 
         <div class="layout-2col">
@@ -398,10 +399,11 @@
                 <div id="evidenceBody"></div>
               </div>
 
-              <div style="display:flex;gap:10px;margin-top:16px;flex-wrap:wrap;">
+              <div id="actionButtonsRow" style="display:flex;gap:10px;margin-top:16px;flex-wrap:wrap;">
                 <button class="btn" id="saveDraftBtn" style="width:auto;flex:1;">儲存草稿</button>
                 <button class="btn primary" id="markDoneBtn" style="width:auto;flex:1;">標記完成</button>
               </div>
+              <div id="noAiDoneNote" style="display:none;margin-top:16px;padding:12px 15px;border-radius:10px;background:var(--good-bg);color:var(--good);font-weight:700;font-size:13px;">✓ 已完成盤點（本課程不涉及AI）。點選當下即自動存檔，不需要再按其他按鈕。</div>
             </div>
           </div>
 
@@ -438,10 +440,10 @@
           <h2 id="collegeTitle" style="font-size:18px;margin-bottom:14px;">—</h2>
           <div class="stat-row">
             <div class="stat-tile"><div class="slabel">課程總數</div><div class="sval" id="cgStatTotal">0<small>門</small></div></div>
-            <div class="stat-tile"><div class="slabel">AI涉入判定進度</div><div class="sval" id="cgStatTriageRate">0<small>%</small></div></div>
+            <div class="stat-tile"><div class="slabel">AI涉入判定進度</div><div class="sval" id="cgStatTriageRate">0<small>%</small></div><div class="scap">已判斷「有無涉及AI」的課程比例</div></div>
             <div class="stat-tile"><div class="slabel">已完成盤點</div><div class="sval" id="cgStatDone">0<small>門</small></div></div>
             <div class="stat-tile"><div class="slabel">尚未盤點</div><div class="sval" id="cgStatPending">0<small>門</small></div></div>
-            <div class="stat-tile"><div class="slabel">盤點完成率</div><div class="sval" id="cgStatRate">0<small>%</small></div></div>
+            <div class="stat-tile"><div class="slabel">盤點完成率</div><div class="sval" id="cgStatRate">0<small>%</small></div><div class="scap">已按下「標記完成」的課程比例</div></div>
           </div>
           <div class="layout-2col">
             <div class="stack">
@@ -473,10 +475,10 @@
           <h2 id="campusTitle" style="font-size:18px;margin-bottom:14px;">—</h2>
           <div class="stat-row">
             <div class="stat-tile"><div class="slabel">課程總數</div><div class="sval" id="cpStatTotal">0<small>門</small></div></div>
-            <div class="stat-tile"><div class="slabel">AI涉入判定進度</div><div class="sval" id="cpStatTriageRate">0<small>%</small></div></div>
+            <div class="stat-tile"><div class="slabel">AI涉入判定進度</div><div class="sval" id="cpStatTriageRate">0<small>%</small></div><div class="scap">已判斷「有無涉及AI」的課程比例</div></div>
             <div class="stat-tile"><div class="slabel">已完成盤點</div><div class="sval" id="cpStatDone">0<small>門</small></div></div>
             <div class="stat-tile"><div class="slabel">尚未盤點</div><div class="sval" id="cpStatPending">0<small>門</small></div></div>
-            <div class="stat-tile"><div class="slabel">盤點完成率</div><div class="sval" id="cpStatRate">0<small>%</small></div></div>
+            <div class="stat-tile"><div class="slabel">盤點完成率</div><div class="sval" id="cpStatRate">0<small>%</small></div><div class="scap">已按下「標記完成」的課程比例</div></div>
           </div>
           <div class="layout-2col">
             <div class="stack">
@@ -504,10 +506,10 @@
         <h2 style="font-size:18px;margin-bottom:14px;" id="allDashboardTitle">全校未來人才AI能力圖像課程盤點總覽</h2>
         <div class="stat-row">
           <div class="stat-tile"><div class="slabel">課程總數</div><div class="sval" id="allStatTotal">0<small>門</small></div></div>
-          <div class="stat-tile"><div class="slabel">AI涉入判定進度</div><div class="sval" id="allStatTriageRate">0<small>%</small></div></div>
+          <div class="stat-tile"><div class="slabel">AI涉入判定進度</div><div class="sval" id="allStatTriageRate">0<small>%</small></div><div class="scap">已判斷「有無涉及AI」的課程比例</div></div>
           <div class="stat-tile"><div class="slabel">已完成盤點</div><div class="sval" id="allStatDone">0<small>門</small></div></div>
           <div class="stat-tile"><div class="slabel">尚未盤點</div><div class="sval" id="allStatPending">0<small>門</small></div></div>
-          <div class="stat-tile"><div class="slabel">盤點完成率</div><div class="sval" id="allStatRate">0<small>%</small></div></div>
+          <div class="stat-tile"><div class="slabel">盤點完成率</div><div class="sval" id="allStatRate">0<small>%</small></div><div class="scap">已按下「標記完成」的課程比例</div></div>
         </div>
         <div class="layout-2col">
           <div class="stack">
@@ -901,6 +903,10 @@
       };
     });
     document.getElementById('ratingSections').style.display = rec.aiInvolved ? 'block' : 'none';
+    // 不涉及AI的課程一選就已經自動存檔完成，不需要再按「儲存草稿／標記完成」，
+    // 直接隱藏按鈕、改顯示明確的完成提示，避免老師誤以為還要再操作、重複點擊看到誤導訊息
+    document.getElementById('actionButtonsRow').style.display = rec.aiInvolved === false ? 'none' : 'flex';
+    document.getElementById('noAiDoneNote').style.display = rec.aiInvolved === false ? 'block' : 'none';
   }
 
   function updateRatingProgress(rec){
@@ -980,7 +986,9 @@
     saveState();
     renderCourseTable();
     renderCurrentScope();
-    toast(status === 'done' ? '已標記完成並儲存' : '草稿已儲存');
+    if(status === 'done') toast('已標記完成並儲存');
+    else if(status === 'no-ai') toast('已完成盤點（不涉及AI）');
+    else toast('草稿已儲存');
   }
 
   function finalizeCourse(c, rec){
@@ -1159,7 +1167,9 @@
   function renderBreakdownTable(elId, headerLabel, rows){
     var el = document.getElementById(elId);
     if(!rows.length){ el.innerHTML = '<div class="hint" style="margin:0;">無資料。</div>'; return; }
-    el.innerHTML = '<div class="table-wrap"><table><thead><tr><th>'+headerLabel+'</th><th>課程數</th><th>已完成</th><th>完成率</th><th>指標填答完整度</th></tr></thead><tbody>' +
+    el.innerHTML = '<div class="table-wrap"><table><thead><tr><th>'+headerLabel+'</th><th>課程數</th><th>已完成</th>' +
+      '<th style="cursor:help;border-bottom:1px dotted var(--muted);" title="已按下「標記完成」的課程比例">完成率</th>' +
+      '<th style="cursor:help;border-bottom:1px dotted var(--muted);" title="涉及AI課程中，11項指標已選填等級的比例；不代表已標記完成">指標填答完整度</th></tr></thead><tbody>' +
       rows.map(function(r){
         return '<tr><td>'+escapeHtml(r.label)+'</td><td>'+r.total+'</td><td>'+r.done+'</td><td>'+rateBadge(r.rate)+'</td>' +
           '<td>'+rateBadge(r.fillRate)+' <span class="hint" style="margin:0;display:inline;">（'+r.filledSlots+'/'+r.totalSlots+' 項，'+r.aiCourseCount+' 門涉及AI課程）</span></td></tr>';
@@ -1168,7 +1178,9 @@
   function renderAllBreakdownTable(elId, rows){
     var el = document.getElementById(elId);
     if(!rows.length){ el.innerHTML = '<div class="hint" style="margin:0;">無資料。</div>'; return; }
-    el.innerHTML = '<div class="table-wrap"><table><thead><tr><th>校區</th><th>學院</th><th>課程數</th><th>已完成</th><th>完成率</th><th>指標填答完整度</th></tr></thead><tbody>' +
+    el.innerHTML = '<div class="table-wrap"><table><thead><tr><th>校區</th><th>學院</th><th>課程數</th><th>已完成</th>' +
+      '<th style="cursor:help;border-bottom:1px dotted var(--muted);" title="已按下「標記完成」的課程比例">完成率</th>' +
+      '<th style="cursor:help;border-bottom:1px dotted var(--muted);" title="涉及AI課程中，11項指標已選填等級的比例；不代表已標記完成">指標填答完整度</th></tr></thead><tbody>' +
       rows.map(function(r){
         return '<tr><td>'+escapeHtml(r.campus)+'</td><td>'+escapeHtml(r.college)+'</td><td>'+r.total+'</td><td>'+r.done+'</td><td>'+rateBadge(r.rate)+'</td>' +
           '<td>'+rateBadge(r.fillRate)+' <span class="hint" style="margin:0;display:inline;">（'+r.filledSlots+'/'+r.totalSlots+' 項，'+r.aiCourseCount+' 門涉及AI課程）</span></td></tr>';
