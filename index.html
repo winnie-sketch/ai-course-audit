@@ -419,7 +419,11 @@
 
           <div class="summary-panel">
             <div class="card">
-              <div class="card-head"><h3 style="font-size:13.5px;">課程能力剖面</h3></div>
+              <div class="card-head"><h3 style="font-size:13.5px;">系所能力剖面（平均）</h3></div>
+              <div class="radar-wrap" id="deptRadarWrap"></div>
+            </div>
+            <div class="card">
+              <div class="card-head"><h3 style="font-size:13.5px;">單一課程剖面（即時預覽）</h3></div>
               <div class="radar-wrap" id="radarWrap">
                 <div class="radar-empty">選擇課程並開始評分後，<br>將即時顯示四面向剖面圖</div>
               </div>
@@ -1291,6 +1295,7 @@
 
     var ratedRecs = ratedRecordsFor(list);
     renderMiniBarsInto('coverageMiniBars', indicatorAveragesFor(ratedRecs), ratedRecs.length > 0);
+    renderAggregateRadar('deptRadarWrap', list);
   }
 
   /* ---------- Dashboard (學院 aggregate) ---------- */
