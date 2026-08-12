@@ -226,6 +226,16 @@
   .radar-wrap{display:flex;flex-direction:column;align-items:center;gap:6px;}
   .radar-caption{font-size:11px;color:var(--muted);text-align:center;}
   .radar-empty{padding:30px 10px;text-align:center;color:var(--muted);font-size:12px;}
+  .course-search-wrap{position:relative;}
+  .course-search-results{position:absolute;left:0;right:0;top:100%;margin-top:4px;z-index:30;background:var(--surface-raised);border:1px solid var(--border);border-radius:10px;box-shadow:var(--shadow);max-height:260px;overflow-y:auto;display:none;}
+  .search-result-item{padding:9px 12px;font-size:12.5px;cursor:pointer;border-bottom:1px solid var(--border);}
+  .search-result-item:last-child{border-bottom:none;}
+  .search-result-item:hover{background:var(--surface-hover, rgba(127,127,127,0.12));}
+  .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.45);display:none;align-items:center;justify-content:center;z-index:100;padding:20px;}
+  .modal-box{background:var(--surface-raised);border:1px solid var(--border);border-radius:16px;box-shadow:var(--shadow);padding:22px 24px;max-width:360px;width:100%;}
+  .modal-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;}
+  .modal-head h3{font-size:14.5px;margin:0;}
+  .modal-close{background:none;border:none;font-size:16px;color:var(--muted);cursor:pointer;line-height:1;padding:4px;}
 
   .progress-line{display:flex;align-items:center;gap:10px;}
   .progress-track{flex:1;height:8px;border-radius:99px;background:var(--grid);overflow:hidden;}
@@ -415,6 +425,13 @@
               </div>
             </div>
             <div class="card">
+              <div class="card-head"><h3 style="font-size:13.5px;">查詢單一課程剖面</h3></div>
+              <div class="course-search-wrap">
+                <input type="text" class="search-input" id="deptCourseSearch" placeholder="輸入課程名稱／教師搜尋已完成課程…">
+                <div class="course-search-results" id="deptCourseSearchResults"></div>
+              </div>
+            </div>
+            <div class="card">
               <div class="card-head"><h3 style="font-size:13.5px;">系所盤點進度</h3></div>
               <div class="progress-line">
                 <div class="progress-track"><div class="progress-fill" id="progressFill" style="width:0%"></div></div>
@@ -458,6 +475,13 @@
                 <div class="radar-wrap" id="collegeRadarWrap"></div>
               </div>
               <div class="card">
+                <div class="card-head"><h3 style="font-size:13.5px;">查詢單一課程剖面</h3></div>
+                <div class="course-search-wrap">
+                  <input type="text" class="search-input" id="collegeCourseSearch" placeholder="輸入課程名稱／教師搜尋已完成課程…">
+                  <div class="course-search-results" id="collegeCourseSearchResults"></div>
+                </div>
+              </div>
+              <div class="card">
                 <div class="card-head"><h3 style="font-size:13.5px;">11 項指標覆蓋度（學院平均）</h3></div>
                 <div id="collegeCoverage"></div>
               </div>
@@ -493,6 +517,13 @@
                 <div class="radar-wrap" id="campusRadarWrap"></div>
               </div>
               <div class="card">
+                <div class="card-head"><h3 style="font-size:13.5px;">查詢單一課程剖面</h3></div>
+                <div class="course-search-wrap">
+                  <input type="text" class="search-input" id="campusCourseSearch" placeholder="輸入課程名稱／教師搜尋已完成課程…">
+                  <div class="course-search-results" id="campusCourseSearchResults"></div>
+                </div>
+              </div>
+              <div class="card">
                 <div class="card-head"><h3 style="font-size:13.5px;">11 項指標覆蓋度（校區平均）</h3></div>
                 <div id="campusCoverage"></div>
               </div>
@@ -524,6 +555,13 @@
               <div class="radar-wrap" id="allRadarWrap"></div>
             </div>
             <div class="card">
+              <div class="card-head"><h3 style="font-size:13.5px;">查詢單一課程剖面</h3></div>
+              <div class="course-search-wrap">
+                <input type="text" class="search-input" id="allCourseSearch" placeholder="輸入課程名稱／教師搜尋已完成課程…">
+                <div class="course-search-results" id="allCourseSearchResults"></div>
+              </div>
+            </div>
+            <div class="card">
               <div class="card-head"><h3 style="font-size:13.5px;">11 項指標覆蓋度（全校平均）</h3></div>
               <div id="allCoverage"></div>
             </div>
@@ -536,6 +574,14 @@
 </div>
 
 <div class="toast" id="toast"></div>
+
+<div class="modal-overlay" id="courseRadarModal">
+  <div class="modal-box">
+    <div class="modal-head"><h3 id="crmTitle">課程能力剖面</h3><button class="modal-close" id="crmClose">✕</button></div>
+    <div class="hint" id="crmMeta" style="margin:0 0 10px;"></div>
+    <div class="radar-wrap" id="crmRadarWrap"></div>
+  </div>
+</div>
 
 <script>
 (function(){
@@ -1154,6 +1200,49 @@
     var dimAvgs = dimAveragesFromIndicatorAvgs(indicatorAveragesFor(ratedRecs));
     drawRadarOnCanvas(document.getElementById(canvasId), dimAvgs);
   }
+
+  /* ---------- 單一課程剖面查詢（各層級儀表板共用） ---------- */
+  function openCourseRadarModal(dept, id){
+    var c = COURSES.find(function(x){ return x.id === id; });
+    var rec = peekRecord(dept, id);
+    if(!c || !rec) return;
+    document.getElementById('crmTitle').textContent = c.name;
+    document.getElementById('crmMeta').textContent = c.dept + ' ・ ' + c.teacher + ' ・ ' + c.code + ' ・ ' + c.term;
+    document.getElementById('crmRadarWrap').innerHTML = '<canvas id="crmCanvas" width="260" height="230"></canvas><div class="radar-caption">各面向平均等級（0–5）</div>';
+    drawRadarOnCanvas(document.getElementById('crmCanvas'), dimAverages(rec));
+    document.getElementById('courseRadarModal').style.display = 'flex';
+  }
+  function closeCourseRadarModal(){
+    document.getElementById('courseRadarModal').style.display = 'none';
+  }
+  function initCourseSearchWidget(inputId, resultsId, getCourseListFn){
+    var input = document.getElementById(inputId);
+    var results = document.getElementById(resultsId);
+    if(!input || !results) return;
+    input.addEventListener('input', function(){
+      var q = input.value.trim().toLowerCase();
+      if(!q){ results.style.display = 'none'; results.innerHTML = ''; return; }
+      var matches = getCourseListFn().filter(function(c){
+        var rec = peekRecord(c.dept, c.id);
+        if(!rec || rec.status !== 'done') return false;
+        return c.name.toLowerCase().indexOf(q) !== -1 ||
+          c.teacher.toLowerCase().indexOf(q) !== -1 ||
+          c.dept.toLowerCase().indexOf(q) !== -1;
+      }).slice(0, 20);
+      results.style.display = 'block';
+      results.innerHTML = matches.length ? matches.map(function(c){
+        return '<div class="search-result-item" data-dept="'+escapeHtml(c.dept)+'" data-id="'+c.id+'">'+escapeHtml(c.name)+
+          '<span class="hint" style="margin:0;display:block;">'+escapeHtml(c.dept)+' ・ '+escapeHtml(c.teacher)+'</span></div>';
+      }).join('') : '<div class="hint" style="margin:0;padding:9px 12px;">查無符合的已完成課程</div>';
+      Array.prototype.forEach.call(results.querySelectorAll('.search-result-item'), function(item){
+        item.addEventListener('click', function(){
+          openCourseRadarModal(item.dataset.dept, parseInt(item.dataset.id, 10));
+          results.style.display = 'none';
+          input.value = '';
+        });
+      });
+    });
+  }
   function rateBadge(rate){
     var cls = rate >= 80 ? 'good' : (rate >= 40 ? 'warn' : 'muted');
     return '<span class="badge '+cls+'">'+rate+'%</span>';
@@ -1488,6 +1577,22 @@
 
 
   /* ---------- wire up static controls ---------- */
+  document.getElementById('crmClose').addEventListener('click', closeCourseRadarModal);
+  document.getElementById('courseRadarModal').addEventListener('click', function(e){
+    if(e.target.id === 'courseRadarModal') closeCourseRadarModal();
+  });
+  initCourseSearchWidget('deptCourseSearch', 'deptCourseSearchResults', deptCourses);
+  initCourseSearchWidget('collegeCourseSearch', 'collegeCourseSearchResults', function(){
+    var college = document.getElementById('collegeSelect').value;
+    return COURSES.filter(function(c){ return c.college === college && c.academicYear === currentYear; });
+  });
+  initCourseSearchWidget('campusCourseSearch', 'campusCourseSearchResults', function(){
+    var campus = document.getElementById('campusSelect').value;
+    return COURSES.filter(function(c){ return c.campus === campus && c.academicYear === currentYear; });
+  });
+  initCourseSearchWidget('allCourseSearch', 'allCourseSearchResults', function(){
+    return COURSES.filter(function(c){ return c.academicYear === currentYear; });
+  });
   document.getElementById('courseSearch').addEventListener('input', renderCourseTable);
   Array.prototype.forEach.call(document.querySelectorAll('#reqFilter button'), function(b){
     b.addEventListener('click', function(){
