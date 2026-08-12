@@ -1137,7 +1137,7 @@
       if(st === 'done' || st === 'no-ai') done++;
     });
     var pending = total - done;
-    var rate = total ? Math.round(done/total*100) : 0;
+    var rate = total ? Math.round(done/total*10000)/100 : 0;
     return {total:total, done:done, pending:pending, rate:rate};
   }
   // AI涉入判定進度：只看「是否涉及AI」這題有沒有回答（不論後續11項指標填了沒），
@@ -1148,7 +1148,7 @@
       var rec = peekRecord(c.dept, c.id);
       if(rec && rec.aiInvolved !== null) triaged++;
     });
-    var rate = total ? Math.round(triaged/total*100) : 0;
+    var rate = total ? Math.round(triaged/total*10000)/100 : 0;
     return {total:total, triaged:triaged, rate:rate};
   }
   // 指標填答完整度：以「涉及AI」課程的11項指標總數為分母，不論該課程是草稿或已完成，
@@ -1247,9 +1247,10 @@
       });
     });
   }
-  function rateBadge(rate){
+  function rateBadge(rate, decimals){
     var cls = rate >= 80 ? 'good' : (rate >= 40 ? 'warn' : 'muted');
-    return '<span class="badge '+cls+'">'+rate+'%</span>';
+    var text = decimals ? rate.toFixed(decimals) : rate;
+    return '<span class="badge '+cls+'">'+text+'%</span>';
   }
   function renderBreakdownTable(elId, headerLabel, rows){
     var el = document.getElementById(elId);
@@ -1258,7 +1259,7 @@
       '<th style="cursor:help;border-bottom:1px dotted var(--muted);" title="已按下「標記完成」的課程比例">完成率</th>' +
       '<th style="cursor:help;border-bottom:1px dotted var(--muted);" title="涉及AI課程中，11項指標已選填等級的比例；不代表已標記完成">指標填答完整度</th></tr></thead><tbody>' +
       rows.map(function(r){
-        return '<tr><td>'+escapeHtml(r.label)+'</td><td>'+r.total+'</td><td>'+r.done+'</td><td>'+rateBadge(r.rate)+'</td>' +
+        return '<tr><td>'+escapeHtml(r.label)+'</td><td>'+r.total+'</td><td>'+r.done+'</td><td>'+rateBadge(r.rate, 2)+'</td>' +
           '<td>'+rateBadge(r.fillRate)+' <span class="hint" style="margin:0;display:inline;">（'+r.filledSlots+'/'+r.totalSlots+' 項，'+r.aiCourseCount+' 門涉及AI課程）</span></td></tr>';
       }).join('') + '</tbody></table></div>';
   }
@@ -1269,7 +1270,7 @@
       '<th style="cursor:help;border-bottom:1px dotted var(--muted);" title="已按下「標記完成」的課程比例">完成率</th>' +
       '<th style="cursor:help;border-bottom:1px dotted var(--muted);" title="涉及AI課程中，11項指標已選填等級的比例；不代表已標記完成">指標填答完整度</th></tr></thead><tbody>' +
       rows.map(function(r){
-        return '<tr><td>'+escapeHtml(r.campus)+'</td><td>'+escapeHtml(r.college)+'</td><td>'+r.total+'</td><td>'+r.done+'</td><td>'+rateBadge(r.rate)+'</td>' +
+        return '<tr><td>'+escapeHtml(r.campus)+'</td><td>'+escapeHtml(r.college)+'</td><td>'+r.total+'</td><td>'+r.done+'</td><td>'+rateBadge(r.rate, 2)+'</td>' +
           '<td>'+rateBadge(r.fillRate)+' <span class="hint" style="margin:0;display:inline;">（'+r.filledSlots+'/'+r.totalSlots+' 項，'+r.aiCourseCount+' 門涉及AI課程）</span></td></tr>';
       }).join('') + '</tbody></table></div>';
   }
@@ -1281,17 +1282,17 @@
     var triage = aiTriageStatsFor(list);
 
     document.getElementById('statTotal').innerHTML = stats.total + '<small>門</small>';
-    document.getElementById('statTriageRate').innerHTML = triage.rate + '<small>%</small>';
+    document.getElementById('statTriageRate').innerHTML = triage.rate.toFixed(2) + '<small>%</small>';
     document.getElementById('statDone').innerHTML = stats.done + '<small>門</small>';
     document.getElementById('statPending').innerHTML = stats.pending + '<small>門</small>';
-    document.getElementById('statRate').innerHTML = stats.rate + '<small>%</small>';
+    document.getElementById('statRate').innerHTML = stats.rate.toFixed(2) + '<small>%</small>';
     document.getElementById('progressFill').style.width = stats.rate + '%';
-    document.getElementById('progressPct').textContent = stats.rate + '%';
+    document.getElementById('progressPct').textContent = stats.rate.toFixed(2) + '%';
     document.getElementById('progressCount').textContent = stats.done;
     document.getElementById('progressTotalCount').textContent = stats.total;
 
     var pillColor = stats.rate >= 80 ? 'var(--good)' : (stats.rate >= 40 ? 'var(--warning)' : 'var(--critical)');
-    document.getElementById('topbarStatus').innerHTML = '<span class="status-dot" style="background:'+pillColor+'"></span>盤點完成率 ' + stats.rate + '%';
+    document.getElementById('topbarStatus').innerHTML = '<span class="status-dot" style="background:'+pillColor+'"></span>盤點完成率 ' + stats.rate.toFixed(2) + '%';
 
     var ratedRecs = ratedRecordsFor(list);
     renderMiniBarsInto('coverageMiniBars', indicatorAveragesFor(ratedRecs), ratedRecs.length > 0);
@@ -1311,10 +1312,10 @@
     var triage = aiTriageStatsFor(courseList);
     document.getElementById('collegeTitle').textContent = currentYear + ' 學年度・' + college + ' ・ 學院盤點分析';
     document.getElementById('cgStatTotal').innerHTML = stats.total + '<small>門</small>';
-    document.getElementById('cgStatTriageRate').innerHTML = triage.rate + '<small>%</small>';
+    document.getElementById('cgStatTriageRate').innerHTML = triage.rate.toFixed(2) + '<small>%</small>';
     document.getElementById('cgStatDone').innerHTML = stats.done + '<small>門</small>';
     document.getElementById('cgStatPending').innerHTML = stats.pending + '<small>門</small>';
-    document.getElementById('cgStatRate').innerHTML = stats.rate + '<small>%</small>';
+    document.getElementById('cgStatRate').innerHTML = stats.rate.toFixed(2) + '<small>%</small>';
 
     var byDept = {};
     courseList.forEach(function(c){ (byDept[c.dept] = byDept[c.dept] || []).push(c); });
@@ -1341,10 +1342,10 @@
     var triage = aiTriageStatsFor(courseList);
     document.getElementById('campusTitle').textContent = currentYear + ' 學年度・' + campus + ' ・ 校區盤點分析';
     document.getElementById('cpStatTotal').innerHTML = stats.total + '<small>門</small>';
-    document.getElementById('cpStatTriageRate').innerHTML = triage.rate + '<small>%</small>';
+    document.getElementById('cpStatTriageRate').innerHTML = triage.rate.toFixed(2) + '<small>%</small>';
     document.getElementById('cpStatDone').innerHTML = stats.done + '<small>門</small>';
     document.getElementById('cpStatPending').innerHTML = stats.pending + '<small>門</small>';
-    document.getElementById('cpStatRate').innerHTML = stats.rate + '<small>%</small>';
+    document.getElementById('cpStatRate').innerHTML = stats.rate.toFixed(2) + '<small>%</small>';
 
     var byCollege = {};
     courseList.forEach(function(c){ (byCollege[c.college] = byCollege[c.college] || []).push(c); });
@@ -1365,10 +1366,10 @@
     var stats = statsFor(courseList);
     var triage = aiTriageStatsFor(courseList);
     document.getElementById('allStatTotal').innerHTML = stats.total + '<small>門</small>';
-    document.getElementById('allStatTriageRate').innerHTML = triage.rate + '<small>%</small>';
+    document.getElementById('allStatTriageRate').innerHTML = triage.rate.toFixed(2) + '<small>%</small>';
     document.getElementById('allStatDone').innerHTML = stats.done + '<small>門</small>';
     document.getElementById('allStatPending').innerHTML = stats.pending + '<small>門</small>';
-    document.getElementById('allStatRate').innerHTML = stats.rate + '<small>%</small>';
+    document.getElementById('allStatRate').innerHTML = stats.rate.toFixed(2) + '<small>%</small>';
 
     // 用「校區＋學院」組合key分組，因為「共同課程委員會」這個學院的課程橫跨臺北、高雄兩校區，
     // 不能只用學院名稱分組（否則會把兩校區的共同課程混在一起算）
