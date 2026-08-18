@@ -839,7 +839,7 @@
     document.getElementById('noDeptState').style.display = dept ? 'none' : 'block';
     document.getElementById('deptContent').style.display = dept ? 'block' : 'none';
     document.getElementById('topbarDept').textContent = dept || '請選擇學年度 > 校區 > 學院 > 學系';
-    if(!dept) return;
+    if(!dept){ if(dashboardScope === 'dept') clearTopbarStatus(); return; }
     setScope('dept'); // 選好系所後自動切到「學系儀表板」，直接進入填課程的工作區
     document.getElementById('courseSearch').value = '';
     reqFilterVal = 'all';
@@ -1275,6 +1275,15 @@
       }).join('') + '</tbody></table></div>';
   }
 
+  /* ---------- Topbar status pill (reflects whichever scope tab is active) ---------- */
+  function updateTopbarStatus(rate){
+    var pillColor = rate >= 80 ? 'var(--good)' : (rate >= 40 ? 'var(--warning)' : 'var(--critical)');
+    document.getElementById('topbarStatus').innerHTML = '<span class="status-dot" style="background:'+pillColor+'"></span>盤點完成率 ' + rate.toFixed(2) + '%';
+  }
+  function clearTopbarStatus(){
+    document.getElementById('topbarStatus').innerHTML = '<span class="status-dot" style="background:var(--muted)"></span>—';
+  }
+
   /* ---------- Dashboard (學系 aggregate) ---------- */
   function updateDashboard(){
     var list = deptCourses();
@@ -1291,8 +1300,7 @@
     document.getElementById('progressCount').textContent = stats.done;
     document.getElementById('progressTotalCount').textContent = stats.total;
 
-    var pillColor = stats.rate >= 80 ? 'var(--good)' : (stats.rate >= 40 ? 'var(--warning)' : 'var(--critical)');
-    document.getElementById('topbarStatus').innerHTML = '<span class="status-dot" style="background:'+pillColor+'"></span>盤點完成率 ' + stats.rate.toFixed(2) + '%';
+    updateTopbarStatus(stats.rate);
 
     var ratedRecs = ratedRecordsFor(list);
     renderMiniBarsInto('coverageMiniBars', indicatorAveragesFor(ratedRecs), ratedRecs.length > 0);
@@ -1304,7 +1312,7 @@
     var college = document.getElementById('collegeSelect').value;
     var empty = document.getElementById('collegeEmptyState');
     var content = document.getElementById('collegeContent');
-    if(!college){ empty.style.display = 'block'; content.style.display = 'none'; return; }
+    if(!college){ empty.style.display = 'block'; content.style.display = 'none'; clearTopbarStatus(); return; }
     empty.style.display = 'none'; content.style.display = 'block';
 
     var courseList = COURSES.filter(function(c){ return c.college === college && c.academicYear === currentYear; });
@@ -1316,6 +1324,7 @@
     document.getElementById('cgStatDone').innerHTML = stats.done + '<small>門</small>';
     document.getElementById('cgStatPending').innerHTML = stats.pending + '<small>門</small>';
     document.getElementById('cgStatRate').innerHTML = stats.rate.toFixed(2) + '<small>%</small>';
+    updateTopbarStatus(stats.rate);
 
     var byDept = {};
     courseList.forEach(function(c){ (byDept[c.dept] = byDept[c.dept] || []).push(c); });
@@ -1334,7 +1343,7 @@
     var campus = document.getElementById('campusSelect').value;
     var empty = document.getElementById('campusEmptyState');
     var content = document.getElementById('campusContent');
-    if(!campus){ empty.style.display = 'block'; content.style.display = 'none'; return; }
+    if(!campus){ empty.style.display = 'block'; content.style.display = 'none'; clearTopbarStatus(); return; }
     empty.style.display = 'none'; content.style.display = 'block';
 
     var courseList = COURSES.filter(function(c){ return c.campus === campus && c.academicYear === currentYear; });
@@ -1346,6 +1355,7 @@
     document.getElementById('cpStatDone').innerHTML = stats.done + '<small>門</small>';
     document.getElementById('cpStatPending').innerHTML = stats.pending + '<small>門</small>';
     document.getElementById('cpStatRate').innerHTML = stats.rate.toFixed(2) + '<small>%</small>';
+    updateTopbarStatus(stats.rate);
 
     var byCollege = {};
     courseList.forEach(function(c){ (byCollege[c.college] = byCollege[c.college] || []).push(c); });
@@ -1370,6 +1380,7 @@
     document.getElementById('allStatDone').innerHTML = stats.done + '<small>門</small>';
     document.getElementById('allStatPending').innerHTML = stats.pending + '<small>門</small>';
     document.getElementById('allStatRate').innerHTML = stats.rate.toFixed(2) + '<small>%</small>';
+    updateTopbarStatus(stats.rate);
 
     // 用「校區＋學院」組合key分組，因為「共同課程委員會」這個學院的課程橫跨臺北、高雄兩校區，
     // 不能只用學院名稱分組（否則會把兩校區的共同課程混在一起算）
@@ -1396,7 +1407,8 @@
 
   /* ---------- Scope tabs (學系／學院／校區／全校) ---------- */
   function renderCurrentScope(){
-    if(dashboardScope === 'college') renderCollegeDashboard();
+    if(dashboardScope === 'dept'){ if(currentDept) updateDashboard(); else clearTopbarStatus(); }
+    else if(dashboardScope === 'college') renderCollegeDashboard();
     else if(dashboardScope === 'campus') renderCampusDashboard();
     else if(dashboardScope === 'all') renderAllDashboard();
   }
