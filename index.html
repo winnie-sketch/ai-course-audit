@@ -655,7 +655,7 @@
 
   var STORAGE_KEY = 'aiCourseAudit_v1';
   var state = loadState();
-  var currentYear = '114';
+  var currentYear = '115';
   var currentDept = '';
   var currentCourseId = null;
   var reqFilterVal = 'all';
@@ -800,7 +800,7 @@
 
     var params = new URLSearchParams(window.location.search);
     var forcedDept = params.get('dept');
-    var forcedYear = params.get('year') || '114';
+    var forcedYear = params.get('year') || '115';
     var forcedCourse = COURSES.find(function(c){ return c.dept === forcedDept && c.academicYear === forcedYear; });
     if(forcedDept && forcedCourse){
       currentYear = forcedYear;
@@ -820,8 +820,8 @@
       document.getElementById('deptLockNote').style.display = 'block';
       selectDept(forcedDept);
     } else {
-      // 一般進入：預設先選 114 學年度（明天上線的正式盤點年度）
-      currentYear = yearsPresent.has('114') ? '114' : (Array.from(yearsPresent).sort()[0] || '');
+      // 一般進入：預設先選 115 學年度第1學期（本學期正式盤點年度）
+      currentYear = yearsPresent.has('115') ? '115' : (Array.from(yearsPresent).sort()[0] || '');
       if(currentYear){
         yearSel.value = currentYear;
         termTag.textContent = YEAR_TERM_LABEL[currentYear] || (currentYear + ' 學年度課程');
