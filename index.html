@@ -538,7 +538,7 @@
       </div>
 
       <div id="scopePanel-all">
-        <h2 style="font-size:18px;margin-bottom:14px;" id="allDashboardTitle">全校未來人才AI能力圖像課程盤點總覽</h2>
+        <h2 style="font-size:18px;margin-bottom:14px;" id="allDashboardTitle">全校課程標註未來人才AI能力圖像總覽</h2>
         <div class="stat-row">
           <div class="stat-tile"><div class="slabel">課程總數</div><div class="sval" id="allStatTotal">0<small>門</small></div></div>
           <div class="stat-tile"><div class="slabel">AI涉入判定進度</div><div class="sval" id="allStatTriageRate">0<small>%</small></div><div class="scap">已判斷「有無涉及AI」的課程比例</div></div>
@@ -1372,7 +1372,7 @@
   /* ---------- Dashboard (全校 aggregate) ---------- */
   function renderAllDashboard(){
     var courseList = COURSES.filter(function(c){ return c.academicYear === currentYear; });
-    document.getElementById('allDashboardTitle').textContent = currentYear + ' 學年度・全校 AI 賦能課程盤點總覽';
+    document.getElementById('allDashboardTitle').textContent = currentYear + ' 學年度・全校課程標註未來人才AI能力圖像總覽';
     var stats = statsFor(courseList);
     var triage = aiTriageStatsFor(courseList);
     document.getElementById('allStatTotal').innerHTML = stats.total + '<small>門</small>';
