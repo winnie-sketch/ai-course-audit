@@ -939,6 +939,10 @@
         // 「涉及AI」則先標記為草稿，後續再慢慢補指標與佐證。
         if(rec.aiInvolved === false){
           rec.status = 'no-ai';
+          // 改判「不涉及AI」前若已填過指標等級／佐證（例如先誤選涉及AI），一併清空，
+          // 避免匯出/雲端試算表留下跟「不涉及AI」矛盾的舊指標紀錄
+          rec.ratings = {};
+          rec.evidence = {};
         } else if(rec.status === 'notstarted' || rec.status === 'no-ai'){
           rec.status = 'draft';
         }
