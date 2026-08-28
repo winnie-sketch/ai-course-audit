@@ -1363,7 +1363,7 @@
     }
 
     return {stats:stats, triage:triage, ratedRecs:ratedRecs, indAvgs:indAvgs, badge:badge,
-      headline:headline, unitRows:unitRows, weakInds:weakInds, strongInds:strongInds, actions:actions};
+      headline:headline, unitRows:unitRows, weakInds:weakInds, strongInds:strongInds, actions:actions, bestLearnPair:bestLearnPair};
   }
   // subLabel：這個範圍底下再分的小單位名稱（系所／學院／校區）；學系層級已經是最小單位，傳 null 代表不適用
   function renderHealthCheck(elId, courseList, deptRows, subLabel){
@@ -1434,12 +1434,16 @@
 
     var actionsLis = h.actions.map(function(a){ return '<li>'+esc(a)+'</li>'; }).join('');
 
-    // 量化目標建議值：以現況數字為基礎往上抓一個務實幅度，實際數字仍由主管定奪
-    var rateTarget = Math.min(90, Math.round(s.rate + 30));
-    var triageTarget = Math.min(100, Math.round(t.rate + 40));
-    var weakIndTargetText = h.weakInds.length
-      ? ('「'+h.weakInds[0].ind.code+'・'+h.weakInds[0].ind.label+'」平均等級由 '+h.weakInds[0].avg.toFixed(1)+' 提升至 3.0 以上')
-      : '尚無已完成課程可設定指標等級目標，建議先以AI涉入判定與盤點完成率為目標。';
+    // 量化目標聚焦在學生能力本身的提升，不是盤點表填寫進度——完成率、判定進度只是取得這些數據的手段
+    var capabilityTargetLis = h.weakInds.length ? h.weakInds.map(function(x){
+      return '<li>「'+esc(x.ind.code)+'・'+esc(x.ind.label)+'」平均等級由 '+x.avg.toFixed(1)+' 提升至 3.0 以上——透過調整對應課程的教學活動與評量設計達成，而非僅要求老師填高等級</li>';
+    }).join('') : '<li>目前已完成盤點的課程還不夠，暫無法依現況設定能力目標，建議先請各系所完成部分課程盤點，取得可分析的資料</li>';
+    if(h.bestLearnPair){
+      capabilityTargetLis += '<li>「'+esc(h.bestLearnPair.label)+'」在'+h.bestLearnPair.weakInd.ind.code+'的教學設計，參考「'+esc(h.bestLearnPair.learnFrom.label)+'」的做法進行調整，作為跨單位互相學習的具體實踐</li>';
+    }
+    if(h.strongInds.length){
+      capabilityTargetLis += '<li>「'+esc(h.strongInds[0].ind.code)+'・'+esc(h.strongInds[0].ind.label)+'」的教學做法整理成案例，供其他課程參考複製，維持並擴大既有優勢</li>';
+    }
 
     var todayStr = new Date().toISOString().slice(0,10);
 
@@ -1470,12 +1474,8 @@
       '<ul>'+actionsLis+'</ul>' +
       '<p>建議搭配：（1）先推派1–2門代表性課程做示範填寫；（2）針對薄弱面向辦理工作坊；（3）定期匯出本報表追蹤進度。</p>' +
       '<h2>四、量化目標</h2>' +
-      '<p>以下為依現況數據推算的建議值，實際目標請主管依量能調整：</p>' +
-      '<ul>' +
-        '<li>盤點完成率由 '+s.rate.toFixed(2)+'% 提升至 '+rateTarget+'% 以上</li>' +
-        '<li>AI涉入判定進度由 '+t.rate.toFixed(2)+'% 提升至 '+triageTarget+'% 以上</li>' +
-        '<li>'+esc(weakIndTargetText)+'</li>' +
-      '</ul>' +
+      '<p>目標是依現況數據調整課程、實質培養學生的AI各項能力，不是把盤點表填完；盤點完成率與AI涉入判定進度只是取得這些數據的過程，不列入目標：</p>' +
+      '<ul>'+capabilityTargetLis+'</ul>' +
       '<h2>五、成果驗證方式</h2>' +
       '<p>定期回系統「'+esc(scopeName)+'」'+esc(scopeLabel)+'儀表板查看決策評估表與各項數據，比對本規劃書設定的量化目標是否達成；建議於學期中與學期末各檢核一次，並將檢核結果記錄於下次規劃書的「目前基礎現況」中，形成滾動式追蹤。</p>';
 
