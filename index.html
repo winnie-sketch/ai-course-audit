@@ -155,8 +155,9 @@
   .hc-head{display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
   .hc-head h3{font-size:14.5px;}
   .hc-headline{font-size:12.5px;color:var(--ink-2);}
-  .hc-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;}
+  .hc-grid{display:grid;gap:16px;}
   .hc-grid.hc-grid-2{grid-template-columns:repeat(2,1fr);}
+  .hc-grid.hc-grid-3{grid-template-columns:repeat(3,1fr);}
   .hc-block{min-width:0;}
   .hc-block-title{font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.04em;margin-bottom:8px;}
   .hc-item{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:7px 0;border-bottom:1px solid var(--border);font-size:12.5px;}
@@ -164,10 +165,15 @@
   .hc-item .hc-item-label{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
   .hc-item.clickable{cursor:pointer;border-radius:6px;}
   .hc-item.clickable:hover{color:var(--accent);}
+  .hc-unit-row{padding:7px 0;border-bottom:1px solid var(--border);}
+  .hc-unit-row:last-child{border-bottom:none;}
+  .hc-unit-top{display:flex;align-items:center;justify-content:space-between;gap:10px;font-size:12.5px;}
+  .hc-unit-top .hc-item-label{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  .hc-learn{font-size:11px;color:var(--accent);margin-top:3px;}
   .hc-empty{font-size:12px;color:var(--muted);}
   .hc-actions{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:12px 14px;}
   .hc-actions ul{margin:0;padding-left:18px;font-size:12.5px;line-height:1.7;}
-  @media (max-width:900px){ .hc-grid{grid-template-columns:1fr;} }
+  @media (max-width:900px){ .hc-grid.hc-grid-2,.hc-grid.hc-grid-3{grid-template-columns:1fr;} }
   .badge::before{content:"";width:6px;height:6px;border-radius:50%;background:currentColor;flex:none;}
   @media (prefers-color-scheme:dark){ .badge.warn{color:#fab219;} }
   :root[data-theme="dark"] .badge.warn{color:#fab219;}
@@ -1213,6 +1219,18 @@
   function ratedRecordsFor(courseList){
     return courseList.map(function(c){ return peekRecord(c.dept, c.id); }).filter(function(r){ return r && r.status === 'done'; });
   }
+  // 各層級「盤點進度分項表」共用列生成——除了完成率統計，也算出這個子單位自己最強/最弱的指標，
+  // 用來呈現「這個系所強弱在哪裡」，而不是只看填寫進度快慢
+  function breakdownRowFor(label, subList){
+    var s = statsFor(subList);
+    var f = indicatorFillStatsFor(subList);
+    var subIndAvgs = indicatorAveragesFor(ratedRecordsFor(subList));
+    var pairs = INDICATORS.map(function(i){ return {ind:i, avg: subIndAvgs[i.code]}; }).filter(function(x){ return x.avg != null; });
+    var weakInd = pairs.length ? pairs.slice().sort(function(a,b){ return a.avg - b.avg; })[0] : null;
+    var strongInd = pairs.length ? pairs.slice().sort(function(a,b){ return b.avg - a.avg; })[0] : null;
+    return {label:label, total:s.total, done:s.done, rate:s.rate, fillRate:f.rate, filledSlots:f.filledSlots,
+      totalSlots:f.totalSlots, aiCourseCount:f.aiCourseCount, weakInd:weakInd, strongInd:strongInd, indAvgs:subIndAvgs};
+  }
   function ratedPairsFor(courseList){
     return courseList.map(function(c){ return {course:c, rec:peekRecord(c.dept, c.id)}; })
       .filter(function(p){ return p.rec && p.rec.status === 'done'; });
@@ -1274,19 +1292,6 @@
   }
 
   /* ---------- 健康檢查（給院長／主管看的自動診斷摘要） ---------- */
-  function evidenceGapStatsFor(ratedRecs){
-    var need = 0, missing = 0;
-    ratedRecs.forEach(function(rec){
-      INDICATORS.forEach(function(ind){
-        var lvl = rec.ratings[ind.code] || 0;
-        if(lvl >= 3){
-          need++;
-          if(!rec.evidence[ind.code]) missing++;
-        }
-      });
-    });
-    return {need:need, missing:missing, rate: need ? Math.round((need-missing)/need*100) : null};
-  }
   function healthBadge(rate){
     if(rate >= 80) return {cls:'good', label:'良好'};
     if(rate >= 40) return {cls:'warn', label:'注意'};
@@ -1298,7 +1303,6 @@
     var triage = aiTriageStatsFor(courseList);
     var ratedRecs = ratedRecordsFor(courseList);
     var indAvgs = indicatorAveragesFor(ratedRecs);
-    var evGap = evidenceGapStatsFor(ratedRecs);
     var badge = healthBadge(stats.rate);
 
     var headline;
@@ -1314,29 +1318,52 @@
       headline = '完成率 '+stats.rate.toFixed(2)+'%，已接近完成，可進入成果盤整階段。';
     }
 
-    var weakDepts = (deptRows || []).filter(function(r){ return r.total > 0; })
-      .slice().sort(function(a,b){ return a.rate - b.rate; }).slice(0,3);
+    // 各子單位（系所／學院／校區）自己最強、最弱的指標——呈現「強弱在哪裡」，不是比誰填得快
+    var unitRows = (deptRows || []).filter(function(r){ return r.strongInd; });
+    // 一個系所的弱項，往往剛好是另一個系所的強項——與其只看自己，不如互相截長補短，
+    // 拉到全校尺度上本來就會被平均掉，所以這個對照要在子單位層級才看得出來
+    unitRows.forEach(function(r){
+      if(!r.weakInd){ r.learnFrom = null; return; }
+      var code = r.weakInd.ind.code;
+      var best = null;
+      unitRows.forEach(function(other){
+        if(other === r) return;
+        var v = other.indAvgs ? other.indAvgs[code] : null;
+        if(v != null && v > r.weakInd.avg && (!best || v > best.avg)){
+          best = {label: other.label, avg: v};
+        }
+      });
+      r.learnFrom = best;
+    });
 
-    var weakInds = INDICATORS.map(function(i){ return {ind:i, avg: indAvgs[i.code]}; })
-      .filter(function(x){ return x.avg != null; })
-      .sort(function(a,b){ return a.avg - b.avg; }).slice(0,3);
+    // 盤點進度明顯落後的子單位，單純是排程／資源提醒，跟能力強弱是兩回事
+    var laggingRows = (deptRows || []).filter(function(r){ return r.total > 0; })
+      .slice().sort(function(a,b){ return a.rate - b.rate; });
+
+    var indAvgPairs = INDICATORS.map(function(i){ return {ind:i, avg: indAvgs[i.code]}; })
+      .filter(function(x){ return x.avg != null; });
+    var weakInds = indAvgPairs.slice().sort(function(a,b){ return a.avg - b.avg; }).slice(0,3);
+    var strongInds = indAvgPairs.slice().sort(function(a,b){ return b.avg - a.avg; }).slice(0,3);
+
+    var bestLearnPair = unitRows.filter(function(r){ return r.learnFrom; })
+      .sort(function(a,b){ return (b.learnFrom.avg - b.weakInd.avg) - (a.learnFrom.avg - a.weakInd.avg); })[0];
 
     var actions = [];
-    if(weakDepts.length && weakDepts[0].rate < 70){
-      actions.push('優先協助「'+weakDepts[0].label+'」（目前完成率最低，'+weakDepts[0].rate.toFixed(2)+'%）');
+    if(laggingRows.length && laggingRows[0].rate < 70){
+      actions.push('「'+laggingRows[0].label+'」盤點進度相對落後（完成率 '+laggingRows[0].rate.toFixed(2)+'%），可協助排除填寫上的障礙');
     }
     if(weakInds.length){
       actions.push('加強「'+weakInds[0].ind.code+'・'+weakInds[0].ind.label+'」相關教學設計（目前平均僅 '+weakInds[0].avg.toFixed(1)+'）');
     }
-    if(evGap.need > 0 && evGap.rate < 80){
-      actions.push('提醒教師補齊3級以上但尚未填寫佐證的課程（目前缺件率 '+(100-evGap.rate)+'%）');
+    if(bestLearnPair){
+      actions.push('促成跨單位交流：「'+bestLearnPair.label+'」在'+bestLearnPair.weakInd.ind.code+'較弱（'+bestLearnPair.weakInd.avg.toFixed(1)+'），可請「'+bestLearnPair.learnFrom.label+'」（'+bestLearnPair.learnFrom.avg.toFixed(1)+'）分享做法');
     }
     if(!actions.length){
       actions.push('目前無明顯待處理項目，持續追蹤進度即可。');
     }
 
-    return {stats:stats, triage:triage, ratedRecs:ratedRecs, indAvgs:indAvgs, evGap:evGap, badge:badge,
-      headline:headline, weakDepts:weakDepts, weakInds:weakInds, actions:actions};
+    return {stats:stats, triage:triage, ratedRecs:ratedRecs, indAvgs:indAvgs, badge:badge,
+      headline:headline, unitRows:unitRows, weakInds:weakInds, strongInds:strongInds, actions:actions};
   }
   // subLabel：這個範圍底下再分的小單位名稱（系所／學院／校區）；學系層級已經是最小單位，傳 null 代表不適用
   function renderHealthCheck(elId, courseList, deptRows, subLabel){
@@ -1345,30 +1372,29 @@
     var h = computeHealth(courseList, deptRows);
     var showSubBlock = deptRows != null;
 
-    var weakDeptsHtml = h.weakDepts.length ? h.weakDepts.map(function(r){
-      return '<div class="hc-item"><span class="hc-item-label">'+escapeHtml(r.label)+'</span>' +
-        '<span class="hint" style="margin:0;">'+r.done+'/'+r.total+'・'+r.rate.toFixed(2)+'%</span></div>';
-    }).join('') : '<div class="hc-empty">目前沒有可比較的'+escapeHtml(subLabel||'')+'資料。</div>';
+    var unitRowsHtml = h.unitRows.length ? h.unitRows.map(function(r){
+      var learn = r.learnFrom ? '<div class="hc-learn">→ 可參考「'+escapeHtml(r.learnFrom.label)+'」在'+r.weakInd.ind.code+'的做法（平均 '+r.learnFrom.avg.toFixed(1)+'）</div>' : '';
+      return '<div class="hc-unit-row"><div class="hc-unit-top"><span class="hc-item-label">'+escapeHtml(r.label)+'</span>' +
+        '<span class="hint" style="margin:0;">強 '+r.strongInd.ind.code+'（'+r.strongInd.avg.toFixed(1)+'）・弱 '+r.weakInd.ind.code+'（'+r.weakInd.avg.toFixed(1)+'）</span></div>' +
+        learn + '</div>';
+    }).join('') : '<div class="hc-empty">尚無已完成盤點課程，暫無法比較'+escapeHtml(subLabel||'')+'強弱項。</div>';
 
     var weakIndsHtml = h.weakInds.length ? h.weakInds.map(function(x){
       return '<div class="hc-item clickable" data-code="'+x.ind.code+'"><span class="hc-item-label"><span style="color:'+dimColor(x.ind.dim)+';font-weight:700;">'+x.ind.code+'</span>　'+escapeHtml(x.ind.label)+'</span>' +
         '<span class="hint" style="margin:0;">平均 '+x.avg.toFixed(1)+'</span></div>';
     }).join('') : '<div class="hc-empty">尚無已完成盤點課程，暫無法分析。</div>';
 
-    var evidenceHtml;
-    if(h.evGap.need === 0){
-      evidenceHtml = '<div class="hc-empty">尚無3級以上關聯的指標紀錄。</div>';
-    } else {
-      evidenceHtml = '<div class="hc-item"><span class="hc-item-label">3級以上關聯・已補教學與評量方式說明</span>' +
-        '<span class="hint" style="margin:0;">'+(h.evGap.need - h.evGap.missing)+'/'+h.evGap.need+'・'+h.evGap.rate+'%</span></div>';
-    }
+    var strongIndsHtml = h.strongInds.length ? h.strongInds.map(function(x){
+      return '<div class="hc-item clickable" data-code="'+x.ind.code+'"><span class="hc-item-label"><span style="color:'+dimColor(x.ind.dim)+';font-weight:700;">'+x.ind.code+'</span>　'+escapeHtml(x.ind.label)+'</span>' +
+        '<span class="hint" style="margin:0;">平均 '+x.avg.toFixed(1)+'</span></div>';
+    }).join('') : '<div class="hc-empty">尚無已完成盤點課程，暫無法分析。</div>';
 
     el.innerHTML =
       '<div class="hc-head"><h3>決策評估表</h3><span class="badge '+h.badge.cls+'">'+h.badge.label+'</span><span class="hc-headline">'+h.headline+'</span></div>' +
-      '<div class="hc-grid'+(showSubBlock ? '' : ' hc-grid-2')+'">' +
-        (showSubBlock ? '<div class="hc-block"><div class="hc-block-title">待加強'+escapeHtml(subLabel)+'</div>'+weakDeptsHtml+'</div>' : '') +
+      '<div class="hc-grid'+(showSubBlock ? ' hc-grid-3' : ' hc-grid-2')+'">' +
+        (showSubBlock ? '<div class="hc-block"><div class="hc-block-title">各'+escapeHtml(subLabel)+'強弱項</div>'+unitRowsHtml+'</div>' : '') +
         '<div class="hc-block"><div class="hc-block-title">能力弱項（點擊查看課程）</div>'+weakIndsHtml+'</div>' +
-        '<div class="hc-block"><div class="hc-block-title">佐證填寫品質</div>'+evidenceHtml+'</div>' +
+        '<div class="hc-block"><div class="hc-block-title">能力強項（點擊查看課程）</div>'+strongIndsHtml+'</div>' +
       '</div>' +
       '<div class="hc-actions"><div class="hc-block-title">建議行動</div><ul>'+h.actions.map(function(a){ return '<li>'+escapeHtml(a)+'</li>'; }).join('')+'</ul></div>';
 
@@ -1389,21 +1415,22 @@
     var s = h.stats, t = h.triage;
     var esc = escapeHtml;
 
-    var weakBreakdownBlock = '';
+    var unitBreakdownBlock = '';
     if(breakdownRows){
-      var weakBreakdownLis = h.weakDepts.length ? h.weakDepts.map(function(r){
-        return '<li>'+esc(r.label)+'：'+r.done+'/'+r.total+' 門，完成率 '+r.rate.toFixed(2)+'%</li>';
-      }).join('') : '<li>目前沒有可比較的'+esc(breakdownLabel)+'資料。</li>';
-      weakBreakdownBlock = '<p><b>待加強'+esc(breakdownLabel)+'：</b></p><ul>'+weakBreakdownLis+'</ul>';
+      var unitBreakdownLis = h.unitRows.length ? h.unitRows.map(function(r){
+        var learn = r.learnFrom ? '，可參考「'+esc(r.learnFrom.label)+'」在'+r.weakInd.ind.code+'的做法（平均 '+r.learnFrom.avg.toFixed(1)+'）' : '';
+        return '<li>'+esc(r.label)+'：強項 '+r.strongInd.ind.code+'（'+r.strongInd.avg.toFixed(1)+'）・弱項 '+r.weakInd.ind.code+'（'+r.weakInd.avg.toFixed(1)+'）'+learn+'</li>';
+      }).join('') : '<li>尚無已完成盤點課程，暫無法比較'+esc(breakdownLabel)+'強弱項。</li>';
+      unitBreakdownBlock = '<p><b>各'+esc(breakdownLabel)+'強弱項（可跨'+esc(breakdownLabel)+'互相學習）：</b></p><ul>'+unitBreakdownLis+'</ul>';
     }
 
     var weakIndsLis = h.weakInds.length ? h.weakInds.map(function(x){
       return '<li>'+esc(x.ind.code)+'・'+esc(x.ind.label)+'：平均等級 '+x.avg.toFixed(1)+'</li>';
     }).join('') : '<li>尚無已完成盤點課程，暫無法分析弱項。</li>';
 
-    var evidenceText = h.evGap.need > 0
-      ? ('3級以上關聯的指標共 '+h.evGap.need+' 項，其中已補教學與評量方式說明 '+(h.evGap.need-h.evGap.missing)+' 項（'+h.evGap.rate+'%）')
-      : '目前尚無3級以上關聯的指標紀錄。';
+    var strongIndsLis = h.strongInds.length ? h.strongInds.map(function(x){
+      return '<li>'+esc(x.ind.code)+'・'+esc(x.ind.label)+'：平均等級 '+x.avg.toFixed(1)+'</li>';
+    }).join('') : '<li>尚無已完成盤點課程，暫無法分析強項。</li>';
 
     var actionsLis = h.actions.map(function(a){ return '<li>'+esc(a)+'</li>'; }).join('');
 
@@ -1413,9 +1440,6 @@
     var weakIndTargetText = h.weakInds.length
       ? ('「'+h.weakInds[0].ind.code+'・'+h.weakInds[0].ind.label+'」平均等級由 '+h.weakInds[0].avg.toFixed(1)+' 提升至 3.0 以上')
       : '尚無已完成課程可設定指標等級目標，建議先以AI涉入判定與盤點完成率為目標。';
-    var evidenceTargetText = h.evGap.need > 0
-      ? ('教學與評量方式佐證填寫率由 '+h.evGap.rate+'% 提升至 90% 以上')
-      : '尚無3級以上關聯紀錄，暫不設定佐證填寫率目標。';
 
     var todayStr = new Date().toISOString().slice(0,10);
 
@@ -1438,9 +1462,9 @@
         '<tr><td>AI涉入判定進度</td><td>'+t.rate.toFixed(2)+'%</td></tr>' +
         '<tr><td>盤點完成率</td><td>'+s.rate.toFixed(2)+'%（'+s.done+'/'+s.total+'）</td></tr>' +
       '</table>' +
-      weakBreakdownBlock +
+      unitBreakdownBlock +
       '<p><b>能力弱項（已完成盤點課程平均等級）：</b></p><ul>'+weakIndsLis+'</ul>' +
-      '<p><b>佐證填寫品質：</b>'+esc(evidenceText)+'</p>' +
+      '<p><b>能力強項（已完成盤點課程平均等級）：</b></p><ul>'+strongIndsLis+'</ul>' +
       '<h2>三、預期推動作法</h2>' +
       '<p>依現況數據決定資源投入順序，而非齊頭式分配：</p>' +
       '<ul>'+actionsLis+'</ul>' +
@@ -1451,7 +1475,6 @@
         '<li>盤點完成率由 '+s.rate.toFixed(2)+'% 提升至 '+rateTarget+'% 以上</li>' +
         '<li>AI涉入判定進度由 '+t.rate.toFixed(2)+'% 提升至 '+triageTarget+'% 以上</li>' +
         '<li>'+esc(weakIndTargetText)+'</li>' +
-        '<li>'+esc(evidenceTargetText)+'</li>' +
       '</ul>' +
       '<h2>五、成果驗證方式</h2>' +
       '<p>定期回系統「'+esc(scopeName)+'」'+esc(scopeLabel)+'儀表板查看決策評估表與各項數據，比對本規劃書設定的量化目標是否達成；建議於學期中與學期末各檢核一次，並將檢核結果記錄於下次規劃書的「目前基礎現況」中，形成滾動式追蹤。</p>';
@@ -1486,11 +1509,7 @@
     if(!courseList.length){ toast('目前範圍內沒有課程資料，無法產生規劃書'); return; }
     var byDept = {};
     courseList.forEach(function(c){ (byDept[c.dept] = byDept[c.dept] || []).push(c); });
-    var breakdownRows = Object.keys(byDept).sort().map(function(d){
-      var s = statsFor(byDept[d]);
-      var f = indicatorFillStatsFor(byDept[d]);
-      return {label:d, total:s.total, done:s.done, rate:s.rate, fillRate:f.rate, filledSlots:f.filledSlots, totalSlots:f.totalSlots, aiCourseCount:f.aiCourseCount};
-    });
+    var breakdownRows = Object.keys(byDept).sort().map(function(d){ return breakdownRowFor(d, byDept[d]); });
     var html = buildPlanDraftHtml('學院', college, courseList, breakdownRows, '系所');
     triggerDocDownload(html, currentYear + '學年度_' + college + '_AI能力圖像規劃書.doc');
   }
@@ -1501,11 +1520,7 @@
     if(!courseList.length){ toast('目前範圍內沒有課程資料，無法產生規劃書'); return; }
     var byCollege = {};
     courseList.forEach(function(c){ (byCollege[c.college] = byCollege[c.college] || []).push(c); });
-    var breakdownRows = Object.keys(byCollege).sort().map(function(col){
-      var s = statsFor(byCollege[col]);
-      var f = indicatorFillStatsFor(byCollege[col]);
-      return {label:col, total:s.total, done:s.done, rate:s.rate, fillRate:f.rate, filledSlots:f.filledSlots, totalSlots:f.totalSlots, aiCourseCount:f.aiCourseCount};
-    });
+    var breakdownRows = Object.keys(byCollege).sort().map(function(col){ return breakdownRowFor(col, byCollege[col]); });
     var html = buildPlanDraftHtml('校區', campus, courseList, breakdownRows, '學院');
     triggerDocDownload(html, currentYear + '學年度_' + campus + '_AI能力圖像規劃書.doc');
   }
@@ -1524,9 +1539,7 @@
       return a[0].college < b[0].college ? -1 : 1;
     }).map(function(key){
       var list = byCampusCollege[key];
-      var s = statsFor(list);
-      var f = indicatorFillStatsFor(list);
-      return {label:list[0].campus+'・'+list[0].college, total:s.total, done:s.done, rate:s.rate, fillRate:f.rate, filledSlots:f.filledSlots, totalSlots:f.totalSlots, aiCourseCount:f.aiCourseCount};
+      return breakdownRowFor(list[0].campus+'・'+list[0].college, list);
     });
     var html = buildPlanDraftHtml('範圍', '全校', courseList, breakdownRows, '校區／學院');
     triggerDocDownload(html, currentYear + '學年度_全校_AI能力圖像規劃書.doc');
@@ -1668,11 +1681,7 @@
 
     var byDept = {};
     courseList.forEach(function(c){ (byDept[c.dept] = byDept[c.dept] || []).push(c); });
-    var rows = Object.keys(byDept).sort().map(function(d){
-      var s = statsFor(byDept[d]);
-      var f = indicatorFillStatsFor(byDept[d]);
-      return {label:d, total:s.total, done:s.done, rate:s.rate, fillRate:f.rate, filledSlots:f.filledSlots, totalSlots:f.totalSlots, aiCourseCount:f.aiCourseCount};
-    });
+    var rows = Object.keys(byDept).sort().map(function(d){ return breakdownRowFor(d, byDept[d]); });
     renderBreakdownTable('collegeBreakdown', '系所', rows);
     renderHealthCheck('collegeHealthCheck', courseList, rows, '系所');
     renderMiniBarsInto('collegeCoverage', indicatorAveragesFor(ratedRecordsFor(courseList)), ratedRecordsFor(courseList).length > 0, courseList);
@@ -1700,11 +1709,7 @@
 
     var byCollege = {};
     courseList.forEach(function(c){ (byCollege[c.college] = byCollege[c.college] || []).push(c); });
-    var rows = Object.keys(byCollege).sort().map(function(col){
-      var s = statsFor(byCollege[col]);
-      var f = indicatorFillStatsFor(byCollege[col]);
-      return {label:col, total:s.total, done:s.done, rate:s.rate, fillRate:f.rate, filledSlots:f.filledSlots, totalSlots:f.totalSlots, aiCourseCount:f.aiCourseCount};
-    });
+    var rows = Object.keys(byCollege).sort().map(function(col){ return breakdownRowFor(col, byCollege[col]); });
     renderBreakdownTable('campusBreakdown', '學院', rows);
     renderHealthCheck('campusHealthCheck', courseList, rows, '學院');
     renderMiniBarsInto('campusCoverage', indicatorAveragesFor(ratedRecordsFor(courseList)), ratedRecordsFor(courseList).length > 0, courseList);
@@ -1738,15 +1743,13 @@
       return a[0].college < b[0].college ? -1 : 1;
     }).map(function(key){
       var list = byCampusCollege[key];
-      var s = statsFor(list);
-      var f = indicatorFillStatsFor(list);
-      return {campus:list[0].campus, college:list[0].college, total:s.total, done:s.done, rate:s.rate, fillRate:f.rate, filledSlots:f.filledSlots, totalSlots:f.totalSlots, aiCourseCount:f.aiCourseCount};
+      var row = breakdownRowFor(list[0].campus+'・'+list[0].college, list);
+      row.campus = list[0].campus;
+      row.college = list[0].college;
+      return row;
     });
     renderAllBreakdownTable('allBreakdown', rows);
-    var healthRows = rows.map(function(r){
-      return {label:r.campus+'・'+r.college, total:r.total, done:r.done, rate:r.rate, fillRate:r.fillRate, filledSlots:r.filledSlots, totalSlots:r.totalSlots, aiCourseCount:r.aiCourseCount};
-    });
-    renderHealthCheck('allHealthCheck', courseList, healthRows, '校區／學院');
+    renderHealthCheck('allHealthCheck', courseList, rows, '校區／學院');
     renderMiniBarsInto('allCoverage', indicatorAveragesFor(ratedRecordsFor(courseList)), ratedRecordsFor(courseList).length > 0, courseList);
     renderAggregateRadar('allRadarWrap', courseList);
   }
