@@ -1228,13 +1228,15 @@
   // 用來呈現「這個系所強弱在哪裡」，而不是只看填寫進度快慢
   function breakdownRowFor(label, subList){
     var s = statsFor(subList);
+    var req = requiredOnlyStatsFor(subList);
     var f = indicatorFillStatsFor(subList);
     var subIndAvgs = indicatorAveragesFor(ratedRecordsFor(subList));
     var pairs = INDICATORS.map(function(i){ return {ind:i, avg: subIndAvgs[i.code]}; }).filter(function(x){ return x.avg != null; });
     var weakInd = pairs.length ? pairs.slice().sort(function(a,b){ return a.avg - b.avg; })[0] : null;
     var strongInd = pairs.length ? pairs.slice().sort(function(a,b){ return b.avg - a.avg; })[0] : null;
     return {label:label, total:s.total, done:s.done, rate:s.rate, fillRate:f.rate, filledSlots:f.filledSlots,
-      totalSlots:f.totalSlots, aiCourseCount:f.aiCourseCount, weakInd:weakInd, strongInd:strongInd, indAvgs:subIndAvgs};
+      totalSlots:f.totalSlots, aiCourseCount:f.aiCourseCount, weakInd:weakInd, strongInd:strongInd, indAvgs:subIndAvgs,
+      reqTotal:req.total, reqDone:req.done, reqRate:req.rate};
   }
   function ratedPairsFor(courseList){
     return courseList.map(function(c){ return {course:c, rec:peekRecord(c.dept, c.id)}; })
@@ -1344,9 +1346,10 @@
       r.learnFrom = best;
     });
 
-    // 盤點進度明顯落後的子單位，單純是排程／資源提醒，跟能力強弱是兩回事
-    var laggingRows = (deptRows || []).filter(function(r){ return r.total > 0; })
-      .slice().sort(function(a,b){ return a.rate - b.rate; });
+    // 盤點進度明顯落後的子單位，單純是排程／資源提醒，跟能力強弱是兩回事；
+    // 現階段只要求必修，用「必修完成率」判斷落後，不然選修拖累完成率的系所會被誤指為落後
+    var laggingRows = (deptRows || []).filter(function(r){ return r.reqTotal > 0; })
+      .slice().sort(function(a,b){ return a.reqRate - b.reqRate; });
 
     var indAvgPairs = INDICATORS.map(function(i){ return {ind:i, avg: indAvgs[i.code]}; })
       .filter(function(x){ return x.avg != null; });
@@ -1357,8 +1360,8 @@
       .sort(function(a,b){ return (b.learnFrom.avg - b.weakInd.avg) - (a.learnFrom.avg - a.weakInd.avg); })[0];
 
     var actions = [];
-    if(laggingRows.length && laggingRows[0].rate < 70){
-      actions.push('「'+laggingRows[0].label+'」盤點進度相對落後（完成率 '+laggingRows[0].rate.toFixed(2)+'%），可協助排除填寫上的障礙');
+    if(laggingRows.length && laggingRows[0].reqRate < 70){
+      actions.push('「'+laggingRows[0].label+'」必修課程盤點進度相對落後（必修完成率 '+laggingRows[0].reqRate.toFixed(2)+'%），可協助排除填寫上的障礙');
     }
     if(weakInds.length){
       actions.push('加強「'+weakInds[0].ind.code+'・'+weakInds[0].ind.label+'」相關教學設計（目前平均僅 '+weakInds[0].avg.toFixed(1)+'）');
