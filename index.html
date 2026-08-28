@@ -148,7 +148,25 @@
   .badge{display:inline-flex;align-items:center;gap:5px;padding:3px 9px;border-radius:99px;font-size:11px;font-weight:700;white-space:nowrap;}
   .badge.good{background:var(--good-bg);color:var(--good);}
   .badge.warn{background:var(--warning-bg);color:#a06600;}
+  .badge.critical{background:var(--critical-bg);color:var(--critical);}
   .badge.muted{background:var(--grid);color:var(--muted);}
+
+  .health-check{display:flex;flex-direction:column;gap:14px;}
+  .hc-head{display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
+  .hc-head h3{font-size:14.5px;}
+  .hc-headline{font-size:12.5px;color:var(--ink-2);}
+  .hc-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;}
+  .hc-block{min-width:0;}
+  .hc-block-title{font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.04em;margin-bottom:8px;}
+  .hc-item{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:7px 0;border-bottom:1px solid var(--border);font-size:12.5px;}
+  .hc-item:last-child{border-bottom:none;}
+  .hc-item .hc-item-label{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  .hc-item.clickable{cursor:pointer;border-radius:6px;}
+  .hc-item.clickable:hover{color:var(--accent);}
+  .hc-empty{font-size:12px;color:var(--muted);}
+  .hc-actions{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:12px 14px;}
+  .hc-actions ul{margin:0;padding-left:18px;font-size:12.5px;line-height:1.7;}
+  @media (max-width:900px){ .hc-grid{grid-template-columns:1fr;} }
   .badge::before{content:"";width:6px;height:6px;border-radius:50%;background:currentColor;flex:none;}
   @media (prefers-color-scheme:dark){ .badge.warn{color:#fab219;} }
   :root[data-theme="dark"] .badge.warn{color:#fab219;}
@@ -475,6 +493,7 @@
             <div class="stat-tile"><div class="slabel">尚未盤點</div><div class="sval" id="cgStatPending">0<small>門</small></div></div>
             <div class="stat-tile"><div class="slabel">盤點完成率</div><div class="sval" id="cgStatRate">0<small>%</small></div><div class="scap">已按下「標記完成」的課程比例</div></div>
           </div>
+          <div class="card health-check" id="collegeHealthCheck" style="margin-bottom:16px;"></div>
           <div class="layout-2col">
             <div class="stack">
               <div class="card">
@@ -499,6 +518,7 @@
                 <div id="collegeCoverage"></div>
               </div>
               <button class="btn" id="exportCollegeCsvBtn">匯出本學院資料（CSV）</button>
+              <button class="btn" id="exportCollegePlanBtn" style="margin-top:8px;">匯出AI能力圖像規劃書（草稿）</button>
             </div>
           </div>
         </div>
@@ -1244,6 +1264,209 @@
   function closeIndicatorModal(){
     document.getElementById('indicatorModal').style.display = 'none';
   }
+
+  /* ---------- 健康檢查（給院長／主管看的自動診斷摘要） ---------- */
+  function evidenceGapStatsFor(ratedRecs){
+    var need = 0, missing = 0;
+    ratedRecs.forEach(function(rec){
+      INDICATORS.forEach(function(ind){
+        var lvl = rec.ratings[ind.code] || 0;
+        if(lvl >= 3){
+          need++;
+          if(!rec.evidence[ind.code]) missing++;
+        }
+      });
+    });
+    return {need:need, missing:missing, rate: need ? Math.round((need-missing)/need*100) : null};
+  }
+  function healthBadge(rate){
+    if(rate >= 80) return {cls:'good', label:'良好'};
+    if(rate >= 40) return {cls:'warn', label:'注意'};
+    return {cls:'critical', label:'待加強'};
+  }
+  // 共用診斷邏輯：健康檢查卡片跟「規劃書」草稿匯出都吃同一份計算結果，避免兩處數字兜不起來
+  function computeHealth(courseList, deptRows){
+    var stats = statsFor(courseList);
+    var triage = aiTriageStatsFor(courseList);
+    var ratedRecs = ratedRecordsFor(courseList);
+    var indAvgs = indicatorAveragesFor(ratedRecs);
+    var evGap = evidenceGapStatsFor(ratedRecs);
+    var badge = healthBadge(stats.rate);
+
+    var headline;
+    if(stats.total === 0){
+      headline = '本學年度尚無課程資料。';
+    } else if(stats.done === 0){
+      headline = '尚未有課程完成盤點，仍在起步階段——盤點才剛開始，數字會隨老師陸續填寫更新。';
+    } else if(stats.rate < 30){
+      headline = '完成率 '+stats.rate.toFixed(2)+'%，仍在起步階段，建議先確保每個系所都有課程開始填寫。';
+    } else if(stats.rate < 70){
+      headline = '完成率 '+stats.rate.toFixed(2)+'%，已過半，可以開始參考下方弱項調整資源。';
+    } else {
+      headline = '完成率 '+stats.rate.toFixed(2)+'%，已接近完成，可進入成果盤整階段。';
+    }
+
+    var weakDepts = (deptRows || []).filter(function(r){ return r.total > 0; })
+      .slice().sort(function(a,b){ return a.rate - b.rate; }).slice(0,3);
+
+    var weakInds = INDICATORS.map(function(i){ return {ind:i, avg: indAvgs[i.code]}; })
+      .filter(function(x){ return x.avg != null; })
+      .sort(function(a,b){ return a.avg - b.avg; }).slice(0,3);
+
+    var actions = [];
+    if(weakDepts.length && weakDepts[0].rate < 70){
+      actions.push('優先協助「'+weakDepts[0].label+'」（目前完成率最低，'+weakDepts[0].rate.toFixed(2)+'%）');
+    }
+    if(weakInds.length){
+      actions.push('加強「'+weakInds[0].ind.code+'・'+weakInds[0].ind.label+'」相關教學設計（目前平均僅 '+weakInds[0].avg.toFixed(1)+'）');
+    }
+    if(evGap.need > 0 && evGap.rate < 80){
+      actions.push('提醒教師補齊3級以上但尚未填寫佐證的課程（目前缺件率 '+(100-evGap.rate)+'%）');
+    }
+    if(!actions.length){
+      actions.push('目前無明顯待處理項目，持續追蹤進度即可。');
+    }
+
+    return {stats:stats, triage:triage, ratedRecs:ratedRecs, indAvgs:indAvgs, evGap:evGap, badge:badge,
+      headline:headline, weakDepts:weakDepts, weakInds:weakInds, actions:actions};
+  }
+  function renderHealthCheck(elId, courseList, deptRows){
+    var el = document.getElementById(elId);
+    if(!el) return;
+    var h = computeHealth(courseList, deptRows);
+
+    var weakDeptsHtml = h.weakDepts.length ? h.weakDepts.map(function(r){
+      return '<div class="hc-item"><span class="hc-item-label">'+escapeHtml(r.label)+'</span>' +
+        '<span class="hint" style="margin:0;">'+r.done+'/'+r.total+'・'+r.rate.toFixed(2)+'%</span></div>';
+    }).join('') : '<div class="hc-empty">目前沒有可比較的系所資料。</div>';
+
+    var weakIndsHtml = h.weakInds.length ? h.weakInds.map(function(x){
+      return '<div class="hc-item clickable" data-code="'+x.ind.code+'"><span class="hc-item-label"><span style="color:'+dimColor(x.ind.dim)+';font-weight:700;">'+x.ind.code+'</span>　'+escapeHtml(x.ind.label)+'</span>' +
+        '<span class="hint" style="margin:0;">平均 '+x.avg.toFixed(1)+'</span></div>';
+    }).join('') : '<div class="hc-empty">尚無已完成盤點課程，暫無法分析。</div>';
+
+    var evidenceHtml;
+    if(h.evGap.need === 0){
+      evidenceHtml = '<div class="hc-empty">尚無3級以上關聯的指標紀錄。</div>';
+    } else {
+      evidenceHtml = '<div class="hc-item"><span class="hc-item-label">3級以上關聯・已補教學與評量方式說明</span>' +
+        '<span class="hint" style="margin:0;">'+(h.evGap.need - h.evGap.missing)+'/'+h.evGap.need+'・'+h.evGap.rate+'%</span></div>';
+    }
+
+    el.innerHTML =
+      '<div class="hc-head"><h3>健康檢查</h3><span class="badge '+h.badge.cls+'">'+h.badge.label+'</span><span class="hc-headline">'+h.headline+'</span></div>' +
+      '<div class="hc-grid">' +
+        '<div class="hc-block"><div class="hc-block-title">待加強系所</div>'+weakDeptsHtml+'</div>' +
+        '<div class="hc-block"><div class="hc-block-title">能力弱項（點擊查看課程）</div>'+weakIndsHtml+'</div>' +
+        '<div class="hc-block"><div class="hc-block-title">佐證填寫品質</div>'+evidenceHtml+'</div>' +
+      '</div>' +
+      '<div class="hc-actions"><div class="hc-block-title">建議行動</div><ul>'+h.actions.map(function(a){ return '<li>'+escapeHtml(a)+'</li>'; }).join('')+'</ul></div>';
+
+    Array.prototype.forEach.call(el.querySelectorAll('.hc-item.clickable'), function(row){
+      row.addEventListener('click', function(){
+        var ind = INDICATORS.filter(function(i){ return i.code === row.dataset.code; })[0];
+        openIndicatorModal(ind, courseList);
+      });
+    });
+  }
+
+  /* ---------- 規劃書草稿匯出（給院長／系所主管用，套五段式：能力描述／現況／作法／量化目標／驗證方式） ---------- */
+  function collegePlanDraftHtml(college, courseList, deptRows){
+    var h = computeHealth(courseList, deptRows);
+    var s = h.stats, t = h.triage;
+    var esc = escapeHtml;
+
+    var weakDeptsLis = h.weakDepts.length ? h.weakDepts.map(function(r){
+      return '<li>'+esc(r.label)+'：'+r.done+'/'+r.total+' 門，完成率 '+r.rate.toFixed(2)+'%</li>';
+    }).join('') : '<li>目前沒有可比較的系所資料。</li>';
+
+    var weakIndsLis = h.weakInds.length ? h.weakInds.map(function(x){
+      return '<li>'+esc(x.ind.code)+'・'+esc(x.ind.label)+'：平均等級 '+x.avg.toFixed(1)+'</li>';
+    }).join('') : '<li>尚無已完成盤點課程，暫無法分析弱項。</li>';
+
+    var evidenceText = h.evGap.need > 0
+      ? ('3級以上關聯的指標共 '+h.evGap.need+' 項，其中已補教學與評量方式說明 '+(h.evGap.need-h.evGap.missing)+' 項（'+h.evGap.rate+'%）')
+      : '目前尚無3級以上關聯的指標紀錄。';
+
+    var actionsLis = h.actions.map(function(a){ return '<li>'+esc(a)+'</li>'; }).join('');
+
+    // 量化目標建議值：以現況數字為基礎往上抓一個務實幅度，實際數字仍由主管定奪
+    var rateTarget = Math.min(90, Math.round(s.rate + 30));
+    var triageTarget = Math.min(100, Math.round(t.rate + 40));
+    var weakIndTargetText = h.weakInds.length
+      ? ('「'+h.weakInds[0].ind.code+'・'+h.weakInds[0].ind.label+'」平均等級由 '+h.weakInds[0].avg.toFixed(1)+' 提升至 3.0 以上')
+      : '尚無已完成課程可設定指標等級目標，建議先以AI涉入判定與盤點完成率為目標。';
+    var evidenceTargetText = h.evGap.need > 0
+      ? ('教學與評量方式佐證填寫率由 '+h.evGap.rate+'% 提升至 90% 以上')
+      : '尚無3級以上關聯紀錄，暫不設定佐證填寫率目標。';
+
+    var todayStr = new Date().toISOString().slice(0,10);
+
+    var body =
+      '<h1 style="font-size:20pt;">'+esc(currentYear)+'學年度「未來人才AI能力圖像」推動規劃書</h1>' +
+      '<p><b>學院：</b>'+esc(college)+'　｜　<b>資料時間：</b>'+todayStr+'　｜　<b>資料來源：</b>課程標註未來人才AI能力圖像系統・學院儀表板</p>' +
+      '<h2>一、目標學生應具備之能力描述</h2>' +
+      '<p>依教育部「未來人才 AI 能力圖像－高教學生培育目標」四面向，本院學生應具備：</p>' +
+      '<ul>' +
+        '<li><b>A．運用AI學習的能力</b>：能快速掌握並善用新興AI工具提升學習與創作效能，運用AI協助自主學習</li>' +
+        '<li><b>B．負責任使用AI的能力</b>：具備AI倫理與法律素養、資安風險意識，理解AI對社會與個人的影響</li>' +
+        '<li><b>C．運用AI解決問題的能力</b>：能運用AI分析問題、整合設計解決方案，並落實人機協作</li>' +
+        '<li><b>D．AI無法取代的能力</b>：保有主體性進行價值判斷與決策，強化人際互動與同理心，建立對真實世界的洞察力與創造力</li>' +
+      '</ul>' +
+      (h.weakInds.length ? '<p>依目前盤點資料，本院在「'+esc(h.weakInds[0].ind.code)+'・'+esc(h.weakInds[0].ind.label)+'」相對薄弱，建議在能力描述中特別強調此項。</p>' : '') +
+      '<h2>二、目前基礎現況</h2>' +
+      '<p>'+esc(h.headline)+'</p>' +
+      '<table border="1" cellspacing="0" cellpadding="6" style="border-collapse:collapse;width:100%;">' +
+        '<tr><td>課程總數</td><td>'+s.total+' 門</td></tr>' +
+        '<tr><td>AI涉入判定進度</td><td>'+t.rate.toFixed(2)+'%</td></tr>' +
+        '<tr><td>盤點完成率</td><td>'+s.rate.toFixed(2)+'%（'+s.done+'/'+s.total+'）</td></tr>' +
+      '</table>' +
+      '<p><b>待加強系所：</b></p><ul>'+weakDeptsLis+'</ul>' +
+      '<p><b>能力弱項（已完成盤點課程平均等級）：</b></p><ul>'+weakIndsLis+'</ul>' +
+      '<p><b>佐證填寫品質：</b>'+esc(evidenceText)+'</p>' +
+      '<h2>三、預期推動作法</h2>' +
+      '<p>依現況數據決定資源投入順序，而非齊頭式分配：</p>' +
+      '<ul>'+actionsLis+'</ul>' +
+      '<p>建議搭配：（1）每系所先推派1–2門代表性課程做示範填寫；（2）針對薄弱面向辦理院內工作坊；（3）由院辦定期匯出本報表追蹤各系進度。</p>' +
+      '<h2>四、量化目標</h2>' +
+      '<p>以下為依現況數據推算的建議值，實際目標請主管依系所量能調整：</p>' +
+      '<ul>' +
+        '<li>盤點完成率由 '+s.rate.toFixed(2)+'% 提升至 '+rateTarget+'% 以上</li>' +
+        '<li>AI涉入判定進度由 '+t.rate.toFixed(2)+'% 提升至 '+triageTarget+'% 以上</li>' +
+        '<li>'+esc(weakIndTargetText)+'</li>' +
+        '<li>'+esc(evidenceTargetText)+'</li>' +
+      '</ul>' +
+      '<h2>五、成果驗證方式</h2>' +
+      '<p>定期回系統「'+esc(college)+'」學院儀表板查看健康檢查卡與各項數據，比對本規劃書設定的量化目標是否達成；建議於學期中與學期末各檢核一次，並將檢核結果記錄於下次規劃書的「目前基礎現況」中，形成滾動式追蹤。</p>';
+
+    return '<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word" xmlns="http://www.w3.org/TR/REC-html40">' +
+      '<head><meta charset="utf-8"><title>'+esc(college)+'AI能力圖像規劃書</title>' +
+      '<style>body{font-family:"新細明體","Microsoft JhengHei";font-size:12pt;line-height:1.8;} h1{font-family:"微軟正黑體";} h2{font-family:"微軟正黑體";font-size:14pt;margin-top:20px;} table{margin:10px 0;} td{font-size:11pt;}</style>' +
+      '</head><body>'+body+'</body></html>';
+  }
+  function downloadCollegePlanDraft(){
+    var college = document.getElementById('collegeSelect').value;
+    if(!college){ toast('請先選擇學院'); return; }
+    var courseList = COURSES.filter(function(c){ return c.college === college && c.academicYear === currentYear; });
+    if(!courseList.length){ toast('目前範圍內沒有課程資料，無法產生規劃書'); return; }
+    var byDept = {};
+    courseList.forEach(function(c){ (byDept[c.dept] = byDept[c.dept] || []).push(c); });
+    var deptRows = Object.keys(byDept).sort().map(function(d){
+      var s = statsFor(byDept[d]);
+      var f = indicatorFillStatsFor(byDept[d]);
+      return {label:d, total:s.total, done:s.done, rate:s.rate, fillRate:f.rate, filledSlots:f.filledSlots, totalSlots:f.totalSlots, aiCourseCount:f.aiCourseCount};
+    });
+    var html = collegePlanDraftHtml(college, courseList, deptRows);
+    var blob = new Blob(['﻿' + html], {type:'application/msword;charset=utf-8;'});
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement('a');
+    a.href = url;
+    a.download = currentYear + '學年度_' + college + '_AI能力圖像規劃書.doc';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  }
   function renderAggregateRadar(wrapId, courseList){
     var wrap = document.getElementById(wrapId);
     var ratedRecs = ratedRecordsFor(courseList);
@@ -1386,6 +1609,7 @@
       return {label:d, total:s.total, done:s.done, rate:s.rate, fillRate:f.rate, filledSlots:f.filledSlots, totalSlots:f.totalSlots, aiCourseCount:f.aiCourseCount};
     });
     renderBreakdownTable('collegeBreakdown', '系所', rows);
+    renderHealthCheck('collegeHealthCheck', courseList, rows);
     renderMiniBarsInto('collegeCoverage', indicatorAveragesFor(ratedRecordsFor(courseList)), ratedRecordsFor(courseList).length > 0, courseList);
     renderAggregateRadar('collegeRadarWrap', courseList);
   }
@@ -1681,6 +1905,7 @@
     if(!college){ toast('請先選擇學院'); return; }
     exportCsvGeneric(COURSES.filter(function(c){ return c.college === college && c.academicYear === currentYear; }), currentYear + '學年度_' + college);
   });
+  document.getElementById('exportCollegePlanBtn').addEventListener('click', downloadCollegePlanDraft);
   document.getElementById('exportCampusCsvBtn').addEventListener('click', function(){
     var campus = document.getElementById('campusSelect').value;
     if(!campus){ toast('請先選擇校區'); return; }
