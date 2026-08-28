@@ -156,6 +156,7 @@
   .hc-head h3{font-size:14.5px;}
   .hc-headline{font-size:12.5px;color:var(--ink-2);}
   .hc-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;}
+  .hc-grid.hc-grid-2{grid-template-columns:repeat(2,1fr);}
   .hc-block{min-width:0;}
   .hc-block-title{font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.04em;margin-bottom:8px;}
   .hc-item{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:7px 0;border-bottom:1px solid var(--border);font-size:12.5px;}
@@ -360,6 +361,8 @@
           <div class="stat-tile"><div class="slabel">盤點完成率</div><div class="sval" id="statRate">0<small>%</small></div><div class="scap">已按下「標記完成」的課程比例</div></div>
         </div>
 
+        <div class="card health-check" id="deptHealthCheck" style="margin-bottom:16px;"></div>
+
         <div class="layout-2col">
           <div class="stack">
             <div class="card">
@@ -475,6 +478,7 @@
               <div id="coverageMiniBars"></div>
             </div>
             <button class="btn" id="exportCsvBtn">匯出本系資料（CSV）</button>
+            <button class="btn" id="exportDeptPlanBtn" style="margin-top:8px;">匯出AI能力圖像規劃書（草稿）</button>
           </div>
         </div>
       </div>
@@ -537,6 +541,7 @@
             <div class="stat-tile"><div class="slabel">尚未盤點</div><div class="sval" id="cpStatPending">0<small>門</small></div></div>
             <div class="stat-tile"><div class="slabel">盤點完成率</div><div class="sval" id="cpStatRate">0<small>%</small></div><div class="scap">已按下「標記完成」的課程比例</div></div>
           </div>
+          <div class="card health-check" id="campusHealthCheck" style="margin-bottom:16px;"></div>
           <div class="layout-2col">
             <div class="stack">
               <div class="card">
@@ -561,6 +566,7 @@
                 <div id="campusCoverage"></div>
               </div>
               <button class="btn" id="exportCampusCsvBtn">匯出本校區資料（CSV）</button>
+              <button class="btn" id="exportCampusPlanBtn" style="margin-top:8px;">匯出AI能力圖像規劃書（草稿）</button>
             </div>
           </div>
         </div>
@@ -575,6 +581,7 @@
           <div class="stat-tile"><div class="slabel">尚未盤點</div><div class="sval" id="allStatPending">0<small>門</small></div></div>
           <div class="stat-tile"><div class="slabel">盤點完成率</div><div class="sval" id="allStatRate">0<small>%</small></div><div class="scap">已按下「標記完成」的課程比例</div></div>
         </div>
+        <div class="card health-check" id="allHealthCheck" style="margin-bottom:16px;"></div>
         <div class="layout-2col">
           <div class="stack">
             <div class="card">
@@ -599,6 +606,7 @@
               <div id="allCoverage"></div>
             </div>
             <button class="btn" id="exportAllCsvBtn">匯出全校資料（CSV）</button>
+            <button class="btn" id="exportAllPlanBtn" style="margin-top:8px;">匯出AI能力圖像規劃書（草稿）</button>
           </div>
         </div>
       </div>
@@ -1330,15 +1338,17 @@
     return {stats:stats, triage:triage, ratedRecs:ratedRecs, indAvgs:indAvgs, evGap:evGap, badge:badge,
       headline:headline, weakDepts:weakDepts, weakInds:weakInds, actions:actions};
   }
-  function renderHealthCheck(elId, courseList, deptRows){
+  // subLabel：這個範圍底下再分的小單位名稱（系所／學院／校區）；學系層級已經是最小單位，傳 null 代表不適用
+  function renderHealthCheck(elId, courseList, deptRows, subLabel){
     var el = document.getElementById(elId);
     if(!el) return;
     var h = computeHealth(courseList, deptRows);
+    var showSubBlock = deptRows != null;
 
     var weakDeptsHtml = h.weakDepts.length ? h.weakDepts.map(function(r){
       return '<div class="hc-item"><span class="hc-item-label">'+escapeHtml(r.label)+'</span>' +
         '<span class="hint" style="margin:0;">'+r.done+'/'+r.total+'・'+r.rate.toFixed(2)+'%</span></div>';
-    }).join('') : '<div class="hc-empty">目前沒有可比較的系所資料。</div>';
+    }).join('') : '<div class="hc-empty">目前沒有可比較的'+escapeHtml(subLabel||'')+'資料。</div>';
 
     var weakIndsHtml = h.weakInds.length ? h.weakInds.map(function(x){
       return '<div class="hc-item clickable" data-code="'+x.ind.code+'"><span class="hc-item-label"><span style="color:'+dimColor(x.ind.dim)+';font-weight:700;">'+x.ind.code+'</span>　'+escapeHtml(x.ind.label)+'</span>' +
@@ -1354,9 +1364,9 @@
     }
 
     el.innerHTML =
-      '<div class="hc-head"><h3>健康檢查</h3><span class="badge '+h.badge.cls+'">'+h.badge.label+'</span><span class="hc-headline">'+h.headline+'</span></div>' +
-      '<div class="hc-grid">' +
-        '<div class="hc-block"><div class="hc-block-title">待加強系所</div>'+weakDeptsHtml+'</div>' +
+      '<div class="hc-head"><h3>決策評估表</h3><span class="badge '+h.badge.cls+'">'+h.badge.label+'</span><span class="hc-headline">'+h.headline+'</span></div>' +
+      '<div class="hc-grid'+(showSubBlock ? '' : ' hc-grid-2')+'">' +
+        (showSubBlock ? '<div class="hc-block"><div class="hc-block-title">待加強'+escapeHtml(subLabel)+'</div>'+weakDeptsHtml+'</div>' : '') +
         '<div class="hc-block"><div class="hc-block-title">能力弱項（點擊查看課程）</div>'+weakIndsHtml+'</div>' +
         '<div class="hc-block"><div class="hc-block-title">佐證填寫品質</div>'+evidenceHtml+'</div>' +
       '</div>' +
@@ -1370,15 +1380,22 @@
     });
   }
 
-  /* ---------- 規劃書草稿匯出（給院長／系所主管用，套五段式：能力描述／現況／作法／量化目標／驗證方式） ---------- */
-  function collegePlanDraftHtml(college, courseList, deptRows){
-    var h = computeHealth(courseList, deptRows);
+  /* ---------- 規劃書草稿匯出（系所／學院／校區／全校都能用，套五段式：能力描述／現況／作法／量化目標／驗證方式） ----------
+     scopeLabel：文件裡怎麼稱呼這個範圍（系所／學院／校區／範圍）
+     scopeName：範圍的實際名稱（例如「資訊管理學系」「設計學院」「臺北校區」「全校」）
+     breakdownLabel：範圍底下再分的小單位名稱，學系層級沒有再分，傳 null */
+  function buildPlanDraftHtml(scopeLabel, scopeName, courseList, breakdownRows, breakdownLabel){
+    var h = computeHealth(courseList, breakdownRows);
     var s = h.stats, t = h.triage;
     var esc = escapeHtml;
 
-    var weakDeptsLis = h.weakDepts.length ? h.weakDepts.map(function(r){
-      return '<li>'+esc(r.label)+'：'+r.done+'/'+r.total+' 門，完成率 '+r.rate.toFixed(2)+'%</li>';
-    }).join('') : '<li>目前沒有可比較的系所資料。</li>';
+    var weakBreakdownBlock = '';
+    if(breakdownRows){
+      var weakBreakdownLis = h.weakDepts.length ? h.weakDepts.map(function(r){
+        return '<li>'+esc(r.label)+'：'+r.done+'/'+r.total+' 門，完成率 '+r.rate.toFixed(2)+'%</li>';
+      }).join('') : '<li>目前沒有可比較的'+esc(breakdownLabel)+'資料。</li>';
+      weakBreakdownBlock = '<p><b>待加強'+esc(breakdownLabel)+'：</b></p><ul>'+weakBreakdownLis+'</ul>';
+    }
 
     var weakIndsLis = h.weakInds.length ? h.weakInds.map(function(x){
       return '<li>'+esc(x.ind.code)+'・'+esc(x.ind.label)+'：平均等級 '+x.avg.toFixed(1)+'</li>';
@@ -1404,16 +1421,16 @@
 
     var body =
       '<h1 style="font-size:20pt;">'+esc(currentYear)+'學年度「未來人才AI能力圖像」推動規劃書</h1>' +
-      '<p><b>學院：</b>'+esc(college)+'　｜　<b>資料時間：</b>'+todayStr+'　｜　<b>資料來源：</b>課程標註未來人才AI能力圖像系統・學院儀表板</p>' +
+      '<p><b>'+esc(scopeLabel)+'：</b>'+esc(scopeName)+'　｜　<b>資料時間：</b>'+todayStr+'　｜　<b>資料來源：</b>課程標註未來人才AI能力圖像系統・'+esc(scopeLabel)+'儀表板</p>' +
       '<h2>一、目標學生應具備之能力描述</h2>' +
-      '<p>依教育部「未來人才 AI 能力圖像－高教學生培育目標」四面向，本院學生應具備：</p>' +
+      '<p>依教育部「未來人才 AI 能力圖像－高教學生培育目標」四面向，學生應具備：</p>' +
       '<ul>' +
         '<li><b>A．運用AI學習的能力</b>：能快速掌握並善用新興AI工具提升學習與創作效能，運用AI協助自主學習</li>' +
         '<li><b>B．負責任使用AI的能力</b>：具備AI倫理與法律素養、資安風險意識，理解AI對社會與個人的影響</li>' +
         '<li><b>C．運用AI解決問題的能力</b>：能運用AI分析問題、整合設計解決方案，並落實人機協作</li>' +
         '<li><b>D．AI無法取代的能力</b>：保有主體性進行價值判斷與決策，強化人際互動與同理心，建立對真實世界的洞察力與創造力</li>' +
       '</ul>' +
-      (h.weakInds.length ? '<p>依目前盤點資料，本院在「'+esc(h.weakInds[0].ind.code)+'・'+esc(h.weakInds[0].ind.label)+'」相對薄弱，建議在能力描述中特別強調此項。</p>' : '') +
+      (h.weakInds.length ? '<p>依目前盤點資料，本'+esc(scopeLabel)+'在「'+esc(h.weakInds[0].ind.code)+'・'+esc(h.weakInds[0].ind.label)+'」相對薄弱，建議在能力描述中特別強調此項。</p>' : '') +
       '<h2>二、目前基礎現況</h2>' +
       '<p>'+esc(h.headline)+'</p>' +
       '<table border="1" cellspacing="0" cellpadding="6" style="border-collapse:collapse;width:100%;">' +
@@ -1421,15 +1438,15 @@
         '<tr><td>AI涉入判定進度</td><td>'+t.rate.toFixed(2)+'%</td></tr>' +
         '<tr><td>盤點完成率</td><td>'+s.rate.toFixed(2)+'%（'+s.done+'/'+s.total+'）</td></tr>' +
       '</table>' +
-      '<p><b>待加強系所：</b></p><ul>'+weakDeptsLis+'</ul>' +
+      weakBreakdownBlock +
       '<p><b>能力弱項（已完成盤點課程平均等級）：</b></p><ul>'+weakIndsLis+'</ul>' +
       '<p><b>佐證填寫品質：</b>'+esc(evidenceText)+'</p>' +
       '<h2>三、預期推動作法</h2>' +
       '<p>依現況數據決定資源投入順序，而非齊頭式分配：</p>' +
       '<ul>'+actionsLis+'</ul>' +
-      '<p>建議搭配：（1）每系所先推派1–2門代表性課程做示範填寫；（2）針對薄弱面向辦理院內工作坊；（3）由院辦定期匯出本報表追蹤各系進度。</p>' +
+      '<p>建議搭配：（1）先推派1–2門代表性課程做示範填寫；（2）針對薄弱面向辦理工作坊；（3）定期匯出本報表追蹤進度。</p>' +
       '<h2>四、量化目標</h2>' +
-      '<p>以下為依現況數據推算的建議值，實際目標請主管依系所量能調整：</p>' +
+      '<p>以下為依現況數據推算的建議值，實際目標請主管依量能調整：</p>' +
       '<ul>' +
         '<li>盤點完成率由 '+s.rate.toFixed(2)+'% 提升至 '+rateTarget+'% 以上</li>' +
         '<li>AI涉入判定進度由 '+t.rate.toFixed(2)+'% 提升至 '+triageTarget+'% 以上</li>' +
@@ -1437,12 +1454,30 @@
         '<li>'+esc(evidenceTargetText)+'</li>' +
       '</ul>' +
       '<h2>五、成果驗證方式</h2>' +
-      '<p>定期回系統「'+esc(college)+'」學院儀表板查看健康檢查卡與各項數據，比對本規劃書設定的量化目標是否達成；建議於學期中與學期末各檢核一次，並將檢核結果記錄於下次規劃書的「目前基礎現況」中，形成滾動式追蹤。</p>';
+      '<p>定期回系統「'+esc(scopeName)+'」'+esc(scopeLabel)+'儀表板查看決策評估表與各項數據，比對本規劃書設定的量化目標是否達成；建議於學期中與學期末各檢核一次，並將檢核結果記錄於下次規劃書的「目前基礎現況」中，形成滾動式追蹤。</p>';
 
     return '<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word" xmlns="http://www.w3.org/TR/REC-html40">' +
-      '<head><meta charset="utf-8"><title>'+esc(college)+'AI能力圖像規劃書</title>' +
+      '<head><meta charset="utf-8"><title>'+esc(scopeName)+'AI能力圖像規劃書</title>' +
       '<style>body{font-family:"新細明體","Microsoft JhengHei";font-size:12pt;line-height:1.8;} h1{font-family:"微軟正黑體";} h2{font-family:"微軟正黑體";font-size:14pt;margin-top:20px;} table{margin:10px 0;} td{font-size:11pt;}</style>' +
       '</head><body>'+body+'</body></html>';
+  }
+  function triggerDocDownload(html, filename){
+    var blob = new Blob(['﻿' + html], {type:'application/msword;charset=utf-8;'});
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  }
+  function downloadDeptPlanDraft(){
+    if(!currentDept){ toast('請先選擇校區、學院與學系'); return; }
+    var courseList = deptCourses();
+    if(!courseList.length){ toast('目前範圍內沒有課程資料，無法產生規劃書'); return; }
+    var html = buildPlanDraftHtml('系所', currentDept, courseList, null, null);
+    triggerDocDownload(html, currentYear + '學年度_' + currentDept + '_AI能力圖像規劃書.doc');
   }
   function downloadCollegePlanDraft(){
     var college = document.getElementById('collegeSelect').value;
@@ -1451,21 +1486,50 @@
     if(!courseList.length){ toast('目前範圍內沒有課程資料，無法產生規劃書'); return; }
     var byDept = {};
     courseList.forEach(function(c){ (byDept[c.dept] = byDept[c.dept] || []).push(c); });
-    var deptRows = Object.keys(byDept).sort().map(function(d){
+    var breakdownRows = Object.keys(byDept).sort().map(function(d){
       var s = statsFor(byDept[d]);
       var f = indicatorFillStatsFor(byDept[d]);
       return {label:d, total:s.total, done:s.done, rate:s.rate, fillRate:f.rate, filledSlots:f.filledSlots, totalSlots:f.totalSlots, aiCourseCount:f.aiCourseCount};
     });
-    var html = collegePlanDraftHtml(college, courseList, deptRows);
-    var blob = new Blob(['﻿' + html], {type:'application/msword;charset=utf-8;'});
-    var url = URL.createObjectURL(blob);
-    var a = document.createElement('a');
-    a.href = url;
-    a.download = currentYear + '學年度_' + college + '_AI能力圖像規劃書.doc';
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
+    var html = buildPlanDraftHtml('學院', college, courseList, breakdownRows, '系所');
+    triggerDocDownload(html, currentYear + '學年度_' + college + '_AI能力圖像規劃書.doc');
+  }
+  function downloadCampusPlanDraft(){
+    var campus = document.getElementById('campusSelect').value;
+    if(!campus){ toast('請先選擇校區'); return; }
+    var courseList = COURSES.filter(function(c){ return c.campus === campus && c.academicYear === currentYear; });
+    if(!courseList.length){ toast('目前範圍內沒有課程資料，無法產生規劃書'); return; }
+    var byCollege = {};
+    courseList.forEach(function(c){ (byCollege[c.college] = byCollege[c.college] || []).push(c); });
+    var breakdownRows = Object.keys(byCollege).sort().map(function(col){
+      var s = statsFor(byCollege[col]);
+      var f = indicatorFillStatsFor(byCollege[col]);
+      return {label:col, total:s.total, done:s.done, rate:s.rate, fillRate:f.rate, filledSlots:f.filledSlots, totalSlots:f.totalSlots, aiCourseCount:f.aiCourseCount};
+    });
+    var html = buildPlanDraftHtml('校區', campus, courseList, breakdownRows, '學院');
+    triggerDocDownload(html, currentYear + '學年度_' + campus + '_AI能力圖像規劃書.doc');
+  }
+  function downloadAllPlanDraft(){
+    var courseList = COURSES.filter(function(c){ return c.academicYear === currentYear; });
+    if(!courseList.length){ toast('目前範圍內沒有課程資料，無法產生規劃書'); return; }
+    var byCampusCollege = {};
+    courseList.forEach(function(c){
+      var key = c.campus + '||' + c.college;
+      (byCampusCollege[key] = byCampusCollege[key] || []).push(c);
+    });
+    var breakdownRows = Object.keys(byCampusCollege).sort(function(keyA,keyB){
+      var a = byCampusCollege[keyA], b = byCampusCollege[keyB];
+      var ca = a[0].campus, cb = b[0].campus;
+      if(ca !== cb) return CAMPUS_ORDER.indexOf(ca) - CAMPUS_ORDER.indexOf(cb);
+      return a[0].college < b[0].college ? -1 : 1;
+    }).map(function(key){
+      var list = byCampusCollege[key];
+      var s = statsFor(list);
+      var f = indicatorFillStatsFor(list);
+      return {label:list[0].campus+'・'+list[0].college, total:s.total, done:s.done, rate:s.rate, fillRate:f.rate, filledSlots:f.filledSlots, totalSlots:f.totalSlots, aiCourseCount:f.aiCourseCount};
+    });
+    var html = buildPlanDraftHtml('範圍', '全校', courseList, breakdownRows, '校區／學院');
+    triggerDocDownload(html, currentYear + '學年度_全校_AI能力圖像規劃書.doc');
   }
   function renderAggregateRadar(wrapId, courseList){
     var wrap = document.getElementById(wrapId);
@@ -1579,6 +1643,7 @@
 
     var ratedRecs = ratedRecordsFor(list);
     renderMiniBarsInto('coverageMiniBars', indicatorAveragesFor(ratedRecs), ratedRecs.length > 0, list);
+    renderHealthCheck('deptHealthCheck', list, null, null);
     renderAggregateRadar('deptRadarWrap', list);
   }
 
@@ -1609,7 +1674,7 @@
       return {label:d, total:s.total, done:s.done, rate:s.rate, fillRate:f.rate, filledSlots:f.filledSlots, totalSlots:f.totalSlots, aiCourseCount:f.aiCourseCount};
     });
     renderBreakdownTable('collegeBreakdown', '系所', rows);
-    renderHealthCheck('collegeHealthCheck', courseList, rows);
+    renderHealthCheck('collegeHealthCheck', courseList, rows, '系所');
     renderMiniBarsInto('collegeCoverage', indicatorAveragesFor(ratedRecordsFor(courseList)), ratedRecordsFor(courseList).length > 0, courseList);
     renderAggregateRadar('collegeRadarWrap', courseList);
   }
@@ -1641,6 +1706,7 @@
       return {label:col, total:s.total, done:s.done, rate:s.rate, fillRate:f.rate, filledSlots:f.filledSlots, totalSlots:f.totalSlots, aiCourseCount:f.aiCourseCount};
     });
     renderBreakdownTable('campusBreakdown', '學院', rows);
+    renderHealthCheck('campusHealthCheck', courseList, rows, '學院');
     renderMiniBarsInto('campusCoverage', indicatorAveragesFor(ratedRecordsFor(courseList)), ratedRecordsFor(courseList).length > 0, courseList);
     renderAggregateRadar('campusRadarWrap', courseList);
   }
@@ -1677,6 +1743,10 @@
       return {campus:list[0].campus, college:list[0].college, total:s.total, done:s.done, rate:s.rate, fillRate:f.rate, filledSlots:f.filledSlots, totalSlots:f.totalSlots, aiCourseCount:f.aiCourseCount};
     });
     renderAllBreakdownTable('allBreakdown', rows);
+    var healthRows = rows.map(function(r){
+      return {label:r.campus+'・'+r.college, total:r.total, done:r.done, rate:r.rate, fillRate:r.fillRate, filledSlots:r.filledSlots, totalSlots:r.totalSlots, aiCourseCount:r.aiCourseCount};
+    });
+    renderHealthCheck('allHealthCheck', courseList, healthRows, '校區／學院');
     renderMiniBarsInto('allCoverage', indicatorAveragesFor(ratedRecordsFor(courseList)), ratedRecordsFor(courseList).length > 0, courseList);
     renderAggregateRadar('allRadarWrap', courseList);
   }
@@ -1900,6 +1970,7 @@
     });
   });
   document.getElementById('exportCsvBtn').addEventListener('click', exportCsv);
+  document.getElementById('exportDeptPlanBtn').addEventListener('click', downloadDeptPlanDraft);
   document.getElementById('exportCollegeCsvBtn').addEventListener('click', function(){
     var college = document.getElementById('collegeSelect').value;
     if(!college){ toast('請先選擇學院'); return; }
@@ -1911,9 +1982,11 @@
     if(!campus){ toast('請先選擇校區'); return; }
     exportCsvGeneric(COURSES.filter(function(c){ return c.campus === campus && c.academicYear === currentYear; }), currentYear + '學年度_' + campus);
   });
+  document.getElementById('exportCampusPlanBtn').addEventListener('click', downloadCampusPlanDraft);
   document.getElementById('exportAllCsvBtn').addEventListener('click', function(){
     exportCsvGeneric(COURSES.filter(function(c){ return c.academicYear === currentYear; }), currentYear + '學年度_全校');
   });
+  document.getElementById('exportAllPlanBtn').addEventListener('click', downloadAllPlanDraft);
   Array.prototype.forEach.call(document.querySelectorAll('#scopeTabs button'), function(b){
     b.addEventListener('click', function(){ setScope(b.dataset.scope); });
   });
