@@ -1406,10 +1406,13 @@
     });
   }
 
-  /* ---------- 規劃書草稿匯出（系所／學院／校區／全校都能用，套五段式：能力描述／現況／作法／量化目標／驗證方式） ----------
+  /* ---------- 規劃書草稿匯出（系所／學院／校區／全校都能用）——只給數據，不給建議：
+     一、學生應具備之能力描述（教育部四面向框架原文）
+     二、目前基礎現況（完成率、各單位強弱項、跨單位可參考對象等純數據）
+     不寫推動作法／量化目標／驗證方式，那些判斷留給主管自己決定。
      scopeLabel：文件裡怎麼稱呼這個範圍（系所／學院／校區／範圍）
      scopeName：範圍的實際名稱（例如「資訊管理學系」「設計學院」「臺北校區」「全校」）
-     breakdownLabel：範圍底下再分的小單位名稱，學系層級沒有再分，傳 null */
+     breakdownLabel：範圍底下再分的小單位名稱，學系層級沒有再分，傳 null ---------- */
   function buildPlanDraftHtml(scopeLabel, scopeName, courseList, breakdownRows, breakdownLabel){
     var h = computeHealth(courseList, breakdownRows);
     var s = h.stats, t = h.triage;
@@ -1432,19 +1435,6 @@
       return '<li>'+esc(x.ind.code)+'・'+esc(x.ind.label)+'：平均等級 '+x.avg.toFixed(1)+'</li>';
     }).join('') : '<li>尚無已完成盤點課程，暫無法分析強項。</li>';
 
-    var actionsLis = h.actions.map(function(a){ return '<li>'+esc(a)+'</li>'; }).join('');
-
-    // 量化目標聚焦在學生能力本身的提升，不是盤點表填寫進度——完成率、判定進度只是取得這些數據的手段
-    var capabilityTargetLis = h.weakInds.length ? h.weakInds.map(function(x){
-      return '<li>「'+esc(x.ind.code)+'・'+esc(x.ind.label)+'」平均等級由 '+x.avg.toFixed(1)+' 提升至 3.0 以上——透過調整對應課程的教學活動與評量設計達成，而非僅要求老師填高等級</li>';
-    }).join('') : '<li>目前已完成盤點的課程還不夠，暫無法依現況設定能力目標，建議先請各系所完成部分課程盤點，取得可分析的資料</li>';
-    if(h.bestLearnPair){
-      capabilityTargetLis += '<li>「'+esc(h.bestLearnPair.label)+'」在'+h.bestLearnPair.weakInd.ind.code+'的教學設計，參考「'+esc(h.bestLearnPair.learnFrom.label)+'」的做法進行調整，作為跨單位互相學習的具體實踐</li>';
-    }
-    if(h.strongInds.length){
-      capabilityTargetLis += '<li>「'+esc(h.strongInds[0].ind.code)+'・'+esc(h.strongInds[0].ind.label)+'」的教學做法整理成案例，供其他課程參考複製，維持並擴大既有優勢</li>';
-    }
-
     var todayStr = new Date().toISOString().slice(0,10);
 
     var body =
@@ -1458,7 +1448,6 @@
         '<li><b>C．運用AI解決問題的能力</b>：能運用AI分析問題、整合設計解決方案，並落實人機協作</li>' +
         '<li><b>D．AI無法取代的能力</b>：保有主體性進行價值判斷與決策，強化人際互動與同理心，建立對真實世界的洞察力與創造力</li>' +
       '</ul>' +
-      (h.weakInds.length ? '<p>依目前盤點資料，本'+esc(scopeLabel)+'在「'+esc(h.weakInds[0].ind.code)+'・'+esc(h.weakInds[0].ind.label)+'」相對薄弱，建議在能力描述中特別強調此項。</p>' : '') +
       '<h2>二、目前基礎現況</h2>' +
       '<p>'+esc(h.headline)+'</p>' +
       '<table border="1" cellspacing="0" cellpadding="6" style="border-collapse:collapse;width:100%;">' +
@@ -1468,16 +1457,7 @@
       '</table>' +
       unitBreakdownBlock +
       '<p><b>能力弱項（已完成盤點課程平均等級）：</b></p><ul>'+weakIndsLis+'</ul>' +
-      '<p><b>能力強項（已完成盤點課程平均等級）：</b></p><ul>'+strongIndsLis+'</ul>' +
-      '<h2>三、預期推動作法</h2>' +
-      '<p>依現況數據決定資源投入順序，而非齊頭式分配：</p>' +
-      '<ul>'+actionsLis+'</ul>' +
-      '<p>建議搭配：（1）先推派1–2門代表性課程做示範填寫；（2）針對薄弱面向辦理工作坊；（3）定期匯出本報表追蹤進度。</p>' +
-      '<h2>四、量化目標</h2>' +
-      '<p>目標是依現況數據調整課程、實質培養學生的AI各項能力，不是把盤點表填完；盤點完成率與AI涉入判定進度只是取得這些數據的過程，不列入目標：</p>' +
-      '<ul>'+capabilityTargetLis+'</ul>' +
-      '<h2>五、成果驗證方式</h2>' +
-      '<p>定期回系統「'+esc(scopeName)+'」'+esc(scopeLabel)+'儀表板查看決策評估表與各項數據，比對本規劃書設定的量化目標是否達成；建議於學期中與學期末各檢核一次，並將檢核結果記錄於下次規劃書的「目前基礎現況」中，形成滾動式追蹤。</p>';
+      '<p><b>能力強項（已完成盤點課程平均等級）：</b></p><ul>'+strongIndsLis+'</ul>';
 
     return '<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word" xmlns="http://www.w3.org/TR/REC-html40">' +
       '<head><meta charset="utf-8"><title>'+esc(scopeName)+'AI能力圖像規劃書</title>' +
