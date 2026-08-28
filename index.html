@@ -236,13 +236,22 @@
   .modal-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;}
   .modal-head h3{font-size:14.5px;margin:0;}
   .modal-close{background:none;border:none;font-size:16px;color:var(--muted);cursor:pointer;line-height:1;padding:4px;}
+  .modal-box.wide{max-width:520px;}
+  .ind-modal-meta{margin:0 0 12px;}
+  .ind-modal-list{max-height:400px;overflow-y:auto;display:flex;flex-direction:column;gap:8px;}
+  .ind-modal-row{display:flex;align-items:flex-start;gap:10px;padding:9px 11px;border:1px solid var(--border);border-radius:10px;background:var(--surface);}
+  .ind-modal-row .imr-name{flex:1;min-width:0;font-size:12.5px;}
+  .ind-modal-row .imr-name b{display:block;}
+  .ind-modal-row .imr-level{flex:none;font-weight:700;font-size:13px;width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;}
+  .ind-modal-row .imr-evidence{margin-top:4px;font-size:11.5px;color:var(--ink-2);}
 
   .progress-line{display:flex;align-items:center;gap:10px;}
   .progress-track{flex:1;height:8px;border-radius:99px;background:var(--grid);overflow:hidden;}
   .progress-fill{height:100%;background:linear-gradient(90deg,var(--dim-a),var(--accent));border-radius:99px;transition:width .25s;}
   .progress-pct{font-weight:700;font-size:12.5px;}
 
-  .mini-bar-line{display:flex;align-items:center;gap:8px;padding:5px 0;}
+  .mini-bar-line{display:flex;align-items:center;gap:8px;padding:5px 0;cursor:pointer;border-radius:8px;}
+  .mini-bar-line:hover{background:var(--surface);}
   .mini-bar-line .code{width:30px;font-size:10.5px;font-weight:700;color:var(--ink-2);flex:none;}
   .mini-bar-track{flex:1;height:6px;background:var(--grid);border-radius:99px;overflow:hidden;}
   .mini-bar-fill{height:100%;border-radius:99px;}
@@ -584,6 +593,14 @@
     <div class="modal-head"><h3 id="crmTitle">課程能力剖面</h3><button class="modal-close" id="crmClose">✕</button></div>
     <div class="hint" id="crmMeta" style="margin:0 0 10px;"></div>
     <div class="radar-wrap" id="crmRadarWrap"></div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="indicatorModal">
+  <div class="modal-box wide">
+    <div class="modal-head"><h3 id="indModalTitle">指標詳情</h3><button class="modal-close" id="indModalClose">✕</button></div>
+    <div class="hint ind-modal-meta" id="indModalMeta"></div>
+    <div class="ind-modal-list" id="indModalBody"></div>
   </div>
 </div>
 
@@ -1168,6 +1185,10 @@
   function ratedRecordsFor(courseList){
     return courseList.map(function(c){ return peekRecord(c.dept, c.id); }).filter(function(r){ return r && r.status === 'done'; });
   }
+  function ratedPairsFor(courseList){
+    return courseList.map(function(c){ return {course:c, rec:peekRecord(c.dept, c.id)}; })
+      .filter(function(p){ return p.rec && p.rec.status === 'done'; });
+  }
   function indicatorAveragesFor(ratedRecs){
     var out = {};
     INDICATORS.forEach(function(ind){
@@ -1185,16 +1206,43 @@
       return {dim:dim, avg:avg};
     });
   }
-  function renderMiniBarsInto(elId, indAvgs, hasData){
+  function renderMiniBarsInto(elId, indAvgs, hasData, courseList){
     var el = document.getElementById(elId);
     if(!hasData){ el.innerHTML = '<div class="hint" style="margin:0;">尚無已完成盤點的課程資料。</div>'; return; }
     el.innerHTML = INDICATORS.map(function(ind){
       var avg = indAvgs[ind.code] || 0;
       var pct = (avg/5*100).toFixed(0);
-      return '<div class="mini-bar-line"><span class="code" style="color:'+dimColor(ind.dim)+'">'+ind.code+'</span>' +
+      return '<div class="mini-bar-line" data-code="'+ind.code+'" title="點一下查看有哪些課程"><span class="code" style="color:'+dimColor(ind.dim)+'">'+ind.code+'</span>' +
         '<div class="mini-bar-track"><div class="mini-bar-fill" style="width:'+pct+'%;background:'+dimColor(ind.dim)+'"></div></div>' +
         '<span class="mini-bar-val">'+avg.toFixed(1)+'</span></div>';
     }).join('');
+    if(courseList){
+      Array.prototype.forEach.call(el.querySelectorAll('.mini-bar-line'), function(row){
+        row.addEventListener('click', function(){
+          var ind = INDICATORS.filter(function(i){ return i.code === row.dataset.code; })[0];
+          openIndicatorModal(ind, courseList);
+        });
+      });
+    }
+  }
+  function openIndicatorModal(ind, courseList){
+    var rows = ratedPairsFor(courseList).map(function(p){
+      return {course:p.course, rating: p.rec.ratings[ind.code] || 0, evidence: p.rec.evidence[ind.code] || ''};
+    }).sort(function(a,b){ return b.rating - a.rating; });
+    var avg = rows.length ? rows.reduce(function(s,r){ return s+r.rating; }, 0) / rows.length : 0;
+    document.getElementById('indModalTitle').innerHTML = '<span style="color:'+dimColor(ind.dim)+'">'+ind.code+'</span>・'+escapeHtml(ind.label);
+    document.getElementById('indModalMeta').textContent = '共 ' + rows.length + ' 門已完成盤點課程・平均等級 ' + avg.toFixed(1);
+    var body = document.getElementById('indModalBody');
+    body.innerHTML = rows.length ? rows.map(function(r){
+      return '<div class="ind-modal-row">' +
+        '<div class="imr-name"><b>'+escapeHtml(r.course.name)+'</b><span class="hint" style="margin:0;">'+escapeHtml(r.course.dept)+' ・ '+escapeHtml(r.course.teacher)+'</span>' +
+        (r.evidence ? '<div class="imr-evidence">'+escapeHtml(r.evidence)+'</div>' : '') + '</div>' +
+        '<span class="imr-level" style="background:'+dimColor(ind.dim)+'">'+r.rating+'</span></div>';
+    }).join('') : '<div class="hint" style="margin:0;">尚無已完成盤點的課程資料。</div>';
+    document.getElementById('indicatorModal').style.display = 'flex';
+  }
+  function closeIndicatorModal(){
+    document.getElementById('indicatorModal').style.display = 'none';
   }
   function renderAggregateRadar(wrapId, courseList){
     var wrap = document.getElementById(wrapId);
@@ -1307,7 +1355,7 @@
     updateTopbarStatus(stats.rate);
 
     var ratedRecs = ratedRecordsFor(list);
-    renderMiniBarsInto('coverageMiniBars', indicatorAveragesFor(ratedRecs), ratedRecs.length > 0);
+    renderMiniBarsInto('coverageMiniBars', indicatorAveragesFor(ratedRecs), ratedRecs.length > 0, list);
     renderAggregateRadar('deptRadarWrap', list);
   }
 
@@ -1338,7 +1386,7 @@
       return {label:d, total:s.total, done:s.done, rate:s.rate, fillRate:f.rate, filledSlots:f.filledSlots, totalSlots:f.totalSlots, aiCourseCount:f.aiCourseCount};
     });
     renderBreakdownTable('collegeBreakdown', '系所', rows);
-    renderMiniBarsInto('collegeCoverage', indicatorAveragesFor(ratedRecordsFor(courseList)), ratedRecordsFor(courseList).length > 0);
+    renderMiniBarsInto('collegeCoverage', indicatorAveragesFor(ratedRecordsFor(courseList)), ratedRecordsFor(courseList).length > 0, courseList);
     renderAggregateRadar('collegeRadarWrap', courseList);
   }
 
@@ -1369,7 +1417,7 @@
       return {label:col, total:s.total, done:s.done, rate:s.rate, fillRate:f.rate, filledSlots:f.filledSlots, totalSlots:f.totalSlots, aiCourseCount:f.aiCourseCount};
     });
     renderBreakdownTable('campusBreakdown', '學院', rows);
-    renderMiniBarsInto('campusCoverage', indicatorAveragesFor(ratedRecordsFor(courseList)), ratedRecordsFor(courseList).length > 0);
+    renderMiniBarsInto('campusCoverage', indicatorAveragesFor(ratedRecordsFor(courseList)), ratedRecordsFor(courseList).length > 0, courseList);
     renderAggregateRadar('campusRadarWrap', courseList);
   }
 
@@ -1405,7 +1453,7 @@
       return {campus:list[0].campus, college:list[0].college, total:s.total, done:s.done, rate:s.rate, fillRate:f.rate, filledSlots:f.filledSlots, totalSlots:f.totalSlots, aiCourseCount:f.aiCourseCount};
     });
     renderAllBreakdownTable('allBreakdown', rows);
-    renderMiniBarsInto('allCoverage', indicatorAveragesFor(ratedRecordsFor(courseList)), ratedRecordsFor(courseList).length > 0);
+    renderMiniBarsInto('allCoverage', indicatorAveragesFor(ratedRecordsFor(courseList)), ratedRecordsFor(courseList).length > 0, courseList);
     renderAggregateRadar('allRadarWrap', courseList);
   }
 
@@ -1602,6 +1650,10 @@
   document.getElementById('crmClose').addEventListener('click', closeCourseRadarModal);
   document.getElementById('courseRadarModal').addEventListener('click', function(e){
     if(e.target.id === 'courseRadarModal') closeCourseRadarModal();
+  });
+  document.getElementById('indModalClose').addEventListener('click', closeIndicatorModal);
+  document.getElementById('indicatorModal').addEventListener('click', function(e){
+    if(e.target.id === 'indicatorModal') closeIndicatorModal();
   });
   initCourseSearchWidget('deptCourseSearch', 'deptCourseSearchResults', deptCourses);
   initCourseSearchWidget('collegeCourseSearch', 'collegeCourseSearchResults', function(){
