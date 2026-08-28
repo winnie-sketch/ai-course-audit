@@ -364,7 +364,7 @@
           <div class="stat-tile"><div class="slabel">AI涉入判定進度</div><div class="sval" id="statTriageRate">0<small>%</small></div><div class="scap">已判斷「有無涉及AI」的課程比例</div></div>
           <div class="stat-tile"><div class="slabel">已完成盤點</div><div class="sval" id="statDone">0<small>門</small></div></div>
           <div class="stat-tile"><div class="slabel">尚未盤點</div><div class="sval" id="statPending">0<small>門</small></div></div>
-          <div class="stat-tile"><div class="slabel">盤點完成率</div><div class="sval" id="statRate">0<small>%</small></div><div class="scap">已按下「標記完成」的課程比例</div></div>
+          <div class="stat-tile"><div class="slabel">盤點完成率</div><div class="sval" id="statRate">0<small>%</small></div><div class="scap">已按下「標記完成」的課程比例</div><div class="scap" id="statRateReq" style="margin-top:2px;"></div></div>
         </div>
 
         <div class="card health-check" id="deptHealthCheck" style="margin-bottom:16px;"></div>
@@ -501,7 +501,7 @@
             <div class="stat-tile"><div class="slabel">AI涉入判定進度</div><div class="sval" id="cgStatTriageRate">0<small>%</small></div><div class="scap">已判斷「有無涉及AI」的課程比例</div></div>
             <div class="stat-tile"><div class="slabel">已完成盤點</div><div class="sval" id="cgStatDone">0<small>門</small></div></div>
             <div class="stat-tile"><div class="slabel">尚未盤點</div><div class="sval" id="cgStatPending">0<small>門</small></div></div>
-            <div class="stat-tile"><div class="slabel">盤點完成率</div><div class="sval" id="cgStatRate">0<small>%</small></div><div class="scap">已按下「標記完成」的課程比例</div></div>
+            <div class="stat-tile"><div class="slabel">盤點完成率</div><div class="sval" id="cgStatRate">0<small>%</small></div><div class="scap">已按下「標記完成」的課程比例</div><div class="scap" id="cgStatRateReq" style="margin-top:2px;"></div></div>
           </div>
           <div class="card health-check" id="collegeHealthCheck" style="margin-bottom:16px;"></div>
           <div class="layout-2col">
@@ -545,7 +545,7 @@
             <div class="stat-tile"><div class="slabel">AI涉入判定進度</div><div class="sval" id="cpStatTriageRate">0<small>%</small></div><div class="scap">已判斷「有無涉及AI」的課程比例</div></div>
             <div class="stat-tile"><div class="slabel">已完成盤點</div><div class="sval" id="cpStatDone">0<small>門</small></div></div>
             <div class="stat-tile"><div class="slabel">尚未盤點</div><div class="sval" id="cpStatPending">0<small>門</small></div></div>
-            <div class="stat-tile"><div class="slabel">盤點完成率</div><div class="sval" id="cpStatRate">0<small>%</small></div><div class="scap">已按下「標記完成」的課程比例</div></div>
+            <div class="stat-tile"><div class="slabel">盤點完成率</div><div class="sval" id="cpStatRate">0<small>%</small></div><div class="scap">已按下「標記完成」的課程比例</div><div class="scap" id="cpStatRateReq" style="margin-top:2px;"></div></div>
           </div>
           <div class="card health-check" id="campusHealthCheck" style="margin-bottom:16px;"></div>
           <div class="layout-2col">
@@ -585,7 +585,7 @@
           <div class="stat-tile"><div class="slabel">AI涉入判定進度</div><div class="sval" id="allStatTriageRate">0<small>%</small></div><div class="scap">已判斷「有無涉及AI」的課程比例</div></div>
           <div class="stat-tile"><div class="slabel">已完成盤點</div><div class="sval" id="allStatDone">0<small>門</small></div></div>
           <div class="stat-tile"><div class="slabel">尚未盤點</div><div class="sval" id="allStatPending">0<small>門</small></div></div>
-          <div class="stat-tile"><div class="slabel">盤點完成率</div><div class="sval" id="allStatRate">0<small>%</small></div><div class="scap">已按下「標記完成」的課程比例</div></div>
+          <div class="stat-tile"><div class="slabel">盤點完成率</div><div class="sval" id="allStatRate">0<small>%</small></div><div class="scap">已按下「標記完成」的課程比例</div><div class="scap" id="allStatRateReq" style="margin-top:2px;"></div></div>
         </div>
         <div class="card health-check" id="allHealthCheck" style="margin-bottom:16px;"></div>
         <div class="layout-2col">
@@ -1195,6 +1195,11 @@
     var rate = total ? Math.round(done/total*10000)/100 : 0;
     return {total:total, done:done, pending:pending, rate:rate};
   }
+  // 現階段只要求填必修課程，選修尚未強制，所以完成率要能分開看：
+  // 「必修＋選修合計」跟「只算必修」是兩個不同意義的數字
+  function requiredOnlyStatsFor(courseList){
+    return statsFor(courseList.filter(function(c){ return c.reqType === '必修'; }));
+  }
   // AI涉入判定進度：只看「是否涉及AI」這題有沒有回答（不論後續11項指標填了沒），
   // 讓學系可以先把每一門課至少判定一次涉不涉及AI，這是比「盤點完成率」更基礎的第一層進度。
   function aiTriageStatsFor(courseList){
@@ -1300,22 +1305,25 @@
   // 共用診斷邏輯：健康檢查卡片跟「規劃書」草稿匯出都吃同一份計算結果，避免兩處數字兜不起來
   function computeHealth(courseList, deptRows){
     var stats = statsFor(courseList);
+    var requiredStats = requiredOnlyStatsFor(courseList);
     var triage = aiTriageStatsFor(courseList);
     var ratedRecs = ratedRecordsFor(courseList);
     var indAvgs = indicatorAveragesFor(ratedRecs);
-    var badge = healthBadge(stats.rate);
+    // 現階段只要求填必修，所以燈號跟階段判斷都以「必修完成率」為準，不是必修+選修合計
+    var badge = healthBadge(requiredStats.rate);
 
+    var comboText = '（必修＋選修合計 '+stats.rate.toFixed(2)+'%）';
     var headline;
-    if(stats.total === 0){
-      headline = '本學年度尚無課程資料。';
-    } else if(stats.done === 0){
-      headline = '尚未有課程完成盤點，仍在起步階段——盤點才剛開始，數字會隨老師陸續填寫更新。';
-    } else if(stats.rate < 30){
-      headline = '完成率 '+stats.rate.toFixed(2)+'%，仍在起步階段，建議先確保每個系所都有課程開始填寫。';
-    } else if(stats.rate < 70){
-      headline = '完成率 '+stats.rate.toFixed(2)+'%，已過半，可以開始參考下方弱項調整資源。';
+    if(requiredStats.total === 0){
+      headline = '本學年度尚無必修課程資料。';
+    } else if(requiredStats.done === 0){
+      headline = '尚未有必修課程完成盤點，仍在起步階段——盤點才剛開始，數字會隨老師陸續填寫更新。';
+    } else if(requiredStats.rate < 30){
+      headline = '必修完成率 '+requiredStats.rate.toFixed(2)+'%'+comboText+'，仍在起步階段，建議先確保每個系所都有課程開始填寫。';
+    } else if(requiredStats.rate < 70){
+      headline = '必修完成率 '+requiredStats.rate.toFixed(2)+'%'+comboText+'，已過半，可以開始參考下方弱項調整資源。';
     } else {
-      headline = '完成率 '+stats.rate.toFixed(2)+'%，已接近完成，可進入盤整階段。';
+      headline = '必修完成率 '+requiredStats.rate.toFixed(2)+'%'+comboText+'，已接近完成，可進入盤整階段。';
     }
 
     // 各子單位（系所／學院／校區）自己最強、最弱的指標——呈現「強弱在哪裡」，不是比誰填得快
@@ -1362,7 +1370,7 @@
       actions.push('目前無明顯待處理項目，持續追蹤進度即可。');
     }
 
-    return {stats:stats, triage:triage, ratedRecs:ratedRecs, indAvgs:indAvgs, badge:badge,
+    return {stats:stats, requiredStats:requiredStats, triage:triage, ratedRecs:ratedRecs, indAvgs:indAvgs, badge:badge,
       headline:headline, unitRows:unitRows, weakInds:weakInds, strongInds:strongInds, actions:actions, bestLearnPair:bestLearnPair};
   }
   // subLabel：這個範圍底下再分的小單位名稱（系所／學院／校區）；學系層級已經是最小單位，傳 null 代表不適用
@@ -1453,7 +1461,8 @@
       '<table border="1" cellspacing="0" cellpadding="6" style="border-collapse:collapse;width:100%;">' +
         '<tr><td>課程總數</td><td>'+s.total+' 門</td></tr>' +
         '<tr><td>AI涉入判定進度</td><td>'+t.rate.toFixed(2)+'%</td></tr>' +
-        '<tr><td>盤點完成率</td><td>'+s.rate.toFixed(2)+'%（'+s.done+'/'+s.total+'）</td></tr>' +
+        '<tr><td>盤點完成率（必修＋選修合計）</td><td>'+s.rate.toFixed(2)+'%（'+s.done+'/'+s.total+'）</td></tr>' +
+        '<tr><td>盤點完成率（僅必修）</td><td>'+h.requiredStats.rate.toFixed(2)+'%（'+h.requiredStats.done+'/'+h.requiredStats.total+'）</td></tr>' +
       '</table>' +
       unitBreakdownBlock +
       '<p><b>能力弱項（已完成盤點課程平均等級）：</b></p><ul>'+weakIndsLis+'</ul>' +
@@ -1627,6 +1636,7 @@
     document.getElementById('statDone').innerHTML = stats.done + '<small>門</small>';
     document.getElementById('statPending').innerHTML = stats.pending + '<small>門</small>';
     document.getElementById('statRate').innerHTML = stats.rate.toFixed(2) + '<small>%</small>';
+    document.getElementById('statRateReq').textContent = '僅必修：' + requiredOnlyStatsFor(list).rate.toFixed(2) + '%';
     document.getElementById('progressFill').style.width = stats.rate + '%';
     document.getElementById('progressPct').textContent = stats.rate.toFixed(2) + '%';
     document.getElementById('progressCount').textContent = stats.done;
@@ -1657,6 +1667,7 @@
     document.getElementById('cgStatDone').innerHTML = stats.done + '<small>門</small>';
     document.getElementById('cgStatPending').innerHTML = stats.pending + '<small>門</small>';
     document.getElementById('cgStatRate').innerHTML = stats.rate.toFixed(2) + '<small>%</small>';
+    document.getElementById('cgStatRateReq').textContent = '僅必修：' + requiredOnlyStatsFor(courseList).rate.toFixed(2) + '%';
     updateTopbarStatus(stats.rate);
 
     var byDept = {};
@@ -1685,6 +1696,7 @@
     document.getElementById('cpStatDone').innerHTML = stats.done + '<small>門</small>';
     document.getElementById('cpStatPending').innerHTML = stats.pending + '<small>門</small>';
     document.getElementById('cpStatRate').innerHTML = stats.rate.toFixed(2) + '<small>%</small>';
+    document.getElementById('cpStatRateReq').textContent = '僅必修：' + requiredOnlyStatsFor(courseList).rate.toFixed(2) + '%';
     updateTopbarStatus(stats.rate);
 
     var byCollege = {};
@@ -1707,6 +1719,7 @@
     document.getElementById('allStatDone').innerHTML = stats.done + '<small>門</small>';
     document.getElementById('allStatPending').innerHTML = stats.pending + '<small>門</small>';
     document.getElementById('allStatRate').innerHTML = stats.rate.toFixed(2) + '<small>%</small>';
+    document.getElementById('allStatRateReq').textContent = '僅必修：' + requiredOnlyStatsFor(courseList).rate.toFixed(2) + '%';
     updateTopbarStatus(stats.rate);
 
     // 用「校區＋學院」組合key分組，因為「共同課程委員會」這個學院的課程橫跨臺北、高雄兩校區，
