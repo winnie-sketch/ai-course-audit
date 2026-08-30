@@ -1401,7 +1401,7 @@
     }).join('') : '<div class="hc-empty">尚無已完成盤點課程，暫無法分析。</div>';
 
     el.innerHTML =
-      '<div class="hc-head"><h3>課程標註評估表</h3><span class="badge '+h.badge.cls+'">'+h.badge.label+'</span><span class="hc-headline">'+h.headline+'</span></div>' +
+      '<div class="hc-head"><h3>課程標註輔助評估表</h3><span class="badge '+h.badge.cls+'">'+h.badge.label+'</span><span class="hc-headline">'+h.headline+'</span></div>' +
       '<div class="hc-grid'+(showSubBlock ? ' hc-grid-3' : ' hc-grid-2')+'">' +
         (showSubBlock ? '<div class="hc-block"><div class="hc-block-title">各'+escapeHtml(subLabel)+'強弱項</div>'+unitRowsHtml+'</div>' : '') +
         '<div class="hc-block"><div class="hc-block-title">能力弱項（點擊查看課程）</div>'+weakIndsHtml+'</div>' +
