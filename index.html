@@ -2701,7 +2701,11 @@
     if(!WEBAPP_URL){ courseSource = {type:'embedded', reason:'未設定雲端網址'}; done(); return; }
     courseSource = {type:'loading'};
     renderCourseSource();
-    jsonp('action=courses', function(data){
+    jsonp('type=courses', function(data){
+      // 已部署的 Apps Script 回傳「課程主檔」的資料列陣列（不含標題列，欄位順序同課程主檔）
+      if(Array.isArray(data) && (!data.length || Array.isArray(data[0]))){
+        data = {headers:['學年度','校區','學院','系所','課程名稱','年級','教師','學分','必選修','學期','課號','課程大綱'], rows:data};
+      }
       if(!data || Array.isArray(data) || !data.rows){
         courseSource = {type:'embedded', reason:'Apps Script 尚未加入課程主檔功能'};
       } else {
