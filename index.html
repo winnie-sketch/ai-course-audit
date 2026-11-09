@@ -305,6 +305,24 @@
   .ind-chip small{font-weight:600;margin-left:3px;}
   .ind-ref{font-size:11px;color:var(--muted);margin:6px 0 0;}
   .ind-mode{font-size:12px;}
+  .ind-job.collapsed{padding:8px 12px;}
+  .ind-job-row{display:flex;gap:10px;align-items:center;flex-wrap:wrap;cursor:pointer;}
+  .ind-job-row .jt{font-weight:700;font-size:13.5px;}
+  .ind-job-row .jm{font-size:12px;color:var(--muted);}
+  .ind-job-row .sp{flex:1;}
+  .ind-tgl{border:1px solid var(--border);background:var(--surface-raised);color:var(--ink-2);border-radius:8px;cursor:pointer;font-size:12px;padding:5px 10px;}
+  .ind-mx{border-collapse:collapse;font-size:12px;width:100%;}
+  .ind-mx th,.ind-mx td{border:1px solid var(--border);padding:5px 4px;text-align:center;}
+  .ind-mx th.jn,.ind-mx td.jn{text-align:left;white-space:normal;min-width:140px;padding-left:8px;}
+  .ind-mx td.good{background:var(--good-bg);color:var(--good);font-weight:700;}
+  .ind-mx td.warn{background:var(--warning-bg);color:#a06600;font-weight:700;}
+  .ind-mx td.crit{background:var(--critical-bg);color:var(--critical);font-weight:700;}
+  .ind-mx td.na{color:var(--muted);}
+  .ind-mx tr.tot td{font-weight:700;background:var(--surface-raised);}
+  .ind-mx-legend{font-size:11.5px;color:var(--muted);margin:6px 0 4px;}
+  details.ind-gap-job{margin-top:10px;border:1px solid var(--border);border-radius:10px;padding:8px 12px;}
+  details.ind-gap-job>summary{cursor:pointer;font-size:13px;font-weight:700;}
+  details.ind-gap-job[open]>summary{margin-bottom:8px;}
   .ind-cpick input[type=search]{width:100%;font:inherit;font-size:12.5px;padding:6px 10px;border-radius:8px;border:1px solid var(--border);background:var(--surface-raised);color:var(--ink);margin-bottom:6px;box-sizing:border-box;}
   .ind-clist{max-height:220px;overflow:auto;border:1px solid var(--border);border-radius:8px;padding:4px 6px;background:var(--surface-raised);}
   .ind-clist label{display:flex;gap:8px;align-items:flex-start;font-size:12.5px;padding:4px 2px;border-bottom:1px dashed var(--border);cursor:pointer;}
@@ -415,18 +433,6 @@
 
         <div class="card health-check" id="deptHealthCheck" style="margin-bottom:16px;"></div>
 
-        <div class="card" id="industryCard" style="margin-bottom:16px;">
-          <div class="card-head"><h3>產業對接：職缺能力需求與課程支撐</h3><span class="req opt">試作版</span></div>
-          <div class="hint">依「課程融入 AI 的方向」列出本領域的職缺，每個職缺可選擇兩種設定方式：<b>依能力指標</b>（點一下為<b>必要</b>、再點一下為<b>加分</b>、再點一下取消），或<b>依課程</b>（直接勾選這個職缺需要修的本系課程，系統彙整這些課涵蓋哪些能力、哪裡還有缺口）。系統會用本系<b>已完成盤點、該指標達 3 級（中度關聯）以上</b>的課程數判斷支撐程度：2 門以上為「已有支撐」、1 門為「支撐偏弱」、0 門為「能力缺口」。</div>
-          <div class="hint" style="margin-top:-4px;">職缺所需能力以教育部「未來人才AI能力圖像」（115.05.22）大專校院核心能力描述（滑鼠移到指標上可看說明）；「課程融入 AI 的兩個方向」為本校自訂。試作版：職缺設定目前只保存在這台電腦的瀏覽器中。</div>
-          <div id="industryJobs"></div>
-          <div style="display:flex;gap:8px;flex-wrap:wrap;margin:4px 0 6px;">
-            <button type="button" class="btn" id="addJobDir1" style="width:auto;">＋ 新增職缺（方向一）</button>
-            <button type="button" class="btn" id="addJobDir2" style="width:auto;">＋ 新增職缺（方向二）</button>
-          </div>
-          <div id="industryGap"></div>
-        </div>
-
         <div class="layout-2col">
           <div class="stack">
             <div class="card">
@@ -512,6 +518,18 @@
               </div>
               <div id="noAiDoneNote" style="display:none;margin-top:16px;padding:12px 15px;border-radius:10px;background:var(--good-bg);color:var(--good);font-weight:700;font-size:13px;">✓ 已完成盤點（本課程不涉及AI）。點選當下即自動存檔，不需要再按其他按鈕。</div>
             </div>
+
+            <div class="card" id="industryCard">
+          <div class="card-head"><h3>產業對接：職缺能力需求與課程支撐</h3><span class="req opt">試作版</span></div>
+          <div class="hint">依兩種職缺類型（<b>現有工作導入 AI</b>：原本就有、要會用 AI 提升效能的工作；<b>AI 帶來的新工作</b>：因 AI 而出現或大幅轉型的職缺）列出本領域的職缺，每個職缺可選擇兩種設定方式：<b>依能力指標</b>（點一下為<b>必要</b>、再點一下為<b>加分</b>、再點一下取消），或<b>依課程</b>（直接勾選這個職缺需要修的本系課程，系統彙整這些課涵蓋哪些能力、哪裡還有缺口）。系統會用本系<b>已完成盤點、該指標達 3 級（中度關聯）以上</b>的課程數判斷支撐程度：2 門以上為「已有支撐」、1 門為「支撐偏弱」、0 門為「能力缺口」。</div>
+          <div class="hint" style="margin-top:-4px;">職缺所需能力以教育部「未來人才AI能力圖像」（115.05.22）大專校院核心能力描述（滑鼠移到指標上可看說明）；兩種職缺類型的分類為本校自訂。試作版：職缺設定目前只保存在這台電腦的瀏覽器中。</div>
+          <div id="industryJobs"></div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;margin:4px 0 6px;">
+            <button type="button" class="btn" id="addJobDir1" style="width:auto;">＋ 新增職缺：現有工作導入 AI</button>
+            <button type="button" class="btn" id="addJobDir2" style="width:auto;">＋ 新增職缺：AI 帶來的新工作</button>
+          </div>
+          <div id="industryGap"></div>
+        </div>
           </div>
 
           <div class="summary-panel">
@@ -2031,8 +2049,8 @@
   /* ---------- 產業對接：職缺能力需求 × 課程支撐（以學年度＋系所為單位，試作版存在本機） ---------- */
   var INDUSTRY_KEY = 'aiCourseAudit_industry_v1';
   var INDUSTRY_DIRS = {
-    '1': {label:'方向一：現有職場工作的 AI 應用與效能提升', short:'方向一', ref:['A-1','C-1','C-3','B-1','B-2']},
-    '2': {label:'方向二：AI 開展的新型態工作與職缺', short:'方向二', ref:['C-2','A-2','B-3','D-1','D-2','D-3']}
+    '1': {label:'現有職場工作的 AI 應用與效能提升', short:'現有工作導入 AI', ref:['A-1','C-1','C-3','B-1','B-2']},
+    '2': {label:'AI 開展的新型態工作與職缺', short:'AI 帶來的新工作', ref:['C-2','A-2','B-3','D-1','D-2','D-3']}
   };
   var industryState = (function(){
     try{ return JSON.parse(localStorage.getItem(INDUSTRY_KEY)) || {}; }catch(e){ return {}; }
@@ -2061,27 +2079,50 @@
     if(!currentDept){ el.innerHTML = ''; return; }
     var jobs = industryJobs();
     if(!jobs.length){
-      el.innerHTML = '<div class="empty-state" style="padding:18px;margin-bottom:10px;">尚未設定職缺。請用下方按鈕依方向新增本系學生未來可能從事的職缺。</div>';
+      el.innerHTML = '<div class="empty-state" style="padding:18px;margin-bottom:10px;">尚未設定職缺。請用下方按鈕新增本系學生未來可能從事的職缺：「現有工作導入 AI」是原本就有、現在要會用 AI 提升效能的工作；「AI 帶來的新工作」是因 AI 而出現或大幅轉型的職缺。</div>';
       return;
     }
     el.innerHTML = jobs.map(function(job, i){
       var dir = INDUSTRY_DIRS[job.dir] || INDUSTRY_DIRS['1'];
+      if(!job.open){
+        var br = jobBrief(job);
+        return '<div class="ind-job collapsed" data-i="'+i+'"><div class="ind-job-row" data-act="toggle">' +
+          '<span class="jt">'+escapeHtml(job.title || '（未命名職缺）')+'</span>' +
+          '<span class="jm">'+escapeHtml(dir.short)+'・'+(job.mode === 'course' ? '依課程' : '依能力指標')+'</span>' +
+          '<span class="badge '+br.cls+'">'+br.text+'</span><span class="sp"></span>' +
+          '<button type="button" class="ind-tgl" data-act="toggle">展開編輯</button>' +
+          '<button type="button" class="ind-del" data-act="del">刪除</button></div></div>';
+      }
       return '<div class="ind-job" data-i="'+i+'">' +
         '<div class="ind-job-head">' +
-          '<select data-f="dir"><option value="1"'+(job.dir==='1'?' selected':'')+'>方向一：現有工作 AI 應用</option><option value="2"'+(job.dir==='2'?' selected':'')+'>方向二：AI 新型態工作</option></select>' +
+          '<select data-f="dir"><option value="1"'+(job.dir==='1'?' selected':'')+'>現有工作導入 AI（效能提升）</option><option value="2"'+(job.dir==='2'?' selected':'')+'>AI 帶來的新工作（新職缺）</option></select>' +
           '<input type="text" data-f="title" placeholder="職缺名稱" value="'+escapeHtml(job.title)+'">' +
           '<select data-f="mode" class="ind-mode" title="設定方式"><option value="ind"'+(job.mode!=='course'?' selected':'')+'>依能力指標</option><option value="course"'+(job.mode==='course'?' selected':'')+'>依課程</option></select>' +
+          '<button type="button" class="ind-tgl" data-act="toggle">收合</button>' +
           '<button type="button" class="ind-del" data-act="del">刪除</button>' +
         '</div>' +
         '<textarea data-f="desc" placeholder="工作內容（簡述此職缺如何運用 AI）">'+escapeHtml(job.desc)+'</textarea>' +
         (job.mode === 'course' ? coursePickHtml(job) :
           '<div class="ind-chips">' + INDICATORS.map(function(ind){ return chipHtml(job, ind); }).join('') + '</div>' +
           selectedIvHtml(job)) +
-        '<div class="ind-ref">參考（初步建議，非教育部官方對應）：'+dir.short+'較常相關 '+dir.ref.join('、')+'。滑鼠移到指標上可看完整說明。</div>' +
+        '<div class="ind-ref">參考（初步建議，非教育部官方對應）：「'+dir.short+'」較常相關 '+dir.ref.join('、')+'。滑鼠移到指標上可看完整說明。</div>' +
       '</div>';
     }).join('');
     Array.prototype.forEach.call(el.querySelectorAll('.ind-job'), function(box){
       var job = jobs[parseInt(box.dataset.i, 10)];
+      Array.prototype.forEach.call(box.querySelectorAll('[data-act="toggle"]'), function(t){
+        t.addEventListener('click', function(e){
+          if(e.target.closest('[data-act="del"]')) return;
+          e.stopPropagation();
+          job.open = !job.open; saveIndustry(); renderIndustryJobs();
+        });
+      });
+      box.querySelector('[data-act="del"]').addEventListener('click', function(e){
+        e.stopPropagation();
+        if(!confirmDelJob(job)) return;
+        jobs.splice(jobs.indexOf(job), 1); saveIndustry(); renderIndustryJobs(); renderIndustryGap();
+      });
+      if(!job.open) return;
       box.querySelector('[data-f="title"]').addEventListener('input', function(e){ job.title = e.target.value; saveIndustry(); renderIndustryGap(); });
       box.querySelector('[data-f="desc"]').addEventListener('input', function(e){ job.desc = e.target.value; saveIndustry(); });
       box.querySelector('[data-f="dir"]').addEventListener('change', function(e){ job.dir = e.target.value; saveIndustry(); renderIndustryJobs(); renderIndustryGap(); });
@@ -2104,9 +2145,6 @@
           renderIndustryGap();
         });
       });
-      box.querySelector('[data-act="del"]').addEventListener('click', function(){
-        jobs.splice(jobs.indexOf(job), 1); saveIndustry(); renderIndustryJobs(); renderIndustryGap();
-      });
       Array.prototype.forEach.call(box.querySelectorAll('.ind-chip'), function(chip){
         chip.addEventListener('click', function(){
           var c = chip.dataset.code, v = job.req[c] || '';
@@ -2127,6 +2165,55 @@
     if(!must.length && !plus.length) return '';
     return '<div class="ind-sel">' + (must.length ? '<b>必要：</b>' + must.join('；') : '') +
       (must.length && plus.length ? '<br>' : '') + (plus.length ? '<b>加分：</b>' + plus.join('；') : '') + '</div>';
+  }
+  function confirmDelJob(job){
+    return window.confirm('確定刪除職缺「' + (job.title || '未命名職缺') + '」？');
+  }
+  // 收合列與總覽表用：每個職缺的簡要狀態
+  function jobBrief(job){
+    if(job.mode === 'course'){
+      if(!(job.courses || []).length) return {cls:'muted', text:'尚未勾選課程'};
+      var g = courseJobGap(job), c = 0;
+      g.rows.forEach(function(r){ if(r.level.cls === 'crit') c++; });
+      return {cls: c ? 'crit' : 'good', text:'選 '+g.courses.length+' 門課・未涵蓋 '+c+' 項'};
+    }
+    if(!Object.keys(job.req || {}).length) return {cls:'muted', text:'尚未勾選指標'};
+    var d = industryGapData([job], deptCourses())[0];
+    var must = d.rows.filter(function(r){ return r.need === 'must'; }), cr = must.filter(function(r){ return r.level.cls === 'crit'; }).length;
+    return {cls: cr ? 'crit' : 'good', text:'必要 '+must.length+' 項・缺口 '+cr+' 項'};
+  }
+  // 每個職缺在 11 項指標上的狀態（總覽表）：null 表示該職缺未要求此能力
+  function jobIndicatorCells(job){
+    var out = {};
+    if(job.mode === 'course'){
+      courseJobGap(job).rows.forEach(function(r){ out[r.ind.code] = {cls:r.level.cls, need:''}; });
+    } else {
+      industryGapData([job], deptCourses())[0].rows.forEach(function(r){
+        out[r.ind.code] = {cls:(r.level.cls === 'muted' ? 'crit' : r.level.cls), need:r.need};
+      });
+    }
+    return out;
+  }
+  function industryMatrixHtml(list){
+    var sym = {good:'✓', warn:'△', crit:'✕'};
+    var tot = {};
+    var rows = list.map(function(job){
+      var cells = jobIndicatorCells(job), dir = INDUSTRY_DIRS[job.dir] || INDUSTRY_DIRS['1'];
+      return '<tr><td class="jn"><b>'+escapeHtml(job.title || '（未命名職缺）')+'</b><br><span class="hint" style="font-size:11px;">'+escapeHtml(dir.short)+'・'+(job.mode === 'course' ? '依課程' : '依能力指標')+'</span></td>' +
+        INDICATORS.map(function(ind){
+          var c = cells[ind.code];
+          if(!c) return '<td class="na">—</td>';
+          if(c.cls === 'crit') tot[ind.code] = (tot[ind.code] || 0) + 1;
+          var tag = c.need === 'must' ? '必' : (c.need === 'plus' ? '加' : '');
+          return '<td class="'+c.cls+'" title="'+escapeHtml(ivTitle(ind.code))+'">'+sym[c.cls]+(tag ? '<small>'+tag+'</small>' : '')+'</td>';
+        }).join('') + '</tr>';
+    }).join('');
+    return '<div class="table-wrap" style="max-height:none;"><table class="ind-mx"><thead><tr><th class="jn">職缺</th>' +
+      INDICATORS.map(function(ind){ return '<th title="'+escapeHtml(ivTitle(ind.code))+'" style="color:'+dimColor(ind.dim)+'">'+ind.code+'</th>'; }).join('') +
+      '</tr></thead><tbody>' + rows +
+      '<tr class="tot"><td class="jn">缺口職缺數</td>' + INDICATORS.map(function(ind){ return '<td>'+(tot[ind.code] || 0)+'</td>'; }).join('') + '</tr>' +
+      '</tbody></table></div>' +
+      '<div class="ind-mx-legend">✓ 已有支撐（2門以上達3級）　△ 支撐偏弱（1門）　✕ 能力缺口／未涵蓋　— 該職缺未要求此能力　「必」「加」為依能力指標設定的必要／加分。「缺口職缺數」愈高，代表愈多職缺共同缺少此能力，可優先考慮開課或調整課程。</div>';
   }
   // ---- 依課程設定的職缺 ----
   function statusLabel(st){ return st === 'done' ? '已盤點' : (st === 'no-ai' ? '不涉及AI' : (st === 'draft' ? '草稿' : '未盤點')); }
@@ -2174,7 +2261,8 @@
   }
   function addIndustryJob(dir){
     if(!currentDept){ toast('請先選擇系所'); return; }
-    industryJobs().push({dir:dir, title:'', desc:'', req:{}, mode:'ind', courses:[]});
+    industryJobs().forEach(function(j){ j.open = false; });
+    industryJobs().push({dir:dir, title:'', desc:'', req:{}, mode:'ind', courses:[], open:true});
     saveIndustry();
     renderIndustryJobs();
     renderIndustryGap();
@@ -2212,15 +2300,17 @@
     if(!jobs.length && !cjobs.length){ el.innerHTML = ''; return; }
     var list = deptCourses();
     var notDone = list.filter(function(c){ var st = statusOf(c); return st !== 'done' && st !== 'no-ai'; }).length;
+    var listed = allJobs.filter(function(j){ return jobs.indexOf(j) >= 0 || cjobs.indexOf(j) >= 0; });
     var html = '<div class="card-head" style="margin-top:12px;"><h3 style="font-size:13.5px;">能力缺口分析</h3></div>' +
-      (notDone ? '<div class="hint">本系目前還有 '+notDone+' 門課尚未完成盤點，分析結果可能低估實際支撐。</div>' : '');
+      (notDone ? '<div class="hint">本系目前還有 '+notDone+' 門課尚未完成盤點，分析結果可能低估實際支撐。</div>' : '') +
+      '<div class="hint" style="margin-bottom:4px;"><b>總覽：</b>各職缺在 11 項能力的支撐情形（滑鼠移到指標上可看名稱）。點下方各職缺可展開詳細表格。</div>' +
+      industryMatrixHtml(listed);
     html += industryGapData(jobs, list).map(function(g){
       var must = g.rows.filter(function(r){ return r.need === 'must'; });
       var cnt = {good:0, warn:0, crit:0};
       must.forEach(function(r){ cnt[r.level.cls]++; });
       var dir = INDUSTRY_DIRS[g.job.dir] || INDUSTRY_DIRS['1'];
-      return '<div class="ind-gap-job">' +
-        '<h4>'+escapeHtml(g.job.title || '（未命名職缺）')+'<span class="hint" style="margin-left:8px;font-weight:600;">'+dir.short+'</span></h4>' +
+      return '<details class="ind-gap-job"><summary>'+escapeHtml(g.job.title || '（未命名職缺）')+'<span class="hint" style="margin-left:8px;font-weight:600;">'+dir.short+'・依能力指標</span></summary>' +
         '<div class="ind-gap-sum">必要能力 '+must.length+' 項：已有支撐 '+cnt.good+'、支撐偏弱 '+cnt.warn+'、能力缺口 '+cnt.crit+'</div>' +
         '<div class="table-wrap" style="max-height:none;"><table><thead><tr><th>指標</th><th>需求</th><th>支撐課程數</th><th>狀態</th><th>支撐課程（等級）</th></tr></thead><tbody>' +
         g.rows.map(function(r){
@@ -2230,7 +2320,7 @@
             '<td>'+r.sup.length+' 門'+(r.sup.length ? '（必修 '+r.reqN+'）' : '')+'</td>' +
             '<td><span class="badge '+r.level.cls+'">'+r.level.label+'</span></td>' +
             '<td style="white-space:normal;min-width:200px;">'+(names || '—')+'</td></tr>';
-        }).join('') + '</tbody></table></div></div>';
+        }).join('') + '</tbody></table></div></details>';
     }).join('');
     html += cjobs.map(function(j){ return courseJobGapHtml(courseJobGap(j)); }).join('');
     el.innerHTML = html;
@@ -2239,8 +2329,7 @@
     var dir = INDUSTRY_DIRS[g.job.dir] || INDUSTRY_DIRS['1'];
     var cnt = {good:0, warn:0, crit:0};
     g.rows.forEach(function(r){ cnt[r.level.cls]++; });
-    return '<div class="ind-gap-job">' +
-      '<h4>'+escapeHtml(g.job.title || '（未命名職缺）')+'<span class="hint" style="margin-left:8px;font-weight:600;">'+dir.short+'・依課程</span></h4>' +
+    return '<details class="ind-gap-job"><summary>'+escapeHtml(g.job.title || '（未命名職缺）')+'<span class="hint" style="margin-left:8px;font-weight:600;">'+dir.short+'・依課程</span></summary>' +
       '<div class="ind-gap-sum">所選 '+g.courses.length+' 門課（已盤點 '+g.st.done+'、不涉及AI '+g.st.noai+'、未盤點 '+g.st.other+'）；11 項能力：已有支撐 '+cnt.good+'、支撐偏弱 '+cnt.warn+'、未涵蓋 '+cnt.crit+'</div>' +
       (g.st.other ? '<div class="hint">有 '+g.st.other+' 門所選課程尚未完成盤點，結果可能低估實際涵蓋。</div>' : '') +
       '<div class="table-wrap" style="max-height:none;"><table><thead><tr><th>指標</th><th>最高等級</th><th>達3級課程數</th><th>狀態</th><th>涵蓋課程（等級）</th></tr></thead><tbody>' +
@@ -2250,7 +2339,7 @@
           '<td>'+(r.maxLv || '—')+'</td><td>'+r.sup.length+' 門</td>' +
           '<td><span class="badge '+r.level.cls+'">'+r.level.label+'</span></td>' +
           '<td style="white-space:normal;min-width:200px;">'+(names || '—')+'</td></tr>';
-      }).join('') + '</tbody></table></div></div>';
+      }).join('') + '</tbody></table></div></details>';
   }
   function industryPlanSectionHtml(){
     var allJobs = peekIndustryJobs(currentYear, currentDept);
@@ -2259,7 +2348,7 @@
     if(!jobs.length && !cjobs.length) return '';
     var esc = escapeHtml, list = deptCourses();
     return '<h2>三、產業對接：職缺能力需求與課程支撐</h2>' +
-      '<p>判斷方式：以本系已完成盤點、該指標達3級（中度關聯）以上之課程數計算；2門以上為「已有支撐」、1門為「支撐偏弱」、0門為「能力缺口」。職缺所需能力以'+esc(MOE_SOURCE)+'大專校院核心能力描述；「課程融入AI的兩個方向」與0–5級量尺為本校自訂。</p>' +
+      '<p>判斷方式：以本系已完成盤點、該指標達3級（中度關聯）以上之課程數計算；2門以上為「已有支撐」、1門為「支撐偏弱」、0門為「能力缺口」。職缺所需能力以'+esc(MOE_SOURCE)+'大專校院核心能力描述；兩種職缺類型的分類與0–5級量尺為本校自訂。</p>' +
       industryGapData(jobs, list).map(function(g){
         var dir = INDUSTRY_DIRS[g.job.dir] || INDUSTRY_DIRS['1'];
         return '<p><b>'+esc(g.job.title || '（未命名職缺）')+'</b>（'+esc(dir.label)+'）</p>' +
