@@ -304,6 +304,13 @@
   .ind-chip{border:1.5px solid var(--border);background:var(--surface-raised);color:var(--muted);border-radius:99px;padding:3px 10px;font-size:11.5px;font-weight:700;cursor:pointer;}
   .ind-chip small{font-weight:600;margin-left:3px;}
   .ind-ref{font-size:11px;color:var(--muted);margin:6px 0 0;}
+  .ind-mode{font-size:12px;}
+  .ind-cpick input[type=search]{width:100%;font:inherit;font-size:12.5px;padding:6px 10px;border-radius:8px;border:1px solid var(--border);background:var(--surface-raised);color:var(--ink);margin-bottom:6px;box-sizing:border-box;}
+  .ind-clist{max-height:220px;overflow:auto;border:1px solid var(--border);border-radius:8px;padding:4px 6px;background:var(--surface-raised);}
+  .ind-clist label{display:flex;gap:8px;align-items:flex-start;font-size:12.5px;padding:4px 2px;border-bottom:1px dashed var(--border);cursor:pointer;}
+  .ind-clist label:last-child{border-bottom:none;}
+  .ind-clist .cmeta{color:var(--muted);font-size:11.5px;}
+  .ind-csel{font-size:11.5px;color:var(--ink-2);margin-top:6px;line-height:1.7;}
   .ind-gap-job{margin-top:14px;}
   .ind-gap-job h4{margin:0 0 6px;font-size:13px;}
   .ind-gap-sum{font-size:12px;color:var(--ink-2);margin-bottom:6px;}
@@ -410,7 +417,7 @@
 
         <div class="card" id="industryCard" style="margin-bottom:16px;">
           <div class="card-head"><h3>產業對接：職缺能力需求與課程支撐</h3><span class="req opt">試作版</span></div>
-          <div class="hint">依「課程融入 AI 的方向」列出本領域的職缺，勾選每個職缺需要的指標（點一下為<b>必要</b>、再點一下為<b>加分</b>、再點一下取消）。系統會用本系<b>已完成盤點、該指標達 3 級（中度關聯）以上</b>的課程數判斷支撐程度：2 門以上為「已有支撐」、1 門為「支撐偏弱」、0 門為「能力缺口」。</div>
+          <div class="hint">依「課程融入 AI 的方向」列出本領域的職缺，每個職缺可選擇兩種設定方式：<b>依能力指標</b>（點一下為<b>必要</b>、再點一下為<b>加分</b>、再點一下取消），或<b>依課程</b>（直接勾選這個職缺需要修的本系課程，系統彙整這些課涵蓋哪些能力、哪裡還有缺口）。系統會用本系<b>已完成盤點、該指標達 3 級（中度關聯）以上</b>的課程數判斷支撐程度：2 門以上為「已有支撐」、1 門為「支撐偏弱」、0 門為「能力缺口」。</div>
           <div class="hint" style="margin-top:-4px;">職缺所需能力以教育部「未來人才AI能力圖像」（115.05.22）大專校院核心能力描述（滑鼠移到指標上可看說明）；「課程融入 AI 的兩個方向」為本校自訂。試作版：職缺設定目前只保存在這台電腦的瀏覽器中。</div>
           <div id="industryJobs"></div>
           <div style="display:flex;gap:8px;flex-wrap:wrap;margin:4px 0 6px;">
@@ -2063,11 +2070,13 @@
         '<div class="ind-job-head">' +
           '<select data-f="dir"><option value="1"'+(job.dir==='1'?' selected':'')+'>方向一：現有工作 AI 應用</option><option value="2"'+(job.dir==='2'?' selected':'')+'>方向二：AI 新型態工作</option></select>' +
           '<input type="text" data-f="title" placeholder="職缺名稱" value="'+escapeHtml(job.title)+'">' +
+          '<select data-f="mode" class="ind-mode" title="設定方式"><option value="ind"'+(job.mode!=='course'?' selected':'')+'>依能力指標</option><option value="course"'+(job.mode==='course'?' selected':'')+'>依課程</option></select>' +
           '<button type="button" class="ind-del" data-act="del">刪除</button>' +
         '</div>' +
         '<textarea data-f="desc" placeholder="工作內容（簡述此職缺如何運用 AI）">'+escapeHtml(job.desc)+'</textarea>' +
-        '<div class="ind-chips">' + INDICATORS.map(function(ind){ return chipHtml(job, ind); }).join('') + '</div>' +
-        selectedIvHtml(job) +
+        (job.mode === 'course' ? coursePickHtml(job) :
+          '<div class="ind-chips">' + INDICATORS.map(function(ind){ return chipHtml(job, ind); }).join('') + '</div>' +
+          selectedIvHtml(job)) +
         '<div class="ind-ref">參考（初步建議，非教育部官方對應）：'+dir.short+'較常相關 '+dir.ref.join('、')+'。滑鼠移到指標上可看完整說明。</div>' +
       '</div>';
     }).join('');
@@ -2076,6 +2085,25 @@
       box.querySelector('[data-f="title"]').addEventListener('input', function(e){ job.title = e.target.value; saveIndustry(); renderIndustryGap(); });
       box.querySelector('[data-f="desc"]').addEventListener('input', function(e){ job.desc = e.target.value; saveIndustry(); });
       box.querySelector('[data-f="dir"]').addEventListener('change', function(e){ job.dir = e.target.value; saveIndustry(); renderIndustryJobs(); renderIndustryGap(); });
+      box.querySelector('[data-f="mode"]').addEventListener('change', function(e){ job.mode = e.target.value; if(!job.courses) job.courses = []; saveIndustry(); renderIndustryJobs(); renderIndustryGap(); });
+      var cs = box.querySelector('.ind-cpick input[type=search]');
+      if(cs) cs.addEventListener('input', function(e){
+        var q = e.target.value.trim().toLowerCase();
+        Array.prototype.forEach.call(box.querySelectorAll('.ind-clist label'), function(l){
+          l.style.display = (!q || l.dataset.q.indexOf(q) >= 0) ? '' : 'none';
+        });
+      });
+      Array.prototype.forEach.call(box.querySelectorAll('.ind-clist input[type=checkbox]'), function(cb){
+        cb.addEventListener('change', function(){
+          if(!job.courses) job.courses = [];
+          var id = cb.value, at = job.courses.indexOf(id);
+          if(cb.checked && at < 0) job.courses.push(id);
+          if(!cb.checked && at >= 0) job.courses.splice(at, 1);
+          saveIndustry();
+          var sel = box.querySelector('.ind-csel'); if(sel) sel.innerHTML = courseSelSummary(job);
+          renderIndustryGap();
+        });
+      });
       box.querySelector('[data-act="del"]').addEventListener('click', function(){
         jobs.splice(jobs.indexOf(job), 1); saveIndustry(); renderIndustryJobs(); renderIndustryGap();
       });
@@ -2100,9 +2128,53 @@
     return '<div class="ind-sel">' + (must.length ? '<b>必要：</b>' + must.join('；') : '') +
       (must.length && plus.length ? '<br>' : '') + (plus.length ? '<b>加分：</b>' + plus.join('；') : '') + '</div>';
   }
+  // ---- 依課程設定的職缺 ----
+  function statusLabel(st){ return st === 'done' ? '已盤點' : (st === 'no-ai' ? '不涉及AI' : (st === 'draft' ? '草稿' : '未盤點')); }
+  function jobCourses(job){
+    var ids = job.courses || [], map = {};
+    deptCourses().forEach(function(c){ map[c.id] = c; });
+    return ids.map(function(id){ return map[id]; }).filter(Boolean);
+  }
+  function courseSelSummary(job){
+    var cs = jobCourses(job);
+    if(!cs.length) return '尚未勾選課程。';
+    var cnt = {done:0, noai:0, other:0};
+    cs.forEach(function(c){ var st = statusOf(c); if(st === 'done') cnt.done++; else if(st === 'no-ai') cnt.noai++; else cnt.other++; });
+    return '已選 <b>'+cs.length+'</b> 門（已盤點 '+cnt.done+'、不涉及AI '+cnt.noai+'、未盤點 '+cnt.other+'）：' +
+      cs.map(function(c){ return escapeHtml(c.name) + (c.teacher ? '（'+escapeHtml(c.teacher)+'）' : ''); }).join('、');
+  }
+  function coursePickHtml(job){
+    var sel = {}; (job.courses || []).forEach(function(id){ sel[id] = true; });
+    var list = deptCourses().slice().sort(function(a,b){
+      return (sel[b.id]?1:0) - (sel[a.id]?1:0) || String(a.grade).localeCompare(String(b.grade)) || a.name.localeCompare(b.name, 'zh-Hant');
+    });
+    return '<div class="ind-cpick">' +
+      '<input type="search" placeholder="搜尋課程名稱或教師…">' +
+      '<div class="ind-clist">' + (list.length ? list.map(function(c){
+        var st = statusOf(c);
+        return '<label data-q="'+escapeHtml((c.name+' '+c.teacher).toLowerCase())+'"><input type="checkbox" value="'+escapeHtml(c.id)+'"'+(sel[c.id]?' checked':'')+'>' +
+          '<span>'+escapeHtml(c.name)+' <span class="cmeta">'+escapeHtml(c.teacher || '')+'・'+(c.grade ? c.grade+'年級・' : '')+escapeHtml(c.reqType || '')+'・'+statusLabel(st)+'</span></span></label>';
+      }).join('') : '<div class="hint" style="margin:6px;">本系目前沒有課程資料。</div>') + '</div>' +
+      '<div class="ind-csel">'+courseSelSummary(job)+'</div></div>';
+  }
+  // 依課程：所選課程（已盤點）在各指標的涵蓋情形
+  function courseJobGap(job){
+    var cs = jobCourses(job);
+    var rated = cs.map(function(c){ return {c:c, rec:peekRecord(c.dept, c.id)}; }).filter(function(x){ return x.rec && x.rec.status === 'done'; });
+    var rows = INDICATORS.map(function(ind){
+      var sup = rated.filter(function(x){ return (x.rec.ratings[ind.code] || 0) >= 3; })
+        .sort(function(a,b){ return (b.rec.ratings[ind.code]||0) - (a.rec.ratings[ind.code]||0); });
+      var maxLv = rated.reduce(function(m,x){ return Math.max(m, x.rec.ratings[ind.code] || 0); }, 0);
+      var lv = sup.length >= 2 ? {cls:'good', label:'已有支撐'} : (sup.length === 1 ? {cls:'warn', label:'支撐偏弱'} : {cls:'crit', label:'未涵蓋'});
+      return {ind:ind, sup:sup, maxLv:maxLv, level:lv};
+    });
+    var st = {done:0, noai:0, other:0};
+    cs.forEach(function(c){ var s2 = statusOf(c); if(s2 === 'done') st.done++; else if(s2 === 'no-ai') st.noai++; else st.other++; });
+    return {job:job, courses:cs, st:st, rows:rows};
+  }
   function addIndustryJob(dir){
     if(!currentDept){ toast('請先選擇系所'); return; }
-    industryJobs().push({dir:dir, title:'', desc:'', req:{}});
+    industryJobs().push({dir:dir, title:'', desc:'', req:{}, mode:'ind', courses:[]});
     saveIndustry();
     renderIndustryJobs();
     renderIndustryGap();
@@ -2134,8 +2206,10 @@
   function renderIndustryGap(){
     var el = document.getElementById('industryGap');
     if(!currentDept){ el.innerHTML = ''; return; }
-    var jobs = industryJobs().filter(function(j){ return Object.keys(j.req).length; });
-    if(!jobs.length){ el.innerHTML = ''; return; }
+    var allJobs = industryJobs();
+    var jobs = allJobs.filter(function(j){ return j.mode !== 'course' && Object.keys(j.req).length; });
+    var cjobs = allJobs.filter(function(j){ return j.mode === 'course' && (j.courses || []).length; });
+    if(!jobs.length && !cjobs.length){ el.innerHTML = ''; return; }
     var list = deptCourses();
     var notDone = list.filter(function(c){ var st = statusOf(c); return st !== 'done' && st !== 'no-ai'; }).length;
     var html = '<div class="card-head" style="margin-top:12px;"><h3 style="font-size:13.5px;">能力缺口分析</h3></div>' +
@@ -2158,11 +2232,31 @@
             '<td style="white-space:normal;min-width:200px;">'+(names || '—')+'</td></tr>';
         }).join('') + '</tbody></table></div></div>';
     }).join('');
+    html += cjobs.map(function(j){ return courseJobGapHtml(courseJobGap(j)); }).join('');
     el.innerHTML = html;
   }
+  function courseJobGapHtml(g){
+    var dir = INDUSTRY_DIRS[g.job.dir] || INDUSTRY_DIRS['1'];
+    var cnt = {good:0, warn:0, crit:0};
+    g.rows.forEach(function(r){ cnt[r.level.cls]++; });
+    return '<div class="ind-gap-job">' +
+      '<h4>'+escapeHtml(g.job.title || '（未命名職缺）')+'<span class="hint" style="margin-left:8px;font-weight:600;">'+dir.short+'・依課程</span></h4>' +
+      '<div class="ind-gap-sum">所選 '+g.courses.length+' 門課（已盤點 '+g.st.done+'、不涉及AI '+g.st.noai+'、未盤點 '+g.st.other+'）；11 項能力：已有支撐 '+cnt.good+'、支撐偏弱 '+cnt.warn+'、未涵蓋 '+cnt.crit+'</div>' +
+      (g.st.other ? '<div class="hint">有 '+g.st.other+' 門所選課程尚未完成盤點，結果可能低估實際涵蓋。</div>' : '') +
+      '<div class="table-wrap" style="max-height:none;"><table><thead><tr><th>指標</th><th>最高等級</th><th>達3級課程數</th><th>狀態</th><th>涵蓋課程（等級）</th></tr></thead><tbody>' +
+      g.rows.map(function(r){
+        var names = r.sup.map(function(x){ return escapeHtml(x.c.name)+'（'+x.rec.ratings[r.ind.code]+'）'; }).join('、');
+        return '<tr><td style="white-space:normal;min-width:220px;"><b style="color:'+dimColor(r.ind.dim)+'">'+r.ind.code+'</b> '+escapeHtml(CORE_IV[r.ind.code] ? CORE_IV[r.ind.code].title : r.ind.label)+'</td>' +
+          '<td>'+(r.maxLv || '—')+'</td><td>'+r.sup.length+' 門</td>' +
+          '<td><span class="badge '+r.level.cls+'">'+r.level.label+'</span></td>' +
+          '<td style="white-space:normal;min-width:200px;">'+(names || '—')+'</td></tr>';
+      }).join('') + '</tbody></table></div></div>';
+  }
   function industryPlanSectionHtml(){
-    var jobs = peekIndustryJobs(currentYear, currentDept).filter(function(j){ return Object.keys(j.req).length; });
-    if(!jobs.length) return '';
+    var allJobs = peekIndustryJobs(currentYear, currentDept);
+    var jobs = allJobs.filter(function(j){ return j.mode !== 'course' && Object.keys(j.req).length; });
+    var cjobs = allJobs.filter(function(j){ return j.mode === 'course' && (j.courses || []).length; });
+    if(!jobs.length && !cjobs.length) return '';
     var esc = escapeHtml, list = deptCourses();
     return '<h2>三、產業對接：職缺能力需求與課程支撐</h2>' +
       '<p>判斷方式：以本系已完成盤點、該指標達3級（中度關聯）以上之課程數計算；2門以上為「已有支撐」、1門為「支撐偏弱」、0門為「能力缺口」。職缺所需能力以'+esc(MOE_SOURCE)+'大專校院核心能力描述；「課程融入AI的兩個方向」與0–5級量尺為本校自訂。</p>' +
@@ -2174,6 +2268,18 @@
           '<tr><td><b>指標</b></td><td><b>需求</b></td><td><b>支撐課程數</b></td><td><b>狀態</b></td><td><b>支撐課程（等級）</b></td></tr>' +
           g.rows.map(function(r){
             return '<tr><td>'+esc(ivTitle(r.ind.code) || (r.ind.code+'・'+r.ind.label))+'</td><td>'+(r.need === 'must' ? '必要' : '加分')+'</td><td>'+r.sup.length+'</td><td>'+r.level.label+'</td><td>'+
+              (r.sup.map(function(x){ return esc(x.c.name)+'（'+x.rec.ratings[r.ind.code]+'）'; }).join('、') || '—')+'</td></tr>';
+          }).join('') + '</table>';
+      }).join('') +
+      cjobs.map(function(j){
+        var g = courseJobGap(j), dir = INDUSTRY_DIRS[j.dir] || INDUSTRY_DIRS['1'];
+        return '<p><b>'+esc(j.title || '（未命名職缺）')+'</b>（'+esc(dir.label)+'；依課程設定）</p>' +
+          (j.desc ? '<p>工作內容：'+esc(j.desc)+'</p>' : '') +
+          '<p>所選課程（'+g.courses.length+' 門）：'+g.courses.map(function(c){ return esc(c.name); }).join('、')+'</p>' +
+          '<table border="1" cellspacing="0" cellpadding="6" style="border-collapse:collapse;width:100%;">' +
+          '<tr><td><b>指標</b></td><td><b>最高等級</b></td><td><b>達3級課程數</b></td><td><b>狀態</b></td><td><b>涵蓋課程（等級）</b></td></tr>' +
+          g.rows.map(function(r){
+            return '<tr><td>'+esc(ivTitle(r.ind.code) || (r.ind.code+'・'+r.ind.label))+'</td><td>'+(r.maxLv || '—')+'</td><td>'+r.sup.length+'</td><td>'+r.level.label+'</td><td>'+
               (r.sup.map(function(x){ return esc(x.c.name)+'（'+x.rec.ratings[r.ind.code]+'）'; }).join('、') || '—')+'</td></tr>';
           }).join('') + '</table>';
       }).join('');
