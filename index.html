@@ -319,6 +319,28 @@
   .ind-mx td.crit{background:var(--critical-bg);color:var(--critical);font-weight:700;}
   .ind-mx td.na{color:var(--muted);}
   /* 四年課程架構 */
+  #deptContent.plan-mode .mode-offer{display:none!important;}
+  #deptContent:not(.plan-mode) .mode-plan{display:none!important;}
+  #deptModeSel{margin-bottom:14px;}
+  .pl-sub.tg-ok{background:var(--good-bg);border-color:transparent;}
+  .pl-sub.tg-ok .pl-nm{color:var(--good);font-weight:600;}
+  .pl-sub.tg-noai{background:var(--grid);border-color:transparent;color:var(--ink-2);}
+  .pl-sub.tg-pend{background:var(--surface);border-color:var(--dim-a);}
+  .pl-sub.tg-conf{background:var(--surface);border-color:var(--critical);}
+  .pl-sub.tg-draft,.pl-sub.tg-none{background:var(--warning-bg);border-color:transparent;}
+  .pl-sub.tg-gen{color:var(--muted);}
+  .pl-sub.sel{outline:2px solid var(--ink);}
+  .pl-flag{display:inline-block;font-size:10px;padding:0 4px;border-radius:4px;margin-left:3px;font-weight:700;vertical-align:1px;}
+  .pl-flag.pend{background:var(--dim-a-bg);color:var(--dim-a);}
+  .pl-flag.conf{background:var(--critical-bg);color:var(--critical);}
+  .pl-flag.draft{background:var(--grid);color:var(--ink-2);}
+  .pl-bars{display:flex;gap:2px;margin-top:3px;}
+  .pl-bars i{display:block;flex:1;height:4px;border-radius:2px;background:var(--grid);position:relative;overflow:hidden;}
+  .pl-bars i>u{position:absolute;left:0;top:0;bottom:0;}
+  .pl-prog{display:grid;grid-template-columns:repeat(2,1fr);gap:6px 10px;font-size:12px;margin-top:8px;}
+  .pl-prog b{font-size:15px;}
+  .tag-note{margin-top:10px;padding:10px 13px;border-radius:10px;background:var(--dim-a-bg);color:var(--ink);font-size:12.5px;line-height:1.6;}
+  .tag-note.conf{background:var(--critical-bg);}
   .pl-bar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:2px 0 10px;}
   .pl-bar .chip-toggle button{font-size:12px;}
   .pl-sum{font-size:12.5px;color:var(--ink-2);line-height:1.8;margin-bottom:8px;}
@@ -445,7 +467,11 @@
       </div>
 
       <div id="deptContent" style="display:none;">
-        <div class="stat-row">
+        <div class="chip-toggle" id="deptModeSel" style="display:none;">
+          <button type="button" data-mode="plan" class="active">四年課程計畫表（科目標註）</button>
+          <button type="button" data-mode="offer">依開課課號盤點</button>
+        </div>
+        <div class="stat-row mode-offer">
           <div class="stat-tile"><div class="slabel">課程總數</div><div class="sval" id="statTotal">0<small>門</small></div></div>
           <div class="stat-tile"><div class="slabel">AI涉入判定進度</div><div class="sval" id="statTriageRate">0<small>%</small></div><div class="scap">已判斷「有無涉及AI」的課程比例</div></div>
           <div class="stat-tile"><div class="slabel">已完成盤點</div><div class="sval" id="statDone">0<small>門</small></div></div>
@@ -453,11 +479,11 @@
           <div class="stat-tile"><div class="slabel">盤點完成率</div><div class="sval" id="statRate">0<small>%</small></div><div class="scap">已按下「標記完成」的課程比例</div><div class="scap" id="statRateReq" style="margin-top:2px;"></div></div>
         </div>
 
-        <div class="card health-check" id="deptHealthCheck" style="margin-bottom:16px;"></div>
+        <div class="card health-check mode-offer" id="deptHealthCheck" style="margin-bottom:16px;"></div>
 
         <div class="layout-2col">
           <div class="stack">
-            <div class="card">
+            <div class="card mode-offer">
               <div class="card-head"><h3>課程清單</h3><span class="req opt" id="courseCountTag">0 門課程</span></div>
               <div class="hint">點選任一課程展開下方盤點表單；資料來源為校務課程主檔匯入。</div>
               <div class="toolbar-row">
@@ -475,6 +501,16 @@
                   <tbody id="courseBody"></tbody>
                 </table>
               </div>
+            </div>
+
+            <div class="card mode-plan" id="planCard">
+              <div class="card-head"><h3>四年課程架構（課程計畫表）</h3><span class="req opt">試作版</span></div>
+              <div class="hint">依校務系統「四年課程計畫表」（CE0901）列出本系各年級、學期的必選修科目。科目標註以學科代碼為單位，點選任一科目即可在下方標註；過去依開課課號完成的盤點已自動沿用（取最近一次），請學系確認。</div>
+              <div class="pl-bar" style="margin-top:6px;"><label class="hint" style="margin:0;">政策框架</label>
+                <select id="fwSelect" style="font:inherit;font-size:12.5px;padding:4px 8px;border-radius:8px;border:1px solid var(--border);background:var(--surface-raised);color:var(--ink);">
+                  <option value="AI圖像">未來人才 AI 能力圖像（教育部 115.05.22）</option>
+                </select></div>
+              <div id="planBody"><div class="hint">課程計畫表讀取中…</div></div>
             </div>
 
             <div class="card" id="courseDetailCard" style="display:none;">
@@ -541,12 +577,6 @@
               <div id="noAiDoneNote" style="display:none;margin-top:16px;padding:12px 15px;border-radius:10px;background:var(--good-bg);color:var(--good);font-weight:700;font-size:13px;">✓ 已完成盤點（本課程不涉及AI）。點選當下即自動存檔，不需要再按其他按鈕。</div>
             </div>
 
-            <div class="card" id="planCard">
-              <div class="card-head"><h3>四年課程架構（課程計畫表）</h3><span class="req opt">試作版</span></div>
-              <div class="hint">依校務系統「四年課程計畫表」（CE0901）列出本系各年級、學期的必選修科目，並對照開課與 AI 盤點狀態。點選已開課的科目可直接開啟盤點表單。</div>
-              <div id="planBody"><div class="hint">課程計畫表讀取中…</div></div>
-            </div>
-
             <div class="card" id="industryCard">
           <div class="card-head"><h3>產業對接：職缺能力需求與課程支撐</h3><span class="req opt">試作版</span></div>
           <div class="hint">依兩種職缺類型（<b>現有工作導入 AI</b>：原本就有、要會用 AI 提升效能的工作；<b>AI 帶來的新工作</b>：因 AI 而出現或大幅轉型的職缺）列出本領域的職缺，每個職缺可選擇兩種設定方式：<b>依能力指標</b>（點一下為<b>必要</b>、再點一下為<b>加分</b>、再點一下取消），或<b>依課程</b>（直接勾選這個職缺需要修的本系課程，系統彙整這些課涵蓋哪些能力、哪裡還有缺口）。系統會用本系<b>已完成盤點、該指標達 3 級（中度關聯）以上</b>的課程數判斷支撐程度：2 門以上為「已有支撐」、1 門為「支撐偏弱」、0 門為「能力缺口」。</div>
@@ -572,14 +602,18 @@
                 <div class="radar-empty">選擇課程並開始評分後，<br>將即時顯示四面向剖面圖</div>
               </div>
             </div>
-            <div class="card">
+            <div class="card mode-plan" id="planProgressCard">
+              <div class="card-head"><h3 style="font-size:13.5px;">科目標註進度</h3></div>
+              <div id="planProgress"></div>
+            </div>
+            <div class="card mode-offer">
               <div class="card-head"><h3 style="font-size:13.5px;">查詢單一課程剖面</h3></div>
               <div class="course-search-wrap">
                 <input type="text" class="search-input" id="deptCourseSearch" placeholder="輸入課程名稱／教師搜尋已完成課程…">
                 <div class="course-search-results" id="deptCourseSearchResults"></div>
               </div>
             </div>
-            <div class="card">
+            <div class="card mode-offer">
               <div class="card-head"><h3 style="font-size:13.5px;">系所盤點進度</h3></div>
               <div class="progress-line">
                 <div class="progress-track"><div class="progress-fill" id="progressFill" style="width:0%"></div></div>
@@ -587,12 +621,12 @@
               </div>
               <div class="hint" style="margin:10px 0 0;">已盤點 <b id="progressCount">0</b>／<b id="progressTotalCount">0</b> 門課程</div>
             </div>
-            <div class="card">
+            <div class="card mode-offer">
               <div class="card-head"><h3 style="font-size:13.5px;">11 項指標覆蓋度（系所平均）</h3></div>
               <div id="coverageMiniBars"></div>
             </div>
-            <button class="btn" id="exportCsvBtn">匯出本系資料（CSV）</button>
-            <button class="btn" id="exportDeptPlanBtn" style="margin-top:8px;">匯出AI能力圖像規劃書（草稿）</button>
+            <button class="btn mode-offer" id="exportCsvBtn">匯出本系資料（CSV）</button>
+            <button class="btn mode-offer" id="exportDeptPlanBtn" style="margin-top:8px;">匯出AI能力圖像規劃書（草稿）</button>
           </div>
         </div>
 
@@ -942,6 +976,7 @@
   }
   // read-only lookup used by aggregate dashboards — never creates/mutates state
   function peekRecord(dept, courseId){
+    if(String(courseId).indexOf('plan:') === 0) return tagRecord(String(courseId).slice(5));
     var ds = state[dept];
     return (ds && ds[courseId]) || null;
   }
@@ -1164,6 +1199,9 @@
     Array.prototype.forEach.call(document.querySelectorAll('#reqFilter button'), function(b){
       b.classList.toggle('active', b.dataset.val === 'all');
     });
+    deptMode = 'plan';
+    currentSubject = null;
+    applyDeptMode();
     renderIndustryJobs();
     setIndSync('');
     loadIndustryFromCloud(currentYear, dept);
@@ -1244,6 +1282,9 @@
 
   /* ---------- Course detail / rating ---------- */
   function selectCourse(id){
+    currentSubject = null;
+    document.getElementById('saveDraftBtn').textContent = '儲存草稿';
+    document.getElementById('markDoneBtn').textContent = '標記完成';
     currentCourseId = id;
     var c = COURSES.find(function(x){ return x.id === id; });
     if(!c) return;
@@ -1927,9 +1968,9 @@
   }
 
   /* ---------- Topbar status pill (reflects whichever scope tab is active) ---------- */
-  function updateTopbarStatus(rate){
+  function updateTopbarStatus(rate, label){
     var pillColor = rate >= 80 ? 'var(--good)' : (rate >= 40 ? 'var(--warning)' : 'var(--critical)');
-    document.getElementById('topbarStatus').innerHTML = '<span class="status-dot" style="background:'+pillColor+'"></span>盤點完成率 ' + rate.toFixed(2) + '%';
+    document.getElementById('topbarStatus').innerHTML = '<span class="status-dot" style="background:'+pillColor+'"></span>' + (label || '盤點完成率') + ' ' + rate.toFixed(2) + '%';
   }
   function clearTopbarStatus(){
     document.getElementById('topbarStatus').innerHTML = '<span class="status-dot" style="background:var(--muted)"></span>—';
@@ -1958,6 +1999,8 @@
     renderMiniBarsInto('coverageMiniBars', indicatorAveragesFor(ratedRecs), ratedRecs.length > 0, list);
     renderHealthCheck('deptHealthCheck', list, null, null);
     renderAggregateRadar('deptRadarWrap', list);
+    applyDeptMode();
+    if(isPlanMode()){ renderPlanRadar(); renderPlanProgress(); }
     renderIndustryGap();
     renderPlanCard();
   }
@@ -2099,7 +2142,8 @@
       var toObj = function(h, rows){ return rows.map(function(r){ var o = {}; h.forEach(function(k,i){ o[k] = r[i]; }); return o; }); };
       PLAN_DATA = {rows:toObj(d.planHeaders, d.plans), rules:toObj(d.ruleHeaders, d.rules)};
       planLoadState = 'ok';
-      renderPlanCard();
+      applyDeptMode();
+      if(currentDept) renderCurrentScope();
       renderIndustryJobs();
       renderIndustryGap();
     };
@@ -2156,12 +2200,98 @@
     info.offers.forEach(function(c){ t[c.academicYear + ' ' + c.term] = 1; });
     return '開課：' + Object.keys(t).sort().join('、');
   }
+  /* ---------- 學系頁模式：四年課程計畫表（科目標註）／依開課課號盤點 ---------- */
+  var deptMode = 'plan', currentSubject = null;
+  var TAG_FW = 'AI圖像', TAGS = {}, tagsLoadState = 'idle';
+  function isPlanMode(){ return deptMode === 'plan' && planLoadState === 'ok' && planTracks().length > 0; }
+  function applyDeptMode(){
+    var box = document.getElementById('deptContent');
+    if(!box) return;
+    var has = planLoadState === 'ok' && planTracks().length > 0;
+    document.getElementById('deptModeSel').style.display = has ? 'inline-flex' : 'none';
+    box.classList.toggle('plan-mode', isPlanMode());
+    Array.prototype.forEach.call(document.querySelectorAll('#deptModeSel button'), function(b){
+      b.classList.toggle('active', b.dataset.mode === (isPlanMode() ? 'plan' : 'offer'));
+    });
+  }
+  function loadTags(){
+    if(!WEBAPP_URL || tagsLoadState === 'loading') return;
+    tagsLoadState = 'loading';
+    var ok = function(d){
+      if(!d || !d.rows){ tagsLoadState = 'error'; return; }
+      var h = d.headers, ix = function(n){ return h.indexOf(n); };
+      var T = {};
+      d.rows.forEach(function(r){
+        if(r[ix('框架')] !== TAG_FW) return;
+        var ratings = {};
+        INDICATORS.forEach(function(i){ var v = r[ix(i.code)]; if(v !== '' && v != null) ratings[i.code] = Number(v); });
+        var ai = r[ix('是否涉及AI')];
+        T[r[ix('學科代碼')]] = {name:r[ix('科目名稱')], ai: ai === '是' ? true : (ai === '否' ? false : null), ratings:ratings,
+          evidence:parseEvidence(r[ix('佐證說明')]), st:r[ix('狀態')], src:r[ix('來源')], srcCode:r[ix('來源課號')], srcTerm:r[ix('來源學年期')], at:r[ix('更新時間')]};
+      });
+      TAGS = T; tagsLoadState = 'ok';
+      if(currentDept) renderCurrentScope();
+    };
+    var fail = function(){ tagsLoadState = 'error'; };
+    var q = 'type=tags&fw=' + encodeURIComponent(TAG_FW);
+    if(!window.fetch){ jsonp(q, ok, fail, 30000); return; }
+    fetch(WEBAPP_URL + (WEBAPP_URL.indexOf('?') < 0 ? '?' : '&') + q, {credentials:'omit'})
+      .then(function(r){ return r.text(); }).then(function(t){ ok(JSON.parse(t)); })
+      .catch(function(){ jsonp(q, ok, fail, 30000); });
+  }
+  function parseEvidence(s){
+    var o = {};
+    String(s || '').split(' ／ ').forEach(function(part){
+      var m = part.match(/^([A-D]-\d)：([\s\S]*)$/);
+      if(m) o[m[1]] = m[2];
+    });
+    return o;
+  }
+  function serializeEvidence(ev){
+    return INDICATORS.map(function(i){ return ev[i.code] ? (i.code + '：' + ev[i.code]) : ''; }).filter(Boolean).join(' ／ ');
+  }
+  // 科目標註 → 與開課盤點相同的紀錄格式（給雷達圖、產業對接等共用計算）
+  function tagRecord(code){
+    var t = TAGS[code];
+    if(!t) return null;
+    var status = t.st === '草稿' ? 'draft' : (t.ai === true ? 'done' : (t.ai === false ? 'no-ai' : 'draft'));
+    return {status:status, aiInvolved:t.ai, ratings:t.ratings || {}, evidence:t.evidence || {}, tagStatus:t.st};
+  }
+  function tagKind(code){
+    var t = TAGS[code];
+    if(!t) return 'none';
+    if(t.st === '結果不一致') return 'conf';
+    if(t.st === '沿用待確認') return 'pend';
+    if(t.st === '草稿') return 'draft';
+    return t.ai === false ? 'noai' : 'ok';
+  }
+  function tagStatusLabel(code){
+    return {none:'未標註', conf:'結果不一致', pend:'沿用待確認', draft:'草稿', noai:'已確認・不涉及AI', ok:'已確認'}[tagKind(code)];
+  }
+  // 計畫表科目轉成「課程」物件（id = plan:學科代碼），供產業對接、雷達圖等沿用既有計算
+  function planPseudoCourses(trackOnly){
+    if(planLoadState !== 'ok' || !currentDept) return [];
+    var tracks = trackOnly && planSel.track ? [planSel.track] : planTracks();
+    var year = planSel.year || (tracks.length ? planYears(tracks[0])[0] : null);
+    var by = {}, out = [];
+    PLAN_DATA.rows.forEach(function(r){
+      if(tracks.indexOf(r['系所']) < 0 || r['入學學年度'] !== year || !r['學科代碼']) return;
+      var code = r['學科代碼'], req = r['類別'] !== '系選';
+      if(by[code]){ if(req) by[code].reqType = '必修'; return; }
+      by[code] = {id:'plan:' + code, code6:code, isPlan:true, name:r['科目名稱'], dept:currentDept, academicYear:currentYear,
+        grade:r['年級'], term:r['學期'], credits:r['學分'], teacher:'', reqType: req ? '必修' : '選修', cat:r['類別']};
+      out.push(by[code]);
+    });
+    return out;
+  }
+  function indCourses(){ return isPlanMode() ? planPseudoCourses(false) : deptCourses(); }
+
   function renderPlanCard(){
     var el = document.getElementById('planBody');
     if(!el) return;
     if(!currentDept){ el.innerHTML = ''; return; }
     if(planLoadState !== 'ok'){
-      el.innerHTML = '<div class="hint">' + (planLoadState === 'error' ? '課程計畫表讀取失敗，請稍後按「重新讀取」。' : '課程計畫表讀取中…') + '</div>';
+      el.innerHTML = '<div class="hint">' + (planLoadState === 'error' ? '課程計畫表讀取失敗，請稍後按「重新整理雲端資料」。' : '課程計畫表讀取中…') + '</div>';
       return;
     }
     var tracks = planTracks();
@@ -2173,22 +2303,6 @@
     var nGrades = rows.reduce(function(m, r){ return Math.max(m, Number(r['年級']) || 0); }, 4);
     var cols = [];
     for(var g = 1; g <= nGrades; g++){ cols.push(g + '上'); cols.push(g + '下'); }
-
-    // 摘要：以「學科代碼（無代碼則名稱）」去重，上下對開只算一次
-    var subj = {};
-    rows.forEach(function(r){
-      var id = r['學科代碼'] || ('名稱:' + r['科目名稱']);
-      if(!subj[id]) subj[id] = {r:r, info:planSubjectInfo(r['學科代碼'])};
-    });
-    var cnt = {total:0, req:0, ele:0, offered:0, done:0, noai:0, todo:0, none:0, generic:0};
-    Object.keys(subj).forEach(function(id){
-      var x = subj[id];
-      if(!x.r['學科代碼']){ cnt.generic++; return; }
-      cnt.total++;
-      if(x.r['類別'] === '系選') cnt.ele++; else cnt.req++;
-      if(x.info.st === 'none') cnt.none++;
-      else { cnt.offered++; if(x.info.st === 'done') cnt.done++; else if(x.info.st === 'no-ai') cnt.noai++; else cnt.todo++; }
-    });
     var rule = (PLAN_DATA.rules.filter(function(r){ return r['系所'] === planSel.track && r['入學學年度'] === planSel.year; })[0]) || {};
     var gradMin = (String(rule['學分數規範'] || '').match(/畢業總學分最低：(\d+)/) || [])[1];
 
@@ -2202,12 +2316,10 @@
       return '<button data-val="' + y + '" class="' + (y === planSel.year ? 'active' : '') + '">' + y + ' 學年度入學</button>';
     }).join('') + '</div></div>';
     html += '<div class="pl-sum">' + escapeHtml(planSel.track) + (gradMin ? '・畢業最低 <b>' + gradMin + '</b> 學分' : '') +
-      '<br>計畫表科目 <b>' + cnt.total + '</b> 門（必修 ' + cnt.req + '、選修 ' + cnt.ele + '）：已有開課紀錄 <b>' + cnt.offered + '</b> 門' +
-      '（已盤點 ' + cnt.done + '、不涉及AI ' + cnt.noai + '、未盤點 ' + cnt.todo + '）、尚未開課 <b>' + cnt.none + '</b> 門' +
-      (cnt.generic ? '；另有 ' + cnt.generic + ' 項沒有學科代碼的科目（例如體育、國文、英文、主副修）無法對照開課，不列入統計' : '') + '。</div>';
+      (tagsLoadState === 'ok' ? '' : '・<span style="color:var(--muted)">科目標註讀取中…</span>') + '</div>';
 
     html += '<div class="table-wrap" style="max-height:none;"><table class="pl-grid"><thead><tr><th>類別</th>' +
-      cols.map(function(c){ return '<th>' + c.charAt(0) + '年級' + (c.charAt(1) === '上' ? '上' : '下') + '</th>'; }).join('') + '</tr></thead><tbody>';
+      cols.map(function(c){ return '<th>' + c.charAt(0) + '年級' + c.charAt(1) + '</th>'; }).join('') + '</tr></thead><tbody>';
     var colCredits = {};
     PLAN_CAT_ORDER.concat(Object.keys(rows.reduce(function(m, r){ if(PLAN_CAT_ORDER.indexOf(r['類別']) < 0) m[r['類別']] = 1; return m; }, {}))).forEach(function(cat){
       var catRows = rows.filter(function(r){ return r['類別'] === cat; });
@@ -2217,21 +2329,25 @@
         if(cat !== '系選') inCell.forEach(function(r){ colCredits[col] = (colCredits[col] || 0) + (Number(r['學分']) || 0); });
         return '<td class="cell">' + inCell.map(function(r){
           var code = r['學科代碼'];
-          if(!code) return '<span class="pl-sub" title="計畫表未列學科代碼，無法對照開課紀錄">' + escapeHtml(String(r['科目名稱']).replace(/^[A-Z0-9]{5}-/, '')) + '<small>' + r['學分'] + '</small></span>';
-          var info = subj[code] ? subj[code].info : planSubjectInfo(code);
+          if(!code) return '<span class="pl-sub tg-gen" title="計畫表未列學科代碼，無法標註">' + escapeHtml(String(r['科目名稱']).replace(/^[A-Z0-9]{5}-/, '')) + '<small>' + r['學分'] + '</small></span>';
+          var k = tagKind(code), t = TAGS[code];
           var marks = (r['上下對開'] === 'Y' ? '◎' : '') + (r['共同外系'] === 'Y' ? '＊' : '') + (r['新增'] === 'Y' ? '■' : '') + (r['修改'] === 'Y' ? '▲' : '');
-          var tip = r['科目名稱'] + '（' + code + '，' + r['學分'] + ' 學分）\n' + planStLabel(info.st) + '・' + planOfferText(info) +
-            (info.here ? '\n點一下開啟本學期盤點表單' : '');
-          return '<span class="pl-sub ' + planStClass(info.st) + (info.here ? ' click' : '') + '" data-cid="' + (info.here ? escapeHtml(info.here.id) : '') + '" title="' + escapeHtml(tip) + '">' +
-            escapeHtml(marks + r['科目名稱']) + '<small>' + r['學分'] + '</small></span>';
+          var flag = k === 'pend' ? '<span class="pl-flag pend">待確認</span>' : (k === 'conf' ? '<span class="pl-flag conf">不一致</span>' : (k === 'draft' ? '<span class="pl-flag draft">草稿</span>' : ''));
+          var bars = (t && t.ai === true) ? '<div class="pl-bars">' + DIMENSIONS.map(function(d){
+            var mx = Math.max.apply(null, INDICATORS.filter(function(i){ return i.dim === d.id; }).map(function(i){ return t.ratings[i.code] || 0; }));
+            return '<i><u style="width:' + (mx / 5 * 100) + '%;background:' + dimColor(d.id) + '"></u></i>';
+          }).join('') + '</div>' : '';
+          var tip = r['科目名稱'] + '（' + code + '，' + r['學分'] + ' 學分）\n' + tagStatusLabel(code) + (t && t.srcTerm ? '（沿用 ' + t.srcTerm + ' ' + t.srcCode + '）' : '') + '\n點一下標註';
+          return '<span class="pl-sub click tg-' + k + (currentSubject === code ? ' sel' : '') + '" data-code="' + escapeHtml(code) + '" title="' + escapeHtml(tip) + '">' +
+            '<span class="pl-nm">' + escapeHtml(marks + r['科目名稱']) + '</span><small>' + r['學分'] + '</small>' + flag + bars + '</span>';
         }).join('') + '</td>';
       }).join('') + '</tr>';
     });
     html += '<tr class="tot"><td>必修學分</td>' + cols.map(function(c){ return '<td>' + (colCredits[c] || '') + '</td>'; }).join('') + '</tr>';
     html += '</tbody></table></div>';
-    html += '<div class="pl-legend"><span class="pl-sub st-done">已盤點（涉及 AI）</span><span class="pl-sub st-noai">不涉及 AI</span>' +
-      '<span class="pl-sub st-todo">已開課・未盤點／草稿</span><span class="pl-sub st-none">尚未開課</span>' +
-      '<span>數字＝學分；◎ 上下學期對開（必修學分兩學期都會列入小計）、＊ 共同／外系開設、■ 新增、▲ 修改。盤點狀態取該科目所有開課紀錄中最完整的一筆；外框可點選者為本學期本系開課。</span></div>';
+    html += '<div class="pl-legend"><span class="pl-sub tg-ok">已確認</span><span class="pl-sub tg-noai">已確認・不涉及 AI</span>' +
+      '<span class="pl-sub tg-pend">沿用待確認</span><span class="pl-sub tg-conf">結果不一致</span><span class="pl-sub tg-none">未標註／草稿</span>' +
+      '<span>科目下方 4 條色帶依序為 A／B／C／D 面向的最高等級；數字＝學分；◎ 上下學期對開、＊ 共同／外系開設、■ 新增、▲ 修改。</span></div>';
     var ruleKeys = ['學分數規範','實習學分說明','院訂畢業條件說明','系組訂畢業條件或其他條件說明'];
     var ruleHtml = ruleKeys.filter(function(k){ return String(rule[k] || '').trim(); }).map(function(k){
       return '<b>' + k + '</b>\n' + escapeHtml(String(rule[k]).trim());
@@ -2240,22 +2356,146 @@
     el.innerHTML = html;
 
     Array.prototype.forEach.call(el.querySelectorAll('#planTrackSel button'), function(b){
-      b.addEventListener('click', function(){ planSel.track = b.dataset.val; renderPlanCard(); });
+      b.addEventListener('click', function(){ planSel.track = b.dataset.val; renderPlanCard(); renderPlanRadar(); renderPlanProgress(); });
     });
     Array.prototype.forEach.call(el.querySelectorAll('#planYearSel button'), function(b){
-      b.addEventListener('click', function(){ planSel.year = b.dataset.val; renderPlanCard(); });
+      b.addEventListener('click', function(){ planSel.year = b.dataset.val; renderPlanCard(); renderPlanRadar(); renderPlanProgress(); });
     });
     Array.prototype.forEach.call(el.querySelectorAll('.pl-sub.click'), function(s){
-      s.addEventListener('click', function(){
-        selectCourse(s.dataset.cid);
-        var dc = document.getElementById('courseDetailCard');
-        if(dc && dc.scrollIntoView) dc.scrollIntoView({behavior:'smooth', block:'start'});
-      });
+      s.addEventListener('click', function(){ openSubject(s.dataset.code); });
     });
   }
+
+  function planTrackCodes(){
+    var seen = {}, out = [];
+    planRows(planSel.track, planSel.year).forEach(function(r){
+      var c = r['學科代碼']; if(c && !seen[c]){ seen[c] = 1; out.push({code:c, req:r['類別'] !== '系選'}); }
+    });
+    out.forEach(function(x){ if(planRows(planSel.track, planSel.year).some(function(r){ return r['學科代碼'] === x.code && r['類別'] !== '系選'; })) x.req = true; });
+    return out;
+  }
+  function renderPlanProgress(){
+    var el = document.getElementById('planProgress');
+    if(!el || !isPlanMode()) return;
+    var codes = planTrackCodes(), cnt = {ok:0, noai:0, pend:0, conf:0, draft:0, none:0};
+    codes.forEach(function(x){ cnt[tagKind(x.code)]++; });
+    var n = codes.length, done = cnt.ok + cnt.noai, pct = n ? done / n * 100 : 0;
+    if(dashboardScope === 'dept') updateTopbarStatus(pct, '科目標註確認率');
+    el.innerHTML = '<div class="progress-line"><div class="progress-track"><div class="progress-fill" style="width:' + pct + '%"></div></div><span class="progress-pct">' + pct.toFixed(0) + '%</span></div>' +
+      '<div class="hint" style="margin:8px 0 0;">已確認 <b>' + done + '</b>／' + n + ' 門計畫表科目</div>' +
+      '<div class="pl-prog"><div>沿用待確認<br><b>' + cnt.pend + '</b></div><div>結果不一致<br><b style="color:var(--critical)">' + cnt.conf + '</b></div>' +
+      '<div>草稿<br><b>' + cnt.draft + '</b></div><div>未標註<br><b>' + cnt.none + '</b></div></div>';
+  }
+  function renderPlanRadar(){
+    var wrap = document.getElementById('deptRadarWrap');
+    if(!wrap || !isPlanMode()) return;
+    var all = planPseudoCourses(true);
+    var req = all.filter(function(c){ return c.reqType === '必修'; });
+    var rAll = ratedRecordsFor(all), rReq = ratedRecordsFor(req);
+    if(!rAll.length){ wrap.innerHTML = '<div class="radar-empty">尚無已標註（涉及 AI）的科目，<br>暫無法顯示剖面圖</div>'; return; }
+    var pend = all.filter(function(c){ var k = tagKind(c.code6); return (k === 'pend' || k === 'conf') && TAGS[c.code6].ai === true; }).length;
+    wrap.innerHTML = '<canvas id="deptRadarWrapCanvas" width="260" height="230"></canvas>' +
+      '<div class="radar-caption"><span style="color:' + dimColor('A') + ';font-weight:700">━ 全部科目</span>（' + rAll.length + ' 門）　' +
+      '<span style="color:' + dimColor('B') + ';font-weight:700">┅ 僅必修</span>（' + rReq.length + ' 門）<br>依計畫表上涉及 AI 的已標註科目平均' + (pend ? '；含 ' + pend + ' 門尚待學系確認' : '') + '</div>';
+    var series = [{data:dimAveragesFromIndicatorAvgs(indicatorAveragesFor(rAll)), color:dimColor('A'), fill:'rgba(42,120,214,0.14)'}];
+    if(rReq.length) series.push({data:dimAveragesFromIndicatorAvgs(indicatorAveragesFor(rReq)), color:dimColor('B'), fill:'rgba(235,104,52,0.10)', dash:true});
+    drawRadarSeries(document.getElementById('deptRadarWrapCanvas'), series);
+  }
+  function drawRadarSeries(canvas, series){
+    drawRadarOnCanvas(canvas, series[0].data);   // 底圖＋第一條
+    var ctx = canvas.getContext('2d');
+    var cx = canvas.width/2, cy = canvas.height/2 - 8, R = 78, n = series[0].data.length;
+    series.slice(1).forEach(function(sr){
+      ctx.beginPath();
+      sr.data.forEach(function(d, i){
+        var ang = -Math.PI/2 + i*(2*Math.PI/n), r = R*(d.avg/5);
+        var x = cx + r*Math.cos(ang), y = cy + r*Math.sin(ang);
+        if(i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+      });
+      ctx.closePath();
+      ctx.setLineDash(sr.dash ? [5, 4] : []);
+      ctx.fillStyle = sr.fill; ctx.strokeStyle = sr.color; ctx.lineWidth = 2;
+      ctx.fill(); ctx.stroke(); ctx.setLineDash([]);
+    });
+  }
+
+  /* ---------- 科目標註表單（沿用課程盤點表單的版面） ---------- */
+  function latestOfferingOf(code){
+    var ord = {'上學期':1, '下學期':2, '暑期':3};
+    return COURSES.filter(function(c){ return String(c.code || '').slice(1, 7) === code && c.syllabus; })
+      .sort(function(a, b){ return (Number(b.academicYear) - Number(a.academicYear)) || ((ord[b.term] || 0) - (ord[a.term] || 0)); })[0] || null;
+  }
+  function openSubject(code){
+    currentSubject = code; currentCourseId = null;
+    var t = TAGS[code];
+    var rows = planRows(planSel.track, planSel.year).filter(function(r){ return r['學科代碼'] === code; });
+    var r0 = rows[0] || {};
+    var rec = {aiInvolved: t ? t.ai : null, ratings: t ? Object.assign({}, t.ratings) : {}, evidence: t ? Object.assign({}, t.evidence) : {}, status:'draft'};
+    var card = document.getElementById('courseDetailCard');
+    card.style.display = 'block';
+    document.getElementById('dcName').textContent = r0['科目名稱'] || (t && t.name) || code;
+    document.getElementById('dcMeta').textContent = code + ' ・ ' + rows.map(function(r){ return (PLAN_CAT_LABEL[r['類別']] || r['類別']) + ' ' + r['年級'] + '年級' + r['學期']; }).join('、') +
+      ' ・ ' + (r0['學分'] || '') + ' 學分 ・ ' + tagStatusLabel(code);
+    var off = latestOfferingOf(code);
+    document.getElementById('dcSyllabus').textContent = off ? ('（取自 ' + off.academicYear + ' ' + off.term + ' 開課 ' + off.code + '）\n' + off.syllabus) : '（尚無開課紀錄可供參考的課程大綱）';
+    var note = document.getElementById('dcTeacherChg');
+    var k = tagKind(code);
+    if(k === 'pend' || k === 'conf'){
+      note.className = 'tag-note' + (k === 'conf' ? ' conf' : '');
+      note.innerHTML = '此科目目前沿用 <b>' + escapeHtml(t.srcTerm) + '</b> 開課 ' + escapeHtml(t.srcCode) + ' 的盤點結果（' + escapeHtml(t.src) + '）。' +
+        (k === 'conf' ? '<b>各次盤點結果不同</b>，' : '') + '請確認或修正後按「確認標註」。';
+      note.style.display = 'block';
+    } else { note.style.display = 'none'; }
+    document.getElementById('saveDraftBtn').textContent = '儲存草稿';
+    document.getElementById('markDoneBtn').textContent = '確認標註';
+    renderSubjectAi(rec);
+    renderDimGroups(rec);
+    renderEvidence(rec);
+    renderRadar(rec);
+    document.getElementById('saveDraftBtn').onclick = function(){ saveSubject(code, rec, '草稿'); };
+    document.getElementById('markDoneBtn').onclick = function(){
+      if(rec.aiInvolved === null){ toast('請先選擇本科目是否涉及 AI'); return; }
+      if(rec.aiInvolved && INDICATORS.some(function(i){ return rec.ratings[i.code] === undefined; })){ toast('請完成全部 11 項指標的等級勾選'); return; }
+      saveSubject(code, rec, '已確認');
+    };
+    renderPlanCard();
+    if(card.scrollIntoView) card.scrollIntoView({behavior:'smooth', block:'start'});
+  }
+  function renderSubjectAi(rec){
+    var wrap = document.getElementById('aiInvolved');
+    Array.prototype.forEach.call(wrap.querySelectorAll('.option-card'), function(card){
+      var choice = card.dataset.choice;
+      card.classList.toggle('checked', (choice === 'yes' && rec.aiInvolved === true) || (choice === 'no' && rec.aiInvolved === false));
+      card.onclick = function(){
+        rec.aiInvolved = (choice === 'yes');
+        if(rec.aiInvolved === false){ rec.ratings = {}; rec.evidence = {}; }
+        renderSubjectAi(rec); renderDimGroups(rec); renderEvidence(rec); renderRadar(rec);
+      };
+    });
+    document.getElementById('ratingSections').style.display = rec.aiInvolved ? 'block' : 'none';
+    document.getElementById('actionButtonsRow').style.display = 'flex';
+    document.getElementById('noAiDoneNote').style.display = 'none';
+  }
+  function saveSubject(code, rec, status){
+    var name = document.getElementById('dcName').textContent;
+    var ratings = rec.aiInvolved ? rec.ratings : {};
+    TAGS[code] = {name:name, ai:rec.aiInvolved, ratings:Object.assign({}, ratings), evidence:Object.assign({}, rec.aiInvolved ? rec.evidence : {}),
+      st:status, src:'學系填寫', srcCode:'', srcTerm:'', at:fmtTime(new Date())};
+    if(WEBAPP_URL){
+      fetch(WEBAPP_URL, {method:'POST', mode:'no-cors', headers:{'Content-Type':'text/plain;charset=utf-8'},
+        body: JSON.stringify({type:'tag', fw:TAG_FW, code:code, name:name, aiInvolved:rec.aiInvolved, ratings:ratings,
+          evidence:serializeEvidence(rec.aiInvolved ? rec.evidence : {}), status:status})})
+        .then(function(){ toast(status === '已確認' ? '已確認並存到雲端' : '草稿已存到雲端'); })
+        .catch(function(){ toast('雲端儲存失敗，請稍後再試'); });
+    }
+    renderPlanCard(); renderPlanRadar(); renderPlanProgress(); renderIndustryJobs(); renderIndustryGap();
+    var note = document.getElementById('dcTeacherChg'); note.style.display = 'none';
+    document.getElementById('dcMeta').textContent = document.getElementById('dcMeta').textContent.replace(/・ [^・]+$/, '・ ' + tagStatusLabel(code));
+  }
+
   // 依課程職缺可選的「計畫表科目」：本學期本系沒開的計畫表科目（id = 'plan:學科代碼'）
   function planPickItems(){
-    if(planLoadState !== 'ok' || !currentDept) return [];
+    if(planLoadState !== 'ok' || !currentDept || isPlanMode()) return [];
     var here = {};
     deptCourses().forEach(function(c){ here[String(c.code || '').slice(1, 7)] = 1; });
     var seen = {}, out = [];
@@ -2466,7 +2706,7 @@
       return {cls: c ? 'crit' : 'good', text:'選 '+g.courses.length+' 門課・未涵蓋 '+c+' 項'};
     }
     if(!Object.keys(job.req || {}).length) return {cls:'muted', text:'尚未勾選指標'};
-    var d = industryGapData([job], deptCourses())[0];
+    var d = industryGapData([job], indCourses())[0];
     var must = d.rows.filter(function(r){ return r.need === 'must'; }), cr = must.filter(function(r){ return r.level.cls === 'crit'; }).length;
     return {cls: cr ? 'crit' : 'good', text:'必要 '+must.length+' 項・缺口 '+cr+' 項'};
   }
@@ -2476,7 +2716,7 @@
     if(job.mode === 'course'){
       courseJobGap(job).rows.forEach(function(r){ out[r.ind.code] = {cls:r.level.cls, need:''}; });
     } else {
-      industryGapData([job], deptCourses())[0].rows.forEach(function(r){
+      industryGapData([job], indCourses())[0].rows.forEach(function(r){
         out[r.ind.code] = {cls:(r.level.cls === 'muted' ? 'crit' : r.level.cls), need:r.need};
       });
     }
@@ -2507,14 +2747,16 @@
   function statusLabel(st){ return st === 'done' ? '已盤點' : (st === 'no-ai' ? '不涉及AI' : (st === 'draft' ? '草稿' : '未盤點')); }
   function jobCourses(job){
     var ids = job.courses || [], map = {}, seen = {};
-    deptCourses().forEach(function(c){ map[c.id] = c; });
+    deptCourses().concat(planPseudoCourses(false)).forEach(function(c){ map[c.id] = c; });
     return ids.map(function(id){
+      if(map[id]) return map[id];
       if(String(id).indexOf('plan:') === 0){ var it = planItemById(id); return it.info.best; }  // 計畫表科目：用最完整的一筆開課紀錄
       return map[id];
     }).filter(function(c){ if(!c || seen[c.id]) return false; seen[c.id] = 1; return true; });
   }
   // 依課程職缺中「計畫表科目但尚無開課紀錄」者
   function jobPlanOnly(job){
+    if(isPlanMode()) return [];
     return (job.courses || []).filter(function(id){ return String(id).indexOf('plan:') === 0; })
       .map(planItemById).filter(function(it){ return !it.info.best; });
   }
@@ -2529,7 +2771,7 @@
   }
   function coursePickHtml(job){
     var sel = {}; (job.courses || []).forEach(function(id){ sel[id] = true; });
-    var list = deptCourses().slice().sort(function(a,b){
+    var list = indCourses().slice().sort(function(a,b){
       return (sel[b.id]?1:0) - (sel[a.id]?1:0) || String(a.grade).localeCompare(String(b.grade)) || a.name.localeCompare(b.name, 'zh-Hant');
     });
     return '<div class="ind-cpick">' +
@@ -2537,7 +2779,7 @@
       '<div class="ind-clist">' + (list.length ? list.map(function(c){
         var st = statusOf(c);
         return '<label data-q="'+escapeHtml((c.name+' '+c.teacher).toLowerCase())+'"><input type="checkbox" value="'+escapeHtml(c.id)+'"'+(sel[c.id]?' checked':'')+'>' +
-          '<span>'+escapeHtml(c.name)+' <span class="cmeta">'+escapeHtml(c.teacher || '')+'・'+(c.grade ? c.grade+'年級・' : '')+escapeHtml(c.reqType || '')+'・'+statusLabel(st)+'</span></span></label>';
+          '<span>'+escapeHtml(c.name)+' <span class="cmeta">'+(c.teacher ? escapeHtml(c.teacher)+'・' : '')+(c.grade ? c.grade+'年級・' : '')+escapeHtml(c.reqType || '')+'・'+(c.isPlan ? tagStatusLabel(c.code6) : statusLabel(st))+'</span></span></label>';
       }).join('') : '<div class="hint" style="margin:6px;">本系目前沒有課程資料。</div>') +
       (function(){
         var items = planPickItems();
@@ -2605,7 +2847,7 @@
     var jobs = allJobs.filter(function(j){ return j.mode !== 'course' && Object.keys(j.req).length; });
     var cjobs = allJobs.filter(function(j){ return j.mode === 'course' && (j.courses || []).length; });
     if(!jobs.length && !cjobs.length){ el.innerHTML = ''; return; }
-    var list = deptCourses();
+    var list = indCourses();
     var notDone = list.filter(function(c){ var st = statusOf(c); return st !== 'done' && st !== 'no-ai'; }).length;
     var listed = allJobs.filter(function(j){ return jobs.indexOf(j) >= 0 || cjobs.indexOf(j) >= 0; });
     var html = '<div class="card-head" style="margin-top:12px;"><h3 style="font-size:13.5px;">能力缺口分析</h3></div>' +
@@ -2653,7 +2895,7 @@
     var jobs = allJobs.filter(function(j){ return j.mode !== 'course' && Object.keys(j.req).length; });
     var cjobs = allJobs.filter(function(j){ return j.mode === 'course' && (j.courses || []).length; });
     if(!jobs.length && !cjobs.length) return '';
-    var esc = escapeHtml, list = deptCourses();
+    var esc = escapeHtml, list = indCourses();
     return '<h2>三、產業對接：職缺能力需求與課程支撐</h2>' +
       '<p>判斷方式：以本系已完成盤點、該指標達3級（中度關聯）以上之課程數計算；2門以上為「已有支撐」、1門為「支撐偏弱」、0門為「能力缺口」。職缺所需能力以'+esc(MOE_SOURCE)+'大專校院核心能力描述；兩種職缺類型的分類與0–5級量尺為本校自訂。</p>' +
       industryGapData(jobs, list).map(function(g){
@@ -3318,6 +3560,15 @@
     });
     planLoadState = 'idle';
     loadPlanData();
+    tagsLoadState = 'idle';
+    loadTags();
+  });
+  Array.prototype.forEach.call(document.querySelectorAll('#deptModeSel button'), function(b){
+    b.addEventListener('click', function(){
+      deptMode = b.dataset.mode; currentSubject = null; currentCourseId = null;
+      document.getElementById('courseDetailCard').style.display = 'none';
+      applyDeptMode(); renderIndustryJobs(); renderCurrentScope(); renderRadar(null);
+    });
   });
   document.getElementById('addJobDir1').addEventListener('click', function(){ addIndustryJob('1'); });
   document.getElementById('addJobDir2').addEventListener('click', function(){ addIndustryJob('2'); });
@@ -3337,6 +3588,7 @@
     renderCourseSource();
     loadCloudData(true);
     loadPlanData();
+    loadTags();
     Object.keys(indPending).forEach(function(k){ pushIndustry(k); });
   });
 })();
