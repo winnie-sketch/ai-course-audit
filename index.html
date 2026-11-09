@@ -408,6 +408,18 @@
 
         <div class="card health-check" id="deptHealthCheck" style="margin-bottom:16px;"></div>
 
+        <div class="card" id="industryCard" style="margin-bottom:16px;">
+          <div class="card-head"><h3>產業對接：職缺能力需求與課程支撐</h3><span class="req opt">試作版</span></div>
+          <div class="hint">依「課程融入 AI 的方向」列出本領域的職缺，勾選每個職缺需要的指標（點一下為<b>必要</b>、再點一下為<b>加分</b>、再點一下取消）。系統會用本系<b>已完成盤點、該指標達 3 級（中度關聯）以上</b>的課程數判斷支撐程度：2 門以上為「已有支撐」、1 門為「支撐偏弱」、0 門為「能力缺口」。</div>
+          <div class="hint" style="margin-top:-4px;">職缺所需能力以教育部「未來人才AI能力圖像」（115.05.22）大專校院核心能力描述（滑鼠移到指標上可看說明）；「課程融入 AI 的兩個方向」為本校自訂。試作版：職缺設定目前只保存在這台電腦的瀏覽器中。</div>
+          <div id="industryJobs"></div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;margin:4px 0 6px;">
+            <button type="button" class="btn" id="addJobDir1" style="width:auto;">＋ 新增職缺（方向一）</button>
+            <button type="button" class="btn" id="addJobDir2" style="width:auto;">＋ 新增職缺（方向二）</button>
+          </div>
+          <div id="industryGap"></div>
+        </div>
+
         <div class="layout-2col">
           <div class="stack">
             <div class="card">
@@ -530,17 +542,6 @@
           </div>
         </div>
 
-        <div class="card" id="industryCard" style="margin-top:18px;">
-          <div class="card-head"><h3>產業對接：職缺能力需求與課程支撐</h3><span class="req opt">試作版</span></div>
-          <div class="hint">依「課程融入 AI 的方向」列出本領域的職缺，勾選每個職缺需要的指標（點一下為<b>必要</b>、再點一下為<b>加分</b>、再點一下取消）。系統會用本系<b>已完成盤點、該指標達 3 級（中度關聯）以上</b>的課程數判斷支撐程度：2 門以上為「已有支撐」、1 門為「支撐偏弱」、0 門為「能力缺口」。</div>
-          <div class="hint" style="margin-top:-4px;">職缺所需能力以教育部「未來人才AI能力圖像」（115.05.22）大專校院核心能力描述（滑鼠移到指標上可看說明）；「課程融入 AI 的兩個方向」為本校自訂。試作版：職缺設定目前只保存在這台電腦的瀏覽器中。</div>
-          <div id="industryJobs"></div>
-          <div style="display:flex;gap:8px;flex-wrap:wrap;margin:4px 0 6px;">
-            <button type="button" class="btn" id="addJobDir1" style="width:auto;">＋ 新增職缺（方向一）</button>
-            <button type="button" class="btn" id="addJobDir2" style="width:auto;">＋ 新增職缺（方向二）</button>
-          </div>
-          <div id="industryGap"></div>
-        </div>
       </div>
       </div>
 
@@ -2701,7 +2702,17 @@
     if(!WEBAPP_URL){ courseSource = {type:'embedded', reason:'未設定雲端網址'}; done(); return; }
     courseSource = {type:'loading'};
     renderCourseSource();
-    jsonp('type=courses', function(data){
+    // 先用 fetch（不帶 Google 登入 cookie，避免瀏覽器同時登入多個 Google 帳號時 Apps Script 回應失敗），失敗再改用 JSONP
+    var fetchCourses = function(onOk, onFail){
+      if(!window.fetch){ jsonp('type=courses', onOk, onFail, 30000); return; }
+      var settled = false;
+      var timer = setTimeout(function(){ if(settled) return; settled = true; jsonp('type=courses', onOk, onFail, 30000); }, 30000);
+      fetch(WEBAPP_URL + (WEBAPP_URL.indexOf('?') < 0 ? '?' : '&') + 'type=courses', {credentials:'omit'})
+        .then(function(r){ if(!r.ok) throw new Error('HTTP ' + r.status); return r.text(); })
+        .then(function(t){ if(settled) return; settled = true; clearTimeout(timer); onOk(JSON.parse(t)); })
+        .catch(function(){ if(settled) return; settled = true; clearTimeout(timer); jsonp('type=courses', onOk, onFail, 30000); });
+    };
+    fetchCourses(function(data){
       // 已部署的 Apps Script 回傳「課程主檔」的資料列陣列（不含標題列，欄位順序同課程主檔）
       if(Array.isArray(data) && (!data.length || Array.isArray(data[0]))){
         data = {headers:['學年度','校區','學院','系所','課程名稱','年級','教師','學分','必選修','學期','課號','課程大綱'], rows:data};
@@ -2726,7 +2737,7 @@
     }, function(){
       courseSource = {type:'embedded', reason:'課程主檔讀取失敗'};
       done();
-    }, 30000);
+    });
   }
   function fmtTime(d){
     if(!d) return '';
