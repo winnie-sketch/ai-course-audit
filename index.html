@@ -551,6 +551,7 @@
           <div class="card-head"><h3>產業對接：職缺能力需求與課程支撐</h3><span class="req opt">試作版</span></div>
           <div class="hint">依兩種職缺類型（<b>現有工作導入 AI</b>：原本就有、要會用 AI 提升效能的工作；<b>AI 帶來的新工作</b>：因 AI 而出現或大幅轉型的職缺）列出本領域的職缺，每個職缺可選擇兩種設定方式：<b>依能力指標</b>（點一下為<b>必要</b>、再點一下為<b>加分</b>、再點一下取消），或<b>依課程</b>（直接勾選這個職缺需要修的本系課程，系統彙整這些課涵蓋哪些能力、哪裡還有缺口）。系統會用本系<b>已完成盤點、該指標達 3 級（中度關聯）以上</b>的課程數判斷支撐程度：2 門以上為「已有支撐」、1 門為「支撐偏弱」、0 門為「能力缺口」。</div>
           <div class="hint" style="margin-top:-4px;">職缺所需能力以教育部「未來人才AI能力圖像」（115.05.22）大專校院核心能力描述（滑鼠移到指標上可看說明）；兩種職缺類型的分類為本校自訂。試作版：職缺設定目前只保存在這台電腦的瀏覽器中。</div>
+          <div class="hint" id="industrySync" style="margin:-2px 0 6px;font-size:11.5px;"></div>
           <div id="industryJobs"></div>
           <div style="display:flex;gap:8px;flex-wrap:wrap;margin:4px 0 6px;">
             <button type="button" class="btn" id="addJobDir1" style="width:auto;">＋ 新增職缺：現有工作導入 AI</button>
@@ -1164,6 +1165,8 @@
       b.classList.toggle('active', b.dataset.val === 'all');
     });
     renderIndustryJobs();
+    setIndSync('');
+    loadIndustryFromCloud(currentYear, dept);
     renderCourseTable();
     renderRadar(null);
     updateSyncPill();
@@ -2075,7 +2078,7 @@
     renderCurrentScope();
   }
 
-  /* ---------- 產業對接：職缺能力需求 × 課程支撐（以學年度＋系所為單位，試作版存在本機） ---------- */
+  /* ---------- 產業對接：職缺能力需求 × 課程支撐（以學年度＋系所為單位，存在雲端「產業職缺」分頁，瀏覽器另有暫存） ---------- */
   var INDUSTRY_KEY = 'aiCourseAudit_industry_v1';
   var INDUSTRY_DIRS = {
     '1': {label:'現有職場工作的 AI 應用與效能提升', short:'現有工作導入 AI', ref:['A-1','C-1','C-3','B-1','B-2']},
@@ -2271,8 +2274,77 @@
     return r ? {id:id, code:code, name:r['科目名稱'], info:planSubjectInfo(code)} : {id:id, code:code, name:code, info:{st:'none', offers:[], best:null}};
   }
 
-  function saveIndustry(){
+  /* 產業職缺：瀏覽器暫存＋雲端（Apps Script「產業職缺」分頁）同步 */
+  var IND_PENDING_KEY = 'aiCourseAudit_industry_pending_v1';
+  var indPending = (function(){ try{ return JSON.parse(localStorage.getItem(IND_PENDING_KEY)) || {}; }catch(e){ return {}; } })();
+  var indLastSent = {}, indTimers = {}, indSync = {state:'', at:''};
+  function saveIndustryLocal(){
     try{ localStorage.setItem(INDUSTRY_KEY, JSON.stringify(industryState)); }catch(e){}
+  }
+  function saveIndustry(){
+    saveIndustryLocal();
+    if(!currentDept || !currentYear) return;
+    var key = currentYear + '||' + currentDept;
+    indPending[key] = 1;
+    try{ localStorage.setItem(IND_PENDING_KEY, JSON.stringify(indPending)); }catch(e){}
+    clearTimeout(indTimers[key]);
+    indTimers[key] = setTimeout(function(){ pushIndustry(key); }, 1500);
+  }
+  function indCloudJobs(list){
+    return (list || []).map(function(j){
+      if(!j.id) j.id = 'j' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+      return {id:j.id, dir:j.dir || '1', title:j.title || '', desc:j.desc || '', req:j.req || {}, mode:j.mode || 'ind', courses:j.courses || []};
+    });
+  }
+  function setIndSync(state){
+    indSync = {state:state, at:fmtTime(new Date())};
+    var el = document.getElementById('industrySync');
+    if(!el) return;
+    el.textContent = state === 'saving' ? '雲端儲存中…' : (state === 'saved' ? '已存到雲端（' + indSync.at + '）' :
+      (state === 'error' ? '雲端儲存失敗，已暫存在本機，稍後自動重試' : (state === 'loaded' ? '已讀取雲端資料' : '')));
+    el.style.color = state === 'error' ? 'var(--critical)' : 'var(--muted)';
+  }
+  function pushIndustry(key){
+    if(!WEBAPP_URL) return;
+    var parts = key.split('||');
+    var jobs = indCloudJobs(industryState[key]);
+    saveIndustryLocal();
+    var sig = JSON.stringify(jobs);
+    var done = function(){
+      delete indPending[key];
+      try{ localStorage.setItem(IND_PENDING_KEY, JSON.stringify(indPending)); }catch(e){}
+    };
+    if(indLastSent[key] === sig){ done(); return; }
+    setIndSync('saving');
+    fetch(WEBAPP_URL, {
+      method:'POST', mode:'no-cors',
+      headers:{'Content-Type':'text/plain;charset=utf-8'},
+      body: JSON.stringify({type:'industry', year:parts[0], dept:parts[1], jobs:jobs})
+    }).then(function(){ indLastSent[key] = sig; done(); setIndSync('saved'); })
+      .catch(function(){ setIndSync('error'); setTimeout(function(){ if(indPending[key]) pushIndustry(key); }, 60000); });
+  }
+  // 選系時讀雲端；本機若有尚未上傳的修改，以本機為準並補傳
+  function loadIndustryFromCloud(year, dept){
+    if(!WEBAPP_URL || !year || !dept) return;
+    var key = year + '||' + dept;
+    if(indPending[key]){ pushIndustry(key); return; }
+    var url = WEBAPP_URL + (WEBAPP_URL.indexOf('?') < 0 ? '?' : '&') + 'type=industry&year=' + encodeURIComponent(year) + '&dept=' + encodeURIComponent(dept);
+    var ok = function(d){
+      if(!d || typeof d !== 'object' || Array.isArray(d)) return;
+      if(indPending[key]) return;  // 讀取期間使用者已修改
+      var cloud = d[key] || [];
+      var openById = {};
+      (industryState[key] || []).forEach(function(j){ if(j.id) openById[j.id] = !!j.open; });
+      industryState[key] = cloud.map(function(j){
+        return {id:j.id, dir:j.dir || '1', title:j.title || '', desc:j.desc || '', req:j.req || {}, mode:j.mode || 'ind', courses:j.courses || [], open:!!openById[j.id]};
+      });
+      indLastSent[key] = JSON.stringify(indCloudJobs(industryState[key]));
+      saveIndustryLocal();
+      if(currentYear === year && currentDept === dept){ renderIndustryJobs(); renderIndustryGap(); setIndSync('loaded'); }
+    };
+    if(!window.fetch){ jsonp('type=industry&year=' + encodeURIComponent(year) + '&dept=' + encodeURIComponent(dept), ok, function(){}, 30000); return; }
+    fetch(url, {credentials:'omit'}).then(function(r){ return r.text(); }).then(function(t){ ok(JSON.parse(t)); })
+      .catch(function(){ jsonp('type=industry&year=' + encodeURIComponent(year) + '&dept=' + encodeURIComponent(dept), ok, function(){}, 30000); });
   }
   function industryJobs(){
     var k = currentYear + '||' + currentDept;
@@ -2330,7 +2402,7 @@
         t.addEventListener('click', function(e){
           if(e.target.closest('[data-act="del"]')) return;
           e.stopPropagation();
-          job.open = !job.open; saveIndustry(); renderIndustryJobs();
+          job.open = !job.open; saveIndustryLocal(); renderIndustryJobs();
         });
       });
       box.querySelector('[data-act="del"]').addEventListener('click', function(e){
@@ -2497,7 +2569,7 @@
   function addIndustryJob(dir){
     if(!currentDept){ toast('請先選擇系所'); return; }
     industryJobs().forEach(function(j){ j.open = false; });
-    industryJobs().push({dir:dir, title:'', desc:'', req:{}, mode:'ind', courses:[], open:true});
+    industryJobs().push({id:'j' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6), dir:dir, title:'', desc:'', req:{}, mode:'ind', courses:[], open:true});
     saveIndustry();
     renderIndustryJobs();
     renderIndustryGap();
@@ -3265,6 +3337,7 @@
     renderCourseSource();
     loadCloudData(true);
     loadPlanData();
+    Object.keys(indPending).forEach(function(k){ pushIndustry(k); });
   });
 })();
 </script>
