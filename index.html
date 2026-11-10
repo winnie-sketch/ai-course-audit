@@ -703,7 +703,7 @@
 
             <div class="card tab-draft" id="draftCard">
               <div class="card-head"><h3>116 學年度課程計畫表調整（草稿）</h3><span class="req opt">試作版</span></div>
-              <div class="hint">從 115 學年度四年課程計畫表複製一份作為 116 草稿，學系只需調整要變動的地方：拖拉調整必選修與開課學期、刪除或新增科目、修改學分規範。系統即時檢核學分，並自動列出所有異動，請逐筆填寫異動理由。115 學年度正式資料不受影響。編輯需以 G2 帳號登入。</div>
+              <div class="hint">從 115 學年度四年課程計畫表複製一份作為 116 草稿，學系只需調整要變動的地方：拖拉調整必選修與開課學期、刪除或新增科目、修改學分規範。系統即時檢核學分，並自動列出所有異動，請逐筆填寫異動理由。完成後按「確認存檔」，再按「匯出課程計畫表」產生四年課程計畫表格式的 Excel（含學分規範與異動對照表），可直接列印送系課程委員會。115 學年度正式資料不受影響。編輯需以 G2 帳號登入。</div>
               <div id="draftBody"></div>
             </div>
             <div class="card tab-ind" id="industryCard">
@@ -2975,12 +2975,13 @@
     var GN = ['', '一', '二', '三', '四', '五', '六'];
     var diffs = draftDiffs(data), checks = draftChecks(data);
     var html = head;
-    html += '<div class="dr-bar"><span class="badge ' + (locked ? 'good' : 'warn') + '">' + escapeHtml(d.status || '編輯中') + '</span>' +
+    html += '<div class="dr-bar"><span class="badge ' + (locked ? 'good' : 'warn') + '">' + (locked ? '已確認' : '編輯中') + '</span>' +
       '<button type="button" class="btn" id="drUndo" style="width:auto;"' + (draftUndo.length && !locked ? '' : ' disabled') + '>↶ 復原</button>' +
       '<label class="dr-only" data-view="1"><input type="checkbox" id="drOnly" data-view="1"' + (draftOnly ? ' checked' : '') + '> 只看異動（' + diffs.length + '）</label>' +
       '<span class="sp"></span><span class="hint" id="drSync" style="margin:0;font-size:11.5px;">' + (d.updatedAt ? '雲端版本：' + escapeHtml(d.updatedAt) + (d.editor ? '（' + escapeHtml(d.editor) + '）' : '') : '') + '</span>' +
-      '<button type="button" class="btn ' + (locked ? '' : 'primary') + '" id="drSubmit" style="width:auto;">' + (locked ? '撤回送出（恢復編輯）' : '送出給教務處') + '</button></div>';
-    if(locked) html += '<div class="tag-note">草稿已送出，目前鎖定不可編輯；如需修改請按「撤回送出」。</div>';
+      '<button type="button" class="btn" id="drExport" data-view="1" style="width:auto;">⬇ 匯出課程計畫表（Excel，可列印）</button>' +
+      '<button type="button" class="btn ' + (locked ? '' : 'primary') + '" id="drSubmit" style="width:auto;">' + (locked ? '解除確認（繼續編輯）' : '✓ 確認存檔') + '</button></div>';
+    if(locked) html += '<div class="tag-note">已確認存檔並鎖定，可匯出 Excel 列印送系課程委員會審議；如需修改請按「解除確認」。</div>';
     // 學分規範與檢核
     html += '<div class="dr-rules"><div class="dr-rh">' + DRAFT_YEAR + ' 學年度學分規範（可修改；預設沿用 ' + DRAFT_BASE + '）</div><div class="dr-rgrid">' +
       DR_RULES.map(function(x){ var bv = (data.baseRules || {})[x[0]], v = data.rules[x[0]];
@@ -3032,6 +3033,8 @@
     if(u) u.onclick = function(){ var d = draftOf(); if(!draftUndo.length || !d) return; d.data = JSON.parse(draftUndo.pop()); draftSave(); renderDraftCard(); };
     var o = document.getElementById('drOnly');
     if(o) o.onchange = function(){ draftOnly = o.checked; renderDraftCard(); };
+    var ex = document.getElementById('drExport');
+    if(ex) ex.onclick = function(){ exportDraftXlsx(); };
     var sb = document.getElementById('drSubmit');
     if(sb) sb.onclick = function(){
       var d = draftOf(); if(!d) return;
@@ -3039,7 +3042,7 @@
       if(d.status === '已送出'){ d.status = '編輯中'; draftSave(); renderDraftCard(); return; }
       var miss = draftDiffs(d.data).filter(function(x){ return !String(x.c.reason || '').trim(); }).length;
       var bad = draftChecks(d.data).filter(function(k){ return k.ok === false; }).length;
-      if(!window.confirm('確定送出 ' + DRAFT_YEAR + ' 學年度課程計畫表草稿？' + (miss ? '\n・尚有 ' + miss + ' 筆異動未填理由' : '') + (bad ? '\n・學分檢核有 ' + bad + ' 項不符' : '') + '\n送出後將鎖定，需撤回才能再修改。')) return;
+      if(!window.confirm('確認存檔 ' + DRAFT_YEAR + ' 學年度課程計畫表？' + (miss ? '\n・尚有 ' + miss + ' 筆異動未填理由' : '') + (bad ? '\n・學分檢核有 ' + bad + ' 項不符' : '') + '\n確認後將鎖定，可匯出列印送系課程委員會；需要修改時按「解除確認」。')) return;
       d.status = '已送出'; draftSave(); renderDraftCard();
     };
     if(locked) return;
@@ -3150,6 +3153,152 @@
       return;
     }
     box.innerHTML = '';
+  }
+  /* ---------- 116 草稿匯出：仿 CE0901 四年課程計畫表格式（可列印送系課程委員會） ---------- */
+  function exportDraftXlsx(){
+    var track = draftTrack(), d = draftOf(track);
+    if(!d || !d.data){ toast('尚無草稿可匯出'); return; }
+    toast('Excel 產生中…');
+    loadScriptOnce(EXCELJS_URL).then(function(){ return buildDraftXlsx(track, d); })
+      .catch(function(){ toast('Excel 產生失敗，請確認網路後再試'); });
+  }
+  function buildDraftXlsx(track, d){
+    var X = window.ExcelJS, wb = new X.Workbook(), data = d.data;
+    var base = PLAN_DATA.rows.filter(function(r){ return r['系所'] === track && r['入學學年度'] === DRAFT_BASE; });
+    var r0 = base[0] || {};
+    var college = r0['學院'] || '', sys = r0['學制'] || '日間學制學士班';
+    var flags = {}; base.forEach(function(r){ if(r['學科代碼']) flags[r['學科代碼']] = r['共同外系'] === 'Y'; });
+    var now = new Date(), roc = (now.getFullYear() - 1911) + '年' + (now.getMonth() + 1) + '月' + now.getDate() + '日';
+    var title = '實踐大學' + college + ' ' + track + ' ' + sys.replace('學制', '學制') + '\n' + DRAFT_YEAR + '學年度新生適用課程計畫表（草案）';
+    var review = '年 月 日系級課程委員會審查通過\n年 月 日院級課程委員會審查通過\n年 月 日校級課程委員會審查通過';
+    var F = function(sz, b){ return {name:'標楷體', size:sz || 8, bold:!!b}; };
+    var thin = {style:'thin'}, BD = {top:thin, left:thin, bottom:thin, right:thin};
+    var grades = []; data.courses.forEach(function(c){ if(!c.del && grades.indexOf(c.grade) < 0) grades.push(c.grade); });
+    var nG = Math.max.apply(null, grades.concat([4]));
+    var line = function(c){
+      var marks = (c.code && flags[c.code] ? '＊' : '') + (!c.orig ? '■' : (drCardState(c) === 'chg' ? '▲' : '')) + (c.dual ? '◎' : '');
+      var cr = '[' + c.credits + ']', hf = c.half || '半';
+      if(!c.code && c.abbr) return marks + c.abbr + '-' + c.name + '(' + c.abbr + '  ,' + cr + ',' + hf + ')';
+      return marks + c.name + '(' + (c.abbr || '新設') + ' ,' + cr + ',' + hf + (c.code ? ',' + (c.temp ? '代碼待編' : c.code) : '') + ')';
+    };
+    var setup = function(ws){ ws.pageSetup = {paperSize:9, orientation:'landscape', fitToPage:true, fitToWidth:1, fitToHeight:0,
+      margins:{left:0.2, right:0.2, top:0.2, bottom:0.2, header:0.1, footer:0.1}, horizontalCentered:true}; };
+
+    // 第 1 頁：課程架構
+    var ws = wb.addWorksheet('課程計畫表');
+    setup(ws);
+    var lastCol = 3 + nG;   // A 選別、B 學期、C.. 各學年
+    ws.getColumn(1).width = 10; ws.getColumn(2).width = 4;
+    for(var g = 1; g <= nG; g++) ws.getColumn(2 + g).width = nG > 4 ? 30 : 36;
+    ws.mergeCells(1, 1, 1, lastCol - 1);
+    var t = ws.getCell(1, 1); t.value = title; t.font = F(12); t.alignment = {horizontal:'center', vertical:'middle', wrapText:true}; ws.getRow(1).height = 36;
+    ws.mergeCells(2, 1, 2, 2 + Math.floor(nG / 2));
+    var p = ws.getCell(2, 1); p.value = '頁次：1 / 3\n製表日期：' + roc; p.font = F(8); p.alignment = {vertical:'bottom', wrapText:true};
+    ws.mergeCells(2, 3 + Math.floor(nG / 2), 2, lastCol - 1);
+    var rv = ws.getCell(2, 3 + Math.floor(nG / 2)); rv.value = review; rv.font = F(8); rv.alignment = {horizontal:'right', vertical:'bottom', wrapText:true}; ws.getRow(2).height = 36;
+    var hr = 4;
+    ws.mergeCells(hr, 1, hr, 2);
+    var h0 = ws.getCell(hr, 1); h0.value = '課程選別/學期'; 
+    for(g = 1; g <= nG; g++) ws.getCell(hr, 2 + g).value = (Number(DRAFT_YEAR) + g - 1) + '學年';
+    for(var cc = 1; cc <= lastCol - 1; cc++){ var hc = ws.getCell(hr, cc); hc.font = F(8, true); hc.border = BD; hc.alignment = {horizontal:'center', vertical:'middle'}; }
+    var row = hr + 1;
+    var CATN = {'校必':'校必', '院必':'院必', '系必':'系(所)必', '系選':'系(所)選'};
+    DR_CATS.forEach(function(cat){
+      ws.mergeCells(row, 1, row + 1, 1);
+      var cl = ws.getCell(row, 1); cl.value = CATN[cat]; cl.font = F(8); cl.alignment = {horizontal:'center', vertical:'middle'}; ws.getCell(row + 1, 1).border = BD;
+      ['上', '下'].forEach(function(sem, k){
+        var rr = row + k, maxL = 1;
+        ws.getCell(rr, 2).value = sem;
+        for(var g2 = 1; g2 <= nG; g2++){
+          var list = data.courses.filter(function(c){ return !c.del && c.cat === cat && c.grade === g2 && c.sem === sem; }).map(line);
+          ws.getCell(rr, 2 + g2).value = list.join('\n');
+          maxL = Math.max(maxL, list.length);
+        }
+        for(var c2 = 1; c2 <= lastCol - 1; c2++){ var x = ws.getCell(rr, c2); x.border = BD; if(c2 > 1){ x.font = F(8); x.alignment = {vertical:'top', wrapText:true, horizontal: c2 === 2 ? 'center' : 'left'}; } }
+        ws.getCell(rr, 2).alignment = {horizontal:'center', vertical:'middle'};
+        ws.getRow(rr).height = Math.max(17, maxL * 11 + 4);
+      });
+      row += 2;
+    });
+    row += 1;
+    ws.mergeCells(row, 1, row, 2 + Math.ceil(nG / 2));
+    var sg = ws.getCell(row, 1); sg.value = '系、所、中心（主任、所長）簽名：＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿　　　院長簽名：＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿'; sg.font = F(8); sg.alignment = {vertical:'middle'};
+    ws.mergeCells(row, 3 + Math.ceil(nG / 2), row, lastCol - 1);
+    var mk = ws.getCell(row, 3 + Math.ceil(nG / 2)); mk.value = '製表人：＿＿＿＿＿＿＿＿'; mk.font = F(8); mk.alignment = {horizontal:'right', vertical:'middle'};
+    ws.getRow(row).height = 28;
+    row += 1;
+    ws.mergeCells(row, 1, row, lastCol - 1);
+    var lg = ws.getCell(row, 1);
+    lg.value = '範例說明：\n管理學    （FINA112 , [3]      , 半/全　  ,501121  ）\n科目名稱  （學科簡碼, [學分數] , 學期/學年,學科代碼）\n' +
+      '＊：共同課程、外系(所)開設的課程。　■：本學年度新增學科（與 ' + DRAFT_BASE + ' 學年度比較）。　▲：本學年度修改學科（類別、開課年級學期、學分或名稱變更）。　◎：本學年度學科上下對開。\n' +
+      '新設科目尚無學科簡碼／學科代碼者，以「新設」「代碼待編」標示。本表由課程盤點工具依 ' + DRAFT_YEAR + ' 學年度課程計畫表草稿產生，異動明細詳見第 3 頁。';
+    lg.font = F(8); lg.alignment = {vertical:'top', wrapText:true}; ws.getRow(row).height = 80;
+
+    // 第 2 頁：學分規範與畢業條件
+    var ws2 = wb.addWorksheet('學分規範與畢業條件');
+    setup(ws2);
+    ws2.getColumn(1).width = 26; ws2.getColumn(2).width = 110;
+    ws2.mergeCells(1, 1, 1, 2);
+    var t2 = ws2.getCell(1, 1); t2.value = title; t2.font = F(12); t2.alignment = {horizontal:'center', vertical:'middle', wrapText:true}; ws2.getRow(1).height = 36;
+    var p2 = ws2.getCell(2, 1); p2.value = '頁次：2 / 3\n製表日期：' + roc; p2.font = F(8); p2.alignment = {vertical:'bottom', wrapText:true};
+    var rv2 = ws2.getCell(2, 2); rv2.value = review; rv2.font = F(8); rv2.alignment = {horizontal:'right', vertical:'bottom', wrapText:true}; ws2.getRow(2).height = 36;
+    var R = data.rules || {}, v = function(k){ return R[k] === '' || R[k] == null ? '　' : R[k]; };
+    var ruleTxt = '(1) 畢業總學分最低：' + v('total') + '學分\n(2) 校訂必修：' + v('school') + '學分 , 興趣自選最低：' + v('interest') + '學分\n(3) 院訂必修：' + v('college') + '學分\n(4) 系訂必修：' +
+      v('dept') + '學分\n(5) 學籍分組必修：' + v('group') + '學分\n(6) 選修學分數：' + v('elective') + '學分(本系專業選修最低：' + v('profMin') + '學分)';
+    var bRule = (PLAN_DATA.rules || []).filter(function(r){ return r['系所'] === track && r['入學學年度'] === DRAFT_BASE; })[0] || {};
+    var items = [['學分數規範', ruleTxt], ['實習學分說明', bRule['實習學分說明']], ['共同課程畢業條件說明', bRule['共同課程畢業條件說明']],
+      ['院訂畢業條件說明', bRule['院訂畢業條件說明']], ['系組訂畢業條件或其他條件說明', bRule['系組訂畢業條件或其他條件說明']], ['校訂畢業條件說明', bRule['校訂畢業條件說明']]];
+    items.forEach(function(it, i){
+      var rr = 4 + i, a = ws2.getCell(rr, 1), b = ws2.getCell(rr, 2), txt = String(it[1] || '').trim();
+      a.value = it[0]; b.value = txt;
+      a.font = F(8); b.font = F(8); a.border = BD; b.border = BD;
+      a.alignment = {vertical:'middle', wrapText:true}; b.alignment = {vertical:'top', wrapText:true};
+      var lines = txt.split('\n').reduce(function(n, l){ return n + Math.max(1, Math.ceil(l.length / 95)); }, 0);
+      ws2.getRow(rr).height = Math.max(17, lines * 11 + 4);
+    });
+    var nr = 4 + items.length + 1;
+    ws2.mergeCells(nr, 1, nr, 2);
+    var nt = ws2.getCell(nr, 1);
+    nt.value = '註：學分數規範依 ' + DRAFT_YEAR + ' 學年度草稿；其餘說明文字沿用 ' + DRAFT_BASE + ' 學年度課程計畫表，如有修訂請於系課程委員會中提出。';
+    nt.font = F(8); nt.alignment = {wrapText:true};
+
+    // 第 3 頁：異動對照表
+    var ws3 = wb.addWorksheet('異動對照表');
+    setup(ws3);
+    [6, 16, 24, 10, 10, 20, 20, 40].forEach(function(w, i){ ws3.getColumn(i + 1).width = w; });
+    ws3.mergeCells(1, 1, 1, 8);
+    var t3 = ws3.getCell(1, 1); t3.value = '實踐大學' + college + ' ' + track + '\n' + DRAFT_YEAR + '學年度課程計畫表異動對照表（與 ' + DRAFT_BASE + ' 學年度比較）';
+    t3.font = F(12); t3.alignment = {horizontal:'center', vertical:'middle', wrapText:true}; ws3.getRow(1).height = 36;
+    ws3.mergeCells(2, 1, 2, 8);
+    var p3 = ws3.getCell(2, 1); p3.value = '頁次：3 / 3　製表日期：' + roc; p3.font = F(8);
+    var hd = ['序號', '異動類別', '科目名稱', '學科簡碼', '學科代碼', DRAFT_BASE + '學年度', DRAFT_YEAR + '學年度', '異動理由'];
+    hd.forEach(function(h, i){ var c = ws3.getCell(4, i + 1); c.value = h; c.font = F(9, true); c.border = BD; c.alignment = {horizontal:'center', vertical:'middle', wrapText:true}; });
+    var pl = function(o){ return o ? ((PLAN_CAT_LABEL[o.cat] || o.cat) + '\n' + o.grade + '年級' + o.sem + '學期・' + o.credits + '學分') : '—'; };
+    var diffs = draftDiffs(data);
+    diffs.forEach(function(x, i){
+      var c = x.c, rr = 5 + i;
+      var vals = [i + 1, x.types.join('、'), c.name + (c.orig && c.orig.name !== c.name ? '\n（原：' + c.orig.name + '）' : ''), c.abbr || '新設', c.temp ? '代碼待編' : (c.code || ''), pl(c.orig), c.del ? '刪除' : pl(c), c.reason || ''];
+      vals.forEach(function(val, j){ var cell = ws3.getCell(rr, j + 1); cell.value = val; cell.font = F(9); cell.border = BD; cell.alignment = {vertical:'top', wrapText:true, horizontal: j === 0 ? 'center' : 'left'}; });
+      ws3.getRow(rr).height = Math.max(28, Math.ceil(String(c.reason || '').length / 22) * 12 + 6);
+    });
+    var after = 5 + diffs.length + 1;
+    if(!diffs.length){ ws3.mergeCells(5, 1, 5, 8); ws3.getCell(5, 1).value = '本學年度課程架構無異動。'; ws3.getCell(5, 1).font = F(9); after = 7; }
+    // 學分規範異動與檢核
+    var br = data.baseRules || {}, rch = DR_RULES.filter(function(k){ return String(br[k[0]]) !== String(R[k[0]]); });
+    ws3.mergeCells(after, 1, after, 8);
+    ws3.getCell(after, 1).value = '學分規範異動：' + (rch.length ? rch.map(function(k){ return k[1] + ' ' + (br[k[0]] === '' ? '—' : br[k[0]]) + ' → ' + (R[k[0]] === '' ? '—' : R[k[0]]); }).join('；') : '無');
+    ws3.getCell(after, 1).font = F(9);
+    ws3.mergeCells(after + 1, 1, after + 1, 8);
+    ws3.getCell(after + 1, 1).value = '學分檢核：' + draftChecks(data).map(function(k){ return (k.ok === null ? '' : (k.ok ? '✓' : '✕')) + (k.text || (k.label + ' 計畫表 ' + k.have + '／規範 ' + k.need)); }).join('；');
+    ws3.getCell(after + 1, 1).font = F(9); ws3.getCell(after + 1, 1).alignment = {wrapText:true}; ws3.getRow(after + 1).height = 40;
+
+    return wb.xlsx.writeBuffer().then(function(buf){
+      var a = document.createElement('a'), url = URL.createObjectURL(new Blob([buf], {type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'}));
+      a.href = url; a.download = DRAFT_YEAR + '_' + track + '_課程計畫表（草案）.xlsx';
+      document.body.appendChild(a); a.click();
+      setTimeout(function(){ a.remove(); URL.revokeObjectURL(url); }, 2000);
+      toast('Excel 已下載，可直接列印');
+    });
   }
   /* 產業職缺：瀏覽器暫存＋雲端（Apps Script「產業職缺」分頁）同步 */
   var IND_PENDING_KEY = 'aiCourseAudit_industry_pending_v1';
