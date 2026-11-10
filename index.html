@@ -140,6 +140,8 @@
   .dept-tabs button.active{background:var(--surface);color:var(--ink);border-color:var(--border);border-bottom:2px solid var(--surface);}
   #deptContent:not([data-tab="main"]) .tab-main, #deptContent:not([data-tab="comp"]) .tab-comp,
   #deptContent:not([data-tab="ind"]) .tab-ind, #deptContent:not([data-tab="draft"]) .tab-draft{display:none !important;}
+  .pl-src{font-size:12.5px;font-weight:700;color:var(--accent);margin:0 0 8px;}
+  .pl-src:empty{display:none;}
   .pl-ylab{font-size:12px;font-weight:700;color:var(--ink-2);align-self:center;margin-right:-2px;}
   .dr-bar{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:10px;}
   .dr-bar .sp{flex:1;}
@@ -634,6 +636,7 @@
               <div class="card-head"><h3>專業 AI 能力地圖</h3><span class="req opt">一系一能力地圖</span></div>
               <div class="hint">依高教深耕計畫：「各系專業AI能力地圖界定學生應具備的專業AI能力及發展層次」。下方列出本系的專業 AI 能力、三個發展層次，以及承載各層次的課程。</div>
               <div class="hint" id="compSync" style="margin:-2px 0 6px;font-size:11.5px;"></div>
+              <div class="pl-src" id="compSrc"></div>
               <div id="compBody"></div>
             </div>
 
@@ -712,6 +715,7 @@
           <div class="hint" style="margin-top:-4px;">職缺所需能力以教育部「未來人才AI能力圖像」（115.05.22）大專校院核心能力描述（滑鼠移到指標上可看說明）；兩種職缺類型的分類為本校自訂。職缺設定以 G2 帳號登入後存到雲端。</div>
           <div class="hint" id="industrySync" style="margin:-2px 0 6px;font-size:11.5px;"></div>
           <div id="jobSummary" class="js-wrap"></div>
+          <div class="pl-src" id="indSrc"></div>
           <div id="industryJobs"></div>
           <div style="display:flex;gap:8px;flex-wrap:wrap;margin:4px 0 6px;">
             <button type="button" class="btn" id="addJobDir1" style="width:auto;">＋ 新增職缺：現有工作導入 AI</button>
@@ -2404,9 +2408,10 @@
   function planYears(track){
     var y = {};
     PLAN_DATA.rows.forEach(function(r){ if(r['系所'] === track) y[r['入學學年度']] = 1; });
-    if(!y[DRAFT_YEAR] && draftRowsFor(track)) y[DRAFT_YEAR] = 1;
+    if(!y[DRAFT_YEAR] && draftRowsFor(track)) return [DRAFT_YEAR];  // 有 116 草稿時，學系一律在 116 作業（不顯示 115，避免混淆）
     return Object.keys(y).sort().reverse();
   }
+  function planYearOf(track){ var ys = planYears(track); return ys.indexOf(planSel.year) >= 0 ? planSel.year : ys[0]; }
   // 116 草稿（尚無正式計畫表時）轉成計畫表列格式，供科目標註等功能使用
   function draftRowsFor(track){
     var d = DRAFTS[DRAFT_YEAR + '||' + track];
@@ -2476,7 +2481,7 @@
     var box = document.getElementById('deptContent');
     if(!box) return;
     var has = planLoadState === 'ok' && planTracks().length > 0;
-    document.getElementById('deptModeSel').style.display = has ? 'inline-flex' : 'none';
+    document.getElementById('deptModeSel').style.display = 'none';  // 簡化：有計畫表的系所一律用計畫表；沒有計畫表者自動使用依開課課號
     box.classList.toggle('plan-mode', isPlanMode());
     Array.prototype.forEach.call(document.querySelectorAll('#deptModeSel button'), function(b){
       b.classList.toggle('active', b.dataset.mode === (isPlanMode() ? 'plan' : 'offer'));
@@ -2566,10 +2571,10 @@
   function planPseudoCourses(trackOnly){
     if(planLoadState !== 'ok' || !currentDept) return [];
     var tracks = trackOnly && planSel.track ? [planSel.track] : planTracks();
-    var year = planSel.year || (tracks.length ? planYears(tracks[0])[0] : null);
-    var by = {}, out = [];
-    PLAN_DATA.rows.forEach(function(r){
-      if(tracks.indexOf(r['系所']) < 0 || r['入學學年度'] !== year || !r['學科代碼']) return;
+    var by = {}, out = [], rowsAll = [];
+    tracks.forEach(function(t){ rowsAll = rowsAll.concat(planRows(t, planYearOf(t))); });
+    rowsAll.forEach(function(r){
+      if(!r['學科代碼']) return;
       var code = r['學科代碼'], req = r['類別'] !== '系選';
       if(by[code]){ if(req) by[code].reqType = '必修'; return; }
       by[code] = {id:'plan:' + code, code6:code, isPlan:true, name:r['科目名稱'], dept:currentDept, academicYear:currentYear,
@@ -2608,13 +2613,14 @@
         return '<button data-val="' + escapeHtml(t) + '" class="' + (t === planSel.track ? 'active' : '') + '">' + escapeHtml(t.replace(currentDept, '') || t) + '</button>';
       }).join('') + '</div>';
     }
-    html += '<span class="pl-ylab">入學學年度</span><div class="chip-toggle" id="planYearSel">' + years.map(function(y){
+    if(years.length === 1) html += '<span class="pl-ylab" style="font-size:13px;">' + years[0] + ' 學年度入學課程計畫表' + (isDraftYear(planSel.track, years[0]) ? '（草稿）' : '') + '</span><div class="chip-toggle" id="planYearSel" style="display:none;">' + '</div>';
+    else html += '<span class="pl-ylab">入學學年度</span><div class="chip-toggle" id="planYearSel">' + years.map(function(y){
       return '<button data-val="' + y + '" class="' + (y === planSel.year ? 'active' : '') + '">' + y + ' 學年度入學' + (isDraftYear(planSel.track, y) ? '（草稿）' : '') + '</button>';
     }).join('') + '</div></div>';
     if(isDraftYear(planSel.track, planSel.year)){
       var dr = (DRAFTS[DRAFT_YEAR + '||' + planSel.track] || {}).data || {};
       if(!gradMin && dr.rules && dr.rules.total) gradMin = dr.rules.total;
-      html += '<div class="tag-note" style="margin:0 0 8px;">目前檢視 <b>' + DRAFT_YEAR + ' 學年度課程計畫表草稿</b>（尚未正式公告）。在此標註的科目存為 ' + DRAFT_YEAR + ' 學年度；若 ' + DRAFT_BASE + ' 學年度計畫表也有這門課且尚未標註，會同時回填 ' + DRAFT_BASE + '。標示「待確認」者為沿用 ' + DRAFT_BASE + ' 的標註，確認或修改後即存成 ' + DRAFT_YEAR + ' 的版本（' + DRAFT_BASE + ' 不變）。</div>';
+      html += '<div class="tag-note" style="margin:0 0 8px;"><b>點任一科目即可標註。</b>標示「待確認」的科目已先帶入去年的標註，看過沒問題按「確認標註」即可；課程如要調整，請到「' + DRAFT_YEAR + ' 課程架構調整」分頁。</div>';
     }
     html += '<div class="pl-sum">' + escapeHtml(planSel.track) + (gradMin ? '・畢業最低 <b>' + gradMin + '</b> 學分' : '') +
       (tagsLoadState === 'ok' ? '' : '・<span style="color:var(--muted)">科目標註讀取中…</span>') + '</div>';
@@ -2743,7 +2749,7 @@
     var k = tagKind(code);
     if(t && t.inherit){
       note.className = 'tag-note';
-      note.innerHTML = '此科目在 ' + escapeHtml(tagViewYear) + ' 學年度尚未標註，以下先帶出 <b>' + escapeHtml(t.inherit) + ' 學年度</b>的標註。請確認或修改後按「確認標註」，會存成 ' + escapeHtml(tagViewYear) + ' 學年度的版本（' + escapeHtml(t.inherit) + ' 的標註不變）。';
+      note.innerHTML = '已先帶入去年（' + escapeHtml(t.inherit) + ' 學年度）的標註。請看過一遍，需要就修改，然後按「確認標註」。';
       note.style.display = 'block';
     } else if(k === 'pend' || k === 'conf'){
       note.className = 'tag-note' + (k === 'conf' ? ' conf' : '');
@@ -2789,7 +2795,7 @@
     if(rec.aiInvolved && rec.stmt) INDICATORS.forEach(function(i){ var v = String(rec.stmt[i.code] || '').trim(); if(v && (ratings[i.code] || 0) > 0) stmt[i.code] = v; });
     var year = tagYearNow(), prev = String(Number(year) - 1), backfill = '';
     if(TAGS_BY_YEAR[prev] && !TAGS_BY_YEAR[prev][code] && planRows(planSel.track, prev).some(function(r){ return r['學科代碼'] === code; })) backfill = prev;
-    else if(!TAGS_BY_YEAR[prev] && planYears(planSel.track).indexOf(prev) >= 0 && planRows(planSel.track, prev).some(function(r){ return r['學科代碼'] === code; })) backfill = prev;
+    else if(!TAGS_BY_YEAR[prev] && planRows(planSel.track, prev).some(function(r){ return r['學科代碼'] === code; })) backfill = prev;
     TAGS[code] = {year:year, name:name, ai:rec.aiInvolved, ratings:Object.assign({}, ratings), evidence:Object.assign({}, rec.aiInvolved ? rec.evidence : {}), stmt:stmt,
       st:status, src:'學系填寫', srcCode:'', srcTerm:'', at:fmtTime(new Date())};
     (TAGS_BY_YEAR[year] = TAGS_BY_YEAR[year] || {})[code] = TAGS[code];
@@ -2798,7 +2804,7 @@
       fetch(WEBAPP_URL, {method:'POST', mode:'no-cors', headers:{'Content-Type':'text/plain;charset=utf-8'},
         body: JSON.stringify({type:'tag', fw:TAG_FW, code:code, year:year, backfill:backfill, name:name, aiInvolved:rec.aiInvolved, ratings:ratings,
           evidence:serializeEvidence(rec.aiInvolved ? rec.evidence : {}), stmt:stmt, status:status, auth:authToken()})})
-        .then(function(){ toast((status === '已確認' ? '已確認並存到雲端' : '草稿已存到雲端') + '（' + year + ' 學年度' + (backfill ? '，並回填 ' + backfill : '') + '）'); })
+        .then(function(){ toast(status === '已確認' ? '已確認並存檔' : '草稿已存檔'); })
         .catch(function(){ toast('雲端儲存失敗，請稍後再試'); });
     }
     renderPlanCard(); renderPlanRadar(); renderPlanProgress(); renderIndustryJobs(); renderIndustryGap();
@@ -2851,6 +2857,8 @@
       if(x && x.data && currentDept && isPlanMode()){
         if(!planYearPicked && track === planSel.track && planSel.year === DRAFT_BASE) planSel.year = DRAFT_YEAR;  // 有 116 草稿時，預設在 116 標註
         renderPlanCard(); renderPlanRadar(); renderPlanProgress();
+        if(deptTab === 'comp') renderCompCard();
+        if(deptTab === 'ind'){ renderIndustryJobs(); renderIndustryGap(); }
       } };
     var fail = function(){ draftLoading[key] = false; DRAFTS[key] = {error:true}; renderDraftCard(); };
     fetch(WEBAPP_URL + (WEBAPP_URL.indexOf('?') < 0 ? '?' : '&') + q, {credentials:'omit'})
@@ -3404,6 +3412,7 @@
       }).join('') + '</div></div>';
   }
   function renderCompCard(){
+    setPlanSrc();
     var el = document.getElementById('compBody');
     if(!el) return;
     if(!currentDept){ el.innerHTML = ''; return; }
@@ -3485,7 +3494,7 @@
   function jobMapData(job){
     var tracks = planTracks();
     var track = tracks.indexOf(planSel.track) >= 0 ? planSel.track : tracks[0];
-    var year = planSel.year || (track ? planYears(track)[0] : '');
+    var year = track ? planYearOf(track) : '';
     var rows = track ? planRows(track, year) : [];
     var byCode = {};
     rows.forEach(function(r){
@@ -3627,7 +3636,15 @@
     var tag = v === 'must' ? '<small>必要</small>' : (v === 'plus' ? '<small>加分</small>' : '');
     return '<button type="button" class="ind-chip" data-code="'+ind.code+'" title="'+escapeHtml(ivTitle(ind.code) + '：' + (CORE_IV[ind.code] ? CORE_IV[ind.code].desc : ind.label))+'" style="'+style+'">'+ind.code+tag+'</button>';
   }
+  function planSrcText(){
+    if(!isPlanMode()) return '';
+    var t = planTracks()[0]; if(!t) return '';
+    var y = planYearOf(t);
+    return '課程依 ' + y + ' 學年度入學課程計畫表' + (isDraftYear(t, y) ? '（草稿）' : '');
+  }
+  function setPlanSrc(){ ['compSrc', 'indSrc'].forEach(function(id){ var e = document.getElementById(id); if(e) e.textContent = planSrcText(); }); }
   function renderIndustryJobs(){
+    setPlanSrc();
     renderJobSummary();
     var el = document.getElementById('industryJobs');
     if(!currentDept){ el.innerHTML = ''; return; }
