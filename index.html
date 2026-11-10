@@ -1,4 +1,4 @@
-<title>課程標註未來人才AI能力圖像系統｜實踐大學</title>
+<title>課程盤點工具｜實踐大學</title>
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <style>
   :root{
@@ -400,7 +400,8 @@
   <aside class="sidebar">
     <div class="brand">
       <div class="eyebrow">實踐大學</div>
-      <h1>課程標註<span style="white-space:nowrap;">未來人才AI能力圖像</span>系統</h1>
+      <h1>課程盤點工具</h1>
+      <div style="font-size:11.5px;opacity:.8;margin-top:4px;">政策功能：課程標註未來人才 AI 能力圖像</div>
     </div>
 
     <div class="field-block">
@@ -438,6 +439,7 @@
       <div class="sync-note" id="syncNote">尚未連接雲端表單，填寫結果保存在此瀏覽器中；請記得使用右側「匯出 CSV」定期備份。</div>
       <div class="sync-note" id="courseSrcNote">課程主檔讀取中…</div>
       <button type="button" class="btn-inline" id="refreshCloudBtn" style="width:100%;margin-top:10px;">重新整理雲端資料</button>
+      <div id="authBox" style="margin-top:12px;"></div>
     </div>
 
     <div class="sidebar-footer">依教育部「未來人才 AI 能力圖像－高教學生培育目標」<br>四面向・11 項指標・0–5 級量尺</div>
@@ -861,6 +863,75 @@
      - doPost 接收每次「標記完成」的課程資料，寫入一列
      - doGet(callback=...) 以 JSONP 回傳全部資料，供各層儀表板彙整全校真實資料 */
   var WEBAPP_URL = 'https://script.google.com/macros/s/AKfycbx6B2b5f0ubwISFqnXoGBhwH_T9eqvYaJW1uj8El3MshUo2r3IjRFjk7Be1GlML0sy_qg/exec';
+  /* ---------- G2 帳號登入（寫入需要；查看不需要） ---------- */
+  var LOGIN_URL = 'https://script.google.com/a/macros/g2.usc.edu.tw/s/AKfycbxz48qWNGtdMDw6iMQMmHWH_oIoja_kCDwjK27qoSKqcxmFBA_BhhPSnJEPHO7RkKBA3g/exec';   // 僅限實踐大學 G2 存取的 Apps Script 部署
+  var AUTH_KEY = 'aiCourseAudit_g2auth_v1';
+  function decodeAuth(token){
+    try{
+      var p = String(token).split('.')[0].replace(/-/g, '+').replace(/_/g, '/');
+      p += '==='.slice((p.length + 3) % 4);
+      var o = JSON.parse(decodeURIComponent(escape(atob(p))));
+      return (o && o.e && o.x) ? o : null;
+    }catch(e){ return null; }
+  }
+  function readAuth(){
+    try{ var a = JSON.parse(localStorage.getItem(AUTH_KEY)); if(a && a.token && a.exp > Date.now() + 60000) return a; }catch(e){}
+    return null;
+  }
+  function authToken(){ var a = readAuth(); return a ? a.token : ''; }
+  function captureAuthFromHash(){
+    var m = location.hash.match(/g2auth=([^&]+)/);
+    if(!m) return false;
+    var tok = decodeURIComponent(m[1]), o = decodeAuth(tok);
+    if(o){ try{ localStorage.setItem(AUTH_KEY, JSON.stringify({token:tok, email:o.e, exp:o.x})); }catch(e){} }
+    try{ history.replaceState(null, '', location.pathname + location.search); }catch(e){ location.hash = ''; }
+    if(window.name === 'g2login'){ try{ window.close(); }catch(e){} }
+    return true;
+  }
+  captureAuthFromHash();
+  window.addEventListener('hashchange', function(){ if(captureAuthFromHash()) afterLogin(); });
+  function g2Login(){
+    var url = LOGIN_URL + (LOGIN_URL.indexOf('?') < 0 ? '?' : '&') + 'type=login';
+    var w = window.open(url, 'g2login', 'width=560,height=600');
+    if(!w) location.href = url;
+  }
+  function g2Logout(){ try{ localStorage.removeItem(AUTH_KEY); }catch(e){} renderAuthBox(); }
+  function renderAuthBox(){
+    var el = document.getElementById('authBox');
+    if(!el) return;
+    var a = readAuth();
+    el.innerHTML = a
+      ? '<div class="sync-note" style="margin:0;">已以 G2 帳號登入：<br><b>' + String(a.email).replace(/[&<>"]/g, '') + '</b>　<a href="#" id="g2LogoutLink">登出</a></div>'
+      : '<button type="button" class="btn-inline" id="g2LoginBtn" style="width:100%;">以 G2 帳號登入（編輯需要）</button>' +
+        '<div class="sync-note" style="margin-top:6px;">查看不需登入；新增或修改資料需以實踐大學 G2 帳號登入。</div>';
+    var b = document.getElementById('g2LoginBtn'); if(b) b.onclick = g2Login;
+    var l = document.getElementById('g2LogoutLink'); if(l) l.onclick = function(e){ e.preventDefault(); g2Logout(); };
+  }
+  function needLogin(){ toast('請先以 G2 帳號登入才能存檔（左側「以 G2 帳號登入」）'); }
+  // 開課盤點：未登入時先暫存，登入後自動補送
+  var RATING_PENDING_KEY = 'aiCourseAudit_pendingRatings_v1';
+  function queueRating(payload){
+    try{
+      var q = JSON.parse(localStorage.getItem(RATING_PENDING_KEY)) || {};
+      q[payload.academicYear + '|' + payload.courseCode + '|' + payload.term] = payload;
+      localStorage.setItem(RATING_PENDING_KEY, JSON.stringify(q));
+    }catch(e){}
+  }
+  function flushRatings(){
+    var tok = authToken(); if(!tok || !WEBAPP_URL) return;
+    var q = {}; try{ q = JSON.parse(localStorage.getItem(RATING_PENDING_KEY)) || {}; }catch(e){}
+    Object.keys(q).forEach(function(k){
+      var body = Object.assign({}, q[k], {auth:tok});
+      fetch(WEBAPP_URL, {method:'POST', mode:'no-cors', headers:{'Content-Type':'text/plain;charset=utf-8'}, body:JSON.stringify(body)})
+        .then(function(){ try{ var q2 = JSON.parse(localStorage.getItem(RATING_PENDING_KEY)) || {}; delete q2[k]; localStorage.setItem(RATING_PENDING_KEY, JSON.stringify(q2)); }catch(e){} });
+    });
+  }
+  function afterLogin(){
+    renderAuthBox();
+    flushRatings();
+    if(typeof indPending !== 'undefined') Object.keys(indPending).forEach(function(k){ pushIndustry(k); });
+  }
+  window.addEventListener('storage', function(e){ if(e.key === AUTH_KEY) afterLogin(); });
   /* 盤點結果讀取（各校院盤點彙整儀表板）：試算表「發布到網路」的公開 CSV 網址，用 fetch 讀取。
      實踐大學 Google Workspace 網域目前對外部存取此類公開連結有限制，讀取可能會失敗，
      失敗時儀表板僅退回顯示本機瀏覽器已有的資料，不影響「標記完成」送出（doPost，走 WEBAPP_URL）。
@@ -1795,7 +1866,7 @@
 
     var body =
       '<h1 style="font-size:20pt;">'+esc(currentYear)+'學年度「未來人才AI能力圖像」推動規劃書</h1>' +
-      '<p><b>'+esc(scopeLabel)+'：</b>'+esc(scopeName)+'　｜　<b>資料時間：</b>'+todayStr+'　｜　<b>資料來源：</b>課程標註未來人才AI能力圖像系統・'+esc(scopeLabel)+'儀表板</p>' +
+      '<p><b>'+esc(scopeLabel)+'：</b>'+esc(scopeName)+'　｜　<b>資料時間：</b>'+todayStr+'　｜　<b>資料來源：</b>課程盤點工具（課程標註未來人才AI能力圖像）・'+esc(scopeLabel)+'儀表板</p>' +
       '<h2>一、目標學生應具備之能力描述</h2>' +
       '<p>依'+esc(MOE_SOURCE)+'，大專校院學生應具備之核心能力如下：</p>' +
       '<ul>' + DIMENSIONS.map(function(dim){
@@ -2477,6 +2548,7 @@
     document.getElementById('noAiDoneNote').style.display = 'none';
   }
   function saveSubject(code, rec, status){
+    if(!authToken()){ needLogin(); return; }
     var name = document.getElementById('dcName').textContent;
     var ratings = rec.aiInvolved ? rec.ratings : {};
     TAGS[code] = {name:name, ai:rec.aiInvolved, ratings:Object.assign({}, ratings), evidence:Object.assign({}, rec.aiInvolved ? rec.evidence : {}),
@@ -2484,7 +2556,7 @@
     if(WEBAPP_URL){
       fetch(WEBAPP_URL, {method:'POST', mode:'no-cors', headers:{'Content-Type':'text/plain;charset=utf-8'},
         body: JSON.stringify({type:'tag', fw:TAG_FW, code:code, name:name, aiInvolved:rec.aiInvolved, ratings:ratings,
-          evidence:serializeEvidence(rec.aiInvolved ? rec.evidence : {}), status:status})})
+          evidence:serializeEvidence(rec.aiInvolved ? rec.evidence : {}), status:status, auth:authToken()})})
         .then(function(){ toast(status === '已確認' ? '已確認並存到雲端' : '草稿已存到雲端'); })
         .catch(function(){ toast('雲端儲存失敗，請稍後再試'); });
     }
@@ -2541,8 +2613,9 @@
     var el = document.getElementById('industrySync');
     if(!el) return;
     el.textContent = state === 'saving' ? '雲端儲存中…' : (state === 'saved' ? '已存到雲端（' + indSync.at + '）' :
-      (state === 'error' ? '雲端儲存失敗，已暫存在本機，稍後自動重試' : (state === 'loaded' ? '已讀取雲端資料' : '')));
-    el.style.color = state === 'error' ? 'var(--critical)' : 'var(--muted)';
+      (state === 'error' ? '雲端儲存失敗，已暫存在本機，稍後自動重試' : (state === 'loaded' ? '已讀取雲端資料' :
+      (state === 'needlogin' ? '尚未以 G2 帳號登入：修改已暫存在本機，登入後自動上傳雲端' : ''))));
+    el.style.color = (state === 'error' || state === 'needlogin') ? 'var(--critical)' : 'var(--muted)';
   }
   function pushIndustry(key){
     if(!WEBAPP_URL) return;
@@ -2555,11 +2628,12 @@
       try{ localStorage.setItem(IND_PENDING_KEY, JSON.stringify(indPending)); }catch(e){}
     };
     if(indLastSent[key] === sig){ done(); return; }
+    if(!authToken()){ setIndSync('needlogin'); return; }
     setIndSync('saving');
     fetch(WEBAPP_URL, {
       method:'POST', mode:'no-cors',
       headers:{'Content-Type':'text/plain;charset=utf-8'},
-      body: JSON.stringify({type:'industry', year:parts[0], dept:parts[1], jobs:jobs})
+      body: JSON.stringify({type:'industry', year:parts[0], dept:parts[1], jobs:jobs, auth:authToken()})
     }).then(function(){ indLastSent[key] = sig; done(); setIndSync('saved'); })
       .catch(function(){ setIndSync('error'); setTimeout(function(){ if(indPending[key]) pushIndustry(key); }, 60000); });
   }
@@ -3149,7 +3223,7 @@
       ['目標能力', codes.map(ivTitle).join('；')],
       ['指標等級門檻', st.level + ' 級以上', '每項至少', st.perInd + ' 門', '學分下限', st.minCredits === null ? '不限' : st.minCredits, '學分上限', st.maxCredits === null ? '不限' : st.maxCredits, '至少跨系所', st.minDepts],
       ['課程數', items.length, '學分合計', ev.credits, '跨系所數', ev.depts.length, '未達條件', ev.unmet.join('、') || '無'],
-      ['資料來源', '課程標註未來人才AI能力圖像系統；能力依' + MOE_SOURCE + '；0–5級量尺為本校自訂'],
+      ['資料來源', '課程盤點工具（課程標註未來人才AI能力圖像）；能力依' + MOE_SOURCE + '；0–5級量尺為本校自訂'],
       []
     ];
     var header = ['課程名稱','課號','系所','學院','教師','年級','學分','必選修','學期','同名班數','佐證待確認'].concat(INDICATORS.map(function(i){ return i.code; }));
@@ -3252,6 +3326,9 @@
         return rec.evidence[i.code] ? (i.code + '：' + rec.evidence[i.code]) : '';
       }).filter(Boolean).join(' ／ ')
     };
+    var tok = authToken();
+    if(!tok){ queueRating(payload); toast('已存在本機；以 G2 帳號登入後會自動上傳雲端'); return; }
+    payload.auth = tok;
     // text/plain 避免瀏覽器對 Apps Script 網域送出 CORS 預檢請求（Apps Script 不處理 OPTIONS）
     fetch(WEBAPP_URL, {
       method: 'POST',
@@ -3580,6 +3657,8 @@
   rebuildIndex();
   initDeptSelect();
   updateSyncPill();
+  renderAuthBox();
+  if(readAuth()) flushRatings();
   renderCurrentScope(); // 先用本機/內嵌資料渲染一次，不用等雲端資料讀取成功才有畫面
   // 再讀雲端課程主檔（每日更新）；讀到後更新選單，接著讀盤點結果
   loadCourseMaster(function(){
