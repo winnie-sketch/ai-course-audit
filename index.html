@@ -2910,6 +2910,11 @@
     var parts = ['school','interest','college','dept','group','elective'].map(function(k){ return n(r[k]) || 0; });
     var sum = parts.reduce(function(a, b){ return a + b; }, 0);
     add('規範加總（＝ 畢業總學分）', sum, n(r.total));
+    // 本系專業選修最低＋院訂必修＋系訂必修 ≤ 畢業總學分 60%
+    var pro = (n(r.profMin) || 0) + (n(r.college) || 0) + (n(r.dept) || 0);
+    var L60 = '專業選修最低＋院訂必修＋系訂必修 ≤ 畢業學分 60%';
+    if(n(r.total) == null) out.push({label:L60, ok:null, text:L60 + '：' + pro + '（未填畢業總學分）'});
+    else { var cap = Math.floor(n(r.total) * 0.6); out.push({label:L60, ok:pro <= cap, text:L60 + '：' + n(r.profMin || 0) + '＋' + n(r.college || 0) + '＋' + n(r.dept || 0) + '＝' + pro + '（上限 ' + cap + '）'}); }
     return out;
   }
   function draftDiffs(data){
@@ -2981,7 +2986,7 @@
         return '<label>' + x[1] + '<input type="number" min="0" data-rule="' + x[0] + '" value="' + (v === '' || v == null ? '' : v) + '"' + (locked ? ' disabled' : '') + '>' +
           (String(bv) !== String(v) ? '<small class="dr-was">' + DRAFT_BASE + '：' + (bv === '' ? '—' : bv) + '</small>' : '') + '</label>'; }).join('') + '</div>' +
       '<div class="dr-checks">' + checks.map(function(k){
-        return '<span class="dr-ck ' + (k.ok === null ? 'na' : (k.ok ? 'ok' : 'bad')) + '">' + (k.ok === null ? '' : (k.ok ? '✓ ' : '✕ ')) + k.label + '：計畫表 ' + k.have + '／規範 ' + k.need + '</span>';
+        return '<span class="dr-ck ' + (k.ok === null ? 'na' : (k.ok ? 'ok' : 'bad')) + '">' + (k.ok === null ? '' : (k.ok ? '✓ ' : '✕ ')) + (k.text || (k.label + '：計畫表 ' + k.have + '／規範 ' + k.need)) + '</span>';
       }).join('') + '</div></div>';
     // 四年格狀表
     html += '<div class="hint" style="margin:10px 0 6px;">拖拉卡片可調整<b>類別</b>（拖到另一列，例如系必 → 系選 ＝ 必修改選修）或<b>年級學期</b>（拖到另一欄）；點卡片可改名稱、學分、刪除；每格右下「＋」可新增科目。</div>';
