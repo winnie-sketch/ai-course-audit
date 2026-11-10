@@ -138,9 +138,52 @@
     background:transparent;color:var(--ink-2);cursor:pointer;margin-bottom:-2px;}
   .dept-tabs button:hover{background:var(--grid);}
   .dept-tabs button.active{background:var(--surface);color:var(--ink);border-color:var(--border);border-bottom:2px solid var(--surface);}
-  #deptContent[data-tab="comp"] .tab-main, #deptContent[data-tab="comp"] .tab-ind,
-  #deptContent[data-tab="ind"] .tab-main, #deptContent[data-tab="ind"] .tab-comp,
-  #deptContent[data-tab="main"] .tab-comp, #deptContent[data-tab="main"] .tab-ind{display:none !important;}
+  #deptContent:not([data-tab="main"]) .tab-main, #deptContent:not([data-tab="comp"]) .tab-comp,
+  #deptContent:not([data-tab="ind"]) .tab-ind, #deptContent:not([data-tab="draft"]) .tab-draft{display:none !important;}
+  .dr-bar{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:10px;}
+  .dr-bar .sp{flex:1;}
+  .dr-only{font-size:12.5px;display:inline-flex;gap:4px;align-items:center;cursor:pointer;}
+  .dr-rules{border:1px solid var(--border);border-radius:10px;padding:10px 12px;background:var(--surface-raised,var(--grid));}
+  .dr-rh{font-size:12.5px;font-weight:700;margin-bottom:6px;}
+  .dr-rgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(118px,1fr));gap:8px;}
+  .dr-rgrid label{font-size:11.5px;color:var(--ink-2);display:flex;flex-direction:column;gap:2px;}
+  .dr-rgrid input{font:inherit;font-size:13px;padding:4px 6px;border:1px solid var(--border);border-radius:6px;width:100%;box-sizing:border-box;background:var(--surface);color:var(--ink);}
+  .dr-was{color:#a06600;font-size:10.5px;}
+  .dr-checks{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px;}
+  .dr-ck{font-size:11.5px;padding:3px 9px;border-radius:99px;font-weight:700;}
+  .dr-ck.ok{background:var(--good-bg);color:var(--good);} .dr-ck.bad{background:var(--critical-bg);color:var(--critical);} .dr-ck.na{background:var(--grid);color:var(--ink-2);}
+  table.dr-grid{border-collapse:collapse;width:100%;min-width:900px;table-layout:fixed;}
+  table.dr-grid th, table.dr-grid td{border:1px solid var(--border);padding:4px;vertical-align:top;font-size:12px;}
+  table.dr-grid th{background:var(--grid);text-align:center;}
+  table.dr-grid th.dr-cat{width:86px;text-align:left;} table.dr-grid th.dr-cat small{display:block;font-weight:400;color:var(--muted);}
+  td.dr-cell{min-height:40px;position:relative;padding-bottom:22px;}
+  td.dr-cell.over{background:var(--dim-a-bg);outline:2px dashed var(--accent);}
+  .dr-card{border:1px solid var(--border);border-left:4px solid #9aa3b2;border-radius:6px;padding:3px 5px;margin-bottom:4px;background:var(--surface);cursor:pointer;line-height:1.35;user-select:none;overflow-wrap:anywhere;word-break:break-all;overflow:hidden;}
+  .dr-card i{display:inline-block;}
+  table.dr-grid td, table.dr-grid th, .dr-card, table.dr-diff td{white-space:normal !important;}
+  .dr-card[draggable="true"]{cursor:grab;}
+  .dr-card .nm{font-weight:600;} .dr-card .cr{color:var(--muted);margin-left:4px;font-size:11px;}
+  .dr-card i{font-style:normal;font-size:10px;font-weight:700;margin-left:4px;padding:0 4px;border-radius:4px;}
+  .dr-card.st-new{border-left-color:#1a7f4b;} .dr-card.st-new i{background:var(--good-bg);color:var(--good);}
+  .dr-card.st-chg{border-left-color:#e0a020;} .dr-card.st-chg i{background:var(--warning-bg);color:#a06600;}
+  .dr-card.st-del{border-left-color:#c0392b;opacity:.65;} .dr-card.st-del .nm{text-decoration:line-through;} .dr-card.st-del i{background:var(--critical-bg);color:var(--critical);}
+  .dr-card i.dl{background:var(--grid);color:var(--ink-2);}
+  .dr-card.sel{outline:2px solid var(--accent);} .dr-card.drag{opacity:.4;}
+  .dr-add{position:absolute;right:3px;bottom:2px;border:none;background:transparent;color:var(--muted);font-size:14px;cursor:pointer;line-height:1;padding:2px 4px;}
+  .dr-add:hover{color:var(--accent);}
+  .dr-legend{display:flex;gap:12px;font-size:11px;color:var(--muted);margin-top:6px;}
+  .dr-legend span{border-left:4px solid #9aa3b2;padding-left:5px;} .dr-legend .st-new{border-color:#1a7f4b;} .dr-legend .st-chg{border-color:#e0a020;} .dr-legend .st-del{border-color:#c0392b;}
+  .dr-panel{margin-top:10px;border:1px solid var(--accent);border-radius:10px;padding:10px 12px;background:var(--surface);}
+  .dr-ph{font-size:12.5px;font-weight:700;margin-bottom:8px;}
+  .dr-pf{display:flex;flex-wrap:wrap;gap:8px;}
+  .dr-pf label{font-size:11.5px;color:var(--ink-2);display:flex;flex-direction:column;gap:2px;}
+  .dr-pf input,.dr-pf select{font:inherit;font-size:13px;padding:5px 7px;border:1px solid var(--border);border-radius:6px;background:var(--surface);color:var(--ink);}
+  .dr-pb{display:flex;gap:8px;margin-top:10px;flex-wrap:wrap;}
+  .dr-res{max-height:220px;overflow:auto;margin-top:6px;display:flex;flex-direction:column;gap:3px;}
+  .dr-hit{text-align:left;font:inherit;font-size:12.5px;padding:5px 8px;border:1px solid var(--border);border-radius:6px;background:var(--surface);color:var(--ink);cursor:pointer;}
+  .dr-hit:hover{border-color:var(--accent);}
+  table.dr-diff{width:100%;border-collapse:collapse;} table.dr-diff td,table.dr-diff th{font-size:12px;padding:5px 7px;border-bottom:1px solid var(--border);text-align:left;vertical-align:top;}
+  .dr-reason{width:100%;font:inherit;font-size:12.5px;padding:4px 6px;border:1px solid var(--border);border-radius:6px;box-sizing:border-box;background:var(--surface);color:var(--ink);}
   #deptContent:not([data-tab="main"]) .layout-2col{grid-template-columns:1fr;}
   .scope-tabs{margin-bottom:18px;}
   .scope-tabs button{padding:9px 16px;}
@@ -538,6 +581,7 @@
           <button type="button" data-tab="main" class="active">課程盤點與標註</button>
           <button type="button" data-tab="comp">專業 AI 能力地圖（一系一能力地圖）</button>
           <button type="button" data-tab="ind">產業對接：職缺能力需求與課程支撐</button>
+          <button type="button" data-tab="draft">116 課程架構調整（草稿）</button>
         </div>
         <div class="chip-toggle tab-main" id="deptModeSel" style="display:none;">
           <button type="button" data-mode="plan" class="active">四年課程計畫表（科目標註）</button>
@@ -656,6 +700,11 @@
               <div id="noAiDoneNote" style="display:none;margin-top:16px;padding:12px 15px;border-radius:10px;background:var(--good-bg);color:var(--good);font-weight:700;font-size:13px;">✓ 已完成盤點（本課程不涉及AI）。點選當下即自動存檔，不需要再按其他按鈕。</div>
             </div>
 
+            <div class="card tab-draft" id="draftCard">
+              <div class="card-head"><h3>116 學年度課程計畫表調整（草稿）</h3><span class="req opt">試作版</span></div>
+              <div class="hint">從 115 學年度四年課程計畫表複製一份作為 116 草稿，學系只需調整要變動的地方：拖拉調整必選修與開課學期、刪除或新增科目、修改學分規範。系統即時檢核學分，並自動列出所有異動，請逐筆填寫異動理由。115 學年度正式資料不受影響。編輯需以 G2 帳號登入。</div>
+              <div id="draftBody"></div>
+            </div>
             <div class="card tab-ind" id="industryCard">
           <div class="card-head"><h3>產業對接：職缺能力需求與課程支撐</h3><span class="req opt">試作版</span></div>
           <div class="hint">依兩種職缺類型（<b>現有工作導入 AI</b>：原本就有、要會用 AI 提升效能的工作；<b>AI 帶來的新工作</b>：因 AI 而出現或大幅轉型的職缺）列出本領域的職缺，每個職缺可選擇兩種設定方式：<b>依能力指標</b>（點一下為<b>必要</b>、再點一下為<b>加分</b>、再點一下取消），或<b>依課程</b>（直接勾選這個職缺需要修的本系課程，系統彙整這些課涵蓋哪些能力、哪裡還有缺口）。系統會用本系<b>已完成盤點、該指標達 3 級（中度關聯）以上</b>的課程數判斷支撐程度：2 門以上為「已有支撐」、1 門為「支撐偏弱」、0 門為「能力缺口」。</div>
@@ -1008,11 +1057,12 @@
     '#industryJobs input', '#industryJobs textarea', '#industryJobs select',
     '#courseDetailCard .option-card', '#courseDetailCard .level-btn', '#courseDetailCard textarea', '#courseDetailCard input', '#courseDetailCard select',
     '#saveDraftBtn', '#markDoneBtn', '#cpAdd', '#compCard [data-cp="edit"]', '#compCard [data-cp="confirm"]', '#compCard [data-cp="del"]',
-    '#compCard .cp-ed input', '#compCard .cp-ed textarea', '#compCard .cp-ed select'].join(',');
+    '#compCard .cp-ed input', '#compCard .cp-ed textarea', '#compCard .cp-ed select',
+    '#draftCard .dr-card', '#draftCard .dr-add', '#draftCard button', '#draftCard input', '#draftCard select'].join(',');
   function editGate(e){
     if(authToken()) return;
     var t = e.target;
-    if(!t || !t.closest || !t.closest(EDIT_SEL) || t.closest('input[type=search]')) return;
+    if(!t || !t.closest || !t.closest(EDIT_SEL) || t.closest('input[type=search]') || t.closest('[data-view]')) return;
     e.preventDefault(); e.stopPropagation();
     if(e.type === 'focusin' && t.blur) t.blur();
     if(e.type !== 'mousedown') showLoginAlert();
@@ -2186,7 +2236,7 @@
     renderHealthCheck('deptHealthCheck', list, null, null);
     renderAggregateRadar('deptRadarWrap', list);
     applyDeptMode();
-    if(isPlanMode()){ renderPlanRadar(); renderPlanProgress(); renderCompCard(); }
+    if(isPlanMode()){ renderPlanRadar(); renderPlanProgress(); renderCompCard(); if(deptTab === 'draft') renderDraftCard(); }
     renderIndustryGap();
     renderPlanCard();
   }
@@ -2407,10 +2457,10 @@
     var box = document.getElementById('deptContent');
     if(!box) return;
     var compOk = isPlanMode();
-    if(deptTab === 'comp' && !compOk) deptTab = 'main';
+    if((deptTab === 'comp' || deptTab === 'draft') && !compOk) deptTab = 'main';
     box.setAttribute('data-tab', deptTab);
     Array.prototype.forEach.call(document.querySelectorAll('#deptTabs button'), function(b){
-      b.style.display = (b.dataset.tab === 'comp' && !compOk) ? 'none' : '';
+      b.style.display = ((b.dataset.tab === 'comp' || b.dataset.tab === 'draft') && !compOk) ? 'none' : '';
       b.classList.toggle('active', b.dataset.tab === deptTab);
     });
   }
@@ -2418,6 +2468,7 @@
     deptTab = t; renderDeptTabs();
     if(t === 'comp' && typeof renderCompCard === 'function') renderCompCard();
     if(t === 'ind'){ renderIndustryJobs(); renderIndustryGap(); }
+    if(t === 'draft') renderDraftCard();
     var box = document.getElementById('deptTabs');
     if(box && box.getBoundingClientRect().top < 0 && box.scrollIntoView) box.scrollIntoView({block:'start'});
   }
@@ -2725,6 +2776,318 @@
     return r ? {id:id, code:code, name:r['科目名稱'], info:planSubjectInfo(code)} : {id:id, code:code, name:code, info:{st:'none', offers:[], best:null}};
   }
 
+  /* ---------- 116 課程計畫表草稿（從 115 複製、拖拉調整、學分即時檢核、自動列出異動） ---------- */
+  var DRAFT_YEAR = '116', DRAFT_BASE = '115';
+  var DRAFTS = {}, draftLoading = {}, draftTimers = {}, draftUndo = [], draftSel = null, draftAdd = null, draftOnly = false, draftDragId = null;
+  var DR_CATS = ['校必', '院必', '系必', '系選'];
+  var DR_REQ = {'校必':1, '院必':1, '系必':1};
+  var DR_RULES = [['total','畢業總學分'], ['school','校訂必修'], ['interest','興趣自選'], ['college','院訂必修'], ['dept','系訂必修'], ['group','學籍分組必修'], ['elective','選修學分'], ['profMin','本系專業選修最低']];
+  function draftTrack(){ var t = planTracks(); return t.indexOf(planSel.track) >= 0 ? planSel.track : (t[0] || ''); }
+  function draftKey(track){ return DRAFT_YEAR + '||' + (track || draftTrack()); }
+  function draftOf(track){ return DRAFTS[draftKey(track)]; }
+  function parseRules(txt){
+    var g = function(re){ var m = String(txt || '').match(re); return m ? Number(m[1]) : ''; };
+    return {total:g(/畢業總學分最低：\s*(\d+)/), school:g(/校訂必修：\s*(\d+)/), interest:g(/興趣自選最低：\s*(\d+)/), college:g(/院訂必修：\s*(\d+)/),
+      dept:g(/系訂必修：\s*(\d+)/), group:g(/分組必修：\s*(\d+)/), elective:g(/選修學分數：\s*(\d+)/), profMin:g(/專業選修最低：\s*(\d+)/)};
+  }
+  function loadDraft(track){
+    var key = draftKey(track);
+    if(!WEBAPP_URL || draftLoading[key] || DRAFTS[key]) return;
+    draftLoading[key] = true;
+    var q = 'type=draft&year=' + DRAFT_YEAR + '&dept=' + encodeURIComponent(track);
+    var ok = function(d){ draftLoading[key] = false; var x = d && d[key]; DRAFTS[key] = x && x.data ? {status:x.status, data:x.data, updatedAt:x.updatedAt, editor:x.editor} : {none:true}; renderDraftCard(); };
+    var fail = function(){ draftLoading[key] = false; DRAFTS[key] = {error:true}; renderDraftCard(); };
+    fetch(WEBAPP_URL + (WEBAPP_URL.indexOf('?') < 0 ? '?' : '&') + q, {credentials:'omit'})
+      .then(function(r){ return r.text(); }).then(function(t){ ok(JSON.parse(t)); }).catch(function(){ jsonp(q, ok, fail, 30000); });
+  }
+  function draftFromBase(track){
+    var rows = planRows(track, DRAFT_BASE);
+    var rule = (PLAN_DATA.rules || []).filter(function(r){ return r['系所'] === track && r['入學學年度'] === DRAFT_BASE; })[0] || {};
+    return {base:DRAFT_BASE, rules:parseRules(rule['學分數規範']), baseRules:parseRules(rule['學分數規範']),
+      courses:rows.map(function(r, i){
+        var c = {id:'r' + i, code:r['學科代碼'] || '', abbr:r['學科簡碼'] || '', name:r['科目名稱'], cat:r['類別'], grade:Number(r['年級']), sem:r['學期'],
+          credits:Number(r['學分']) || 0, half:r['半全'] || '半', dual:r['上下對開'] === 'Y', del:false, reason:''};
+        c.orig = {cat:c.cat, grade:c.grade, sem:c.sem, credits:c.credits, name:c.name};
+        return c;
+      })};
+  }
+  function draftSnapshot(){ var d = draftOf(); if(d && d.data){ draftUndo.push(JSON.stringify(d.data)); if(draftUndo.length > 50) draftUndo.shift(); } }
+  function draftSave(){
+    var track = draftTrack(), key = draftKey(track), d = DRAFTS[key];
+    if(!d || !d.data) return;
+    if(!authToken()){ needLogin(); return; }
+    setDraftSync('變更尚未存檔…');
+    clearTimeout(draftTimers[key]);
+    draftTimers[key] = setTimeout(function(){
+      if(!authToken()){ needLogin(); setDraftSync('尚未登入，修改未存到雲端', true); return; }
+      setDraftSync('雲端儲存中…');
+      fetch(WEBAPP_URL, {method:'POST', mode:'no-cors', headers:{'Content-Type':'text/plain;charset=utf-8'},
+        body: JSON.stringify({type:'draft', year:DRAFT_YEAR, dept:track, status:d.status || '編輯中', data:d.data, auth:authToken()})})
+        .then(function(){ d.updatedAt = fmtTime(new Date()); setDraftSync('已存到雲端（' + d.updatedAt + '）'); })
+        .catch(function(){ setDraftSync('雲端儲存失敗，請重新整理後再試一次', true); });
+    }, 1000);
+  }
+  function setDraftSync(t, warn){ var el = document.getElementById('drSync'); if(el){ el.textContent = t || ''; el.style.color = warn ? 'var(--critical)' : 'var(--muted)'; } }
+  function draftChange(fn){ draftSnapshot(); fn(); draftSave(); renderDraftCard(); }
+  function drCatOrder(c){ var i = DR_CATS.indexOf(c); return i < 0 ? 9 : i; }
+  // 學分加總（上下對開同一科目只算一次）
+  function draftSums(courses){
+    var s = {'校必':0, '院必':0, '系必':0, '系選':0}, seen = {};
+    courses.forEach(function(c){
+      if(c.del) return;
+      var k = c.cat + '|' + (c.code || c.name);
+      if(c.dual){ if(seen[k]) return; seen[k] = 1; }
+      s[c.cat] = (s[c.cat] || 0) + (Number(c.credits) || 0);
+    });
+    return s;
+  }
+  function draftChecks(data){
+    var s = draftSums(data.courses), r = data.rules || {}, n = function(v){ return v === '' || v == null ? null : Number(v); };
+    var out = [];
+    var add = function(label, have, need, mode){
+      if(need == null){ out.push({label:label, have:have, need:'—', ok:null}); return; }
+      out.push({label:label, have:have, need:need, ok: mode === 'ge' ? have >= need : have === need});
+    };
+    add('校訂必修', s['校必'], n(r.school));
+    add('院訂必修', s['院必'], n(r.college));
+    add('系訂必修＋分組必修', s['系必'], (n(r.dept) == null ? null : n(r.dept) + (n(r.group) || 0)));
+    add('系選開設（≥ 專業選修最低）', s['系選'], n(r.profMin), 'ge');
+    var parts = ['school','interest','college','dept','group','elective'].map(function(k){ return n(r[k]) || 0; });
+    var sum = parts.reduce(function(a, b){ return a + b; }, 0);
+    add('規範加總（＝ 畢業總學分）', sum, n(r.total));
+    return out;
+  }
+  function draftDiffs(data){
+    var out = [];
+    data.courses.forEach(function(c){
+      var o = c.orig, ch = [];
+      if(!o){ if(!c.del) ch.push('新增'); }
+      else if(c.del) ch.push('刪除');
+      else {
+        if(o.cat !== c.cat){
+          if(DR_REQ[o.cat] && c.cat === '系選') ch.push('必修改選修');
+          else if(o.cat === '系選' && DR_REQ[c.cat]) ch.push('選修改必修');
+          else ch.push('類別變更（' + o.cat + '→' + c.cat + '）');
+        }
+        if(o.grade !== c.grade || o.sem !== c.sem) ch.push('開課年級學期調整');
+        if(Number(o.credits) !== Number(c.credits)) ch.push('學分變更');
+        if(o.name !== c.name) ch.push('名稱變更');
+      }
+      if(ch.length) out.push({c:c, types:ch});
+    });
+    out.sort(function(a, b){ return (a.c.grade - b.c.grade) || (a.c.sem === b.c.sem ? 0 : (a.c.sem === '上' ? -1 : 1)) || (drCatOrder(a.c.cat) - drCatOrder(b.c.cat)); });
+    return out;
+  }
+  function drPlace(o){ return o ? (o.cat + ' ' + o.grade + o.sem + '・' + o.credits + '學分' ) : '—'; }
+  function drCardState(c){
+    if(!c.orig) return 'new';
+    if(c.del) return 'del';
+    var o = c.orig;
+    return (o.cat !== c.cat || o.grade !== c.grade || o.sem !== c.sem || Number(o.credits) !== Number(c.credits) || o.name !== c.name) ? 'chg' : 'same';
+  }
+  function renderDraftCard(){
+    var el = document.getElementById('draftBody');
+    if(!el) return;
+    if(!currentDept || !isPlanMode()){ el.innerHTML = '<div class="hint">請先選擇有四年課程計畫表的系所。</div>'; return; }
+    var tracks = planTracks(), track = draftTrack(), key = draftKey(track), d = DRAFTS[key];
+    var head = (tracks.length > 1 ? '<div style="margin-bottom:10px;">系組：<select id="drTrack" data-view="1">' + tracks.map(function(t){ return '<option' + (t === track ? ' selected' : '') + '>' + escapeHtml(t) + '</option>'; }).join('') + '</select></div>' : '');
+    if(!d){ el.innerHTML = head + '<div class="hint">草稿讀取中…</div>'; loadDraft(track); bindDraftHead(); return; }
+    if(d.error){ el.innerHTML = head + '<div class="hint">草稿讀取失敗，請按左側「重新整理雲端資料」。</div>'; bindDraftHead(); return; }
+    if(d.none){
+      var n = planRows(track, DRAFT_BASE).length;
+      el.innerHTML = head + '<div class="empty-state" style="padding:18px;">本系組尚未建立 ' + DRAFT_YEAR + ' 學年度課程計畫表草稿。<br>按下方按鈕會複製 ' + DRAFT_BASE + ' 學年度計畫表（' + n + ' 筆科目）與學分規範，之後只需調整要變動的地方。' +
+        '<div style="margin-top:12px;"><button type="button" class="btn primary" id="drCreate" style="width:auto;"' + (n ? '' : ' disabled') + '>從 ' + DRAFT_BASE + ' 學年度複製，建立 ' + DRAFT_YEAR + ' 草稿</button></div></div>';
+      bindDraftHead();
+      var b = document.getElementById('drCreate');
+      if(b) b.onclick = function(){
+        if(!authToken()){ needLogin(); return; }
+        DRAFTS[key] = {status:'編輯中', data:draftFromBase(track)}; draftUndo = []; draftSave(); renderDraftCard();
+      };
+      return;
+    }
+    var data = d.data, locked = d.status === '已送出';
+    var grades = []; data.courses.forEach(function(c){ if(grades.indexOf(c.grade) < 0) grades.push(c.grade); });
+    var maxG = Math.max.apply(null, grades.concat([4]));
+    var cols = []; for(var g = 1; g <= maxG; g++){ cols.push([g, '上']); cols.push([g, '下']); }
+    var GN = ['', '一', '二', '三', '四', '五', '六'];
+    var diffs = draftDiffs(data), checks = draftChecks(data);
+    var html = head;
+    html += '<div class="dr-bar"><span class="badge ' + (locked ? 'good' : 'warn') + '">' + escapeHtml(d.status || '編輯中') + '</span>' +
+      '<button type="button" class="btn" id="drUndo" style="width:auto;"' + (draftUndo.length && !locked ? '' : ' disabled') + '>↶ 復原</button>' +
+      '<label class="dr-only" data-view="1"><input type="checkbox" id="drOnly" data-view="1"' + (draftOnly ? ' checked' : '') + '> 只看異動（' + diffs.length + '）</label>' +
+      '<span class="sp"></span><span class="hint" id="drSync" style="margin:0;font-size:11.5px;">' + (d.updatedAt ? '雲端版本：' + escapeHtml(d.updatedAt) + (d.editor ? '（' + escapeHtml(d.editor) + '）' : '') : '') + '</span>' +
+      '<button type="button" class="btn ' + (locked ? '' : 'primary') + '" id="drSubmit" style="width:auto;">' + (locked ? '撤回送出（恢復編輯）' : '送出給教務處') + '</button></div>';
+    if(locked) html += '<div class="tag-note">草稿已送出，目前鎖定不可編輯；如需修改請按「撤回送出」。</div>';
+    // 學分規範與檢核
+    html += '<div class="dr-rules"><div class="dr-rh">' + DRAFT_YEAR + ' 學年度學分規範（可修改；預設沿用 ' + DRAFT_BASE + '）</div><div class="dr-rgrid">' +
+      DR_RULES.map(function(x){ var bv = (data.baseRules || {})[x[0]], v = data.rules[x[0]];
+        return '<label>' + x[1] + '<input type="number" min="0" data-rule="' + x[0] + '" value="' + (v === '' || v == null ? '' : v) + '"' + (locked ? ' disabled' : '') + '>' +
+          (String(bv) !== String(v) ? '<small class="dr-was">' + DRAFT_BASE + '：' + (bv === '' ? '—' : bv) + '</small>' : '') + '</label>'; }).join('') + '</div>' +
+      '<div class="dr-checks">' + checks.map(function(k){
+        return '<span class="dr-ck ' + (k.ok === null ? 'na' : (k.ok ? 'ok' : 'bad')) + '">' + (k.ok === null ? '' : (k.ok ? '✓ ' : '✕ ')) + k.label + '：計畫表 ' + k.have + '／規範 ' + k.need + '</span>';
+      }).join('') + '</div></div>';
+    // 四年格狀表
+    html += '<div class="hint" style="margin:10px 0 6px;">拖拉卡片可調整<b>類別</b>（拖到另一列，例如系必 → 系選 ＝ 必修改選修）或<b>年級學期</b>（拖到另一欄）；點卡片可改名稱、學分、刪除；每格右下「＋」可新增科目。</div>';
+    html += '<div class="table-wrap" style="max-height:none;"><table class="dr-grid"><thead><tr><th class="dr-cat">類別</th>' +
+      cols.map(function(c){ return '<th>' + GN[c[0]] + c[1] + '</th>'; }).join('') + '</tr></thead><tbody>' +
+      DR_CATS.map(function(cat){
+        var s = draftSums(data.courses)[cat];
+        return '<tr><th class="dr-cat">' + escapeHtml(PLAN_CAT_LABEL[cat] || cat) + '<small>' + s + ' 學分</small></th>' + cols.map(function(c){
+          var list = data.courses.filter(function(x){ return x.cat === cat && x.grade === c[0] && x.sem === c[1]; });
+          return '<td class="dr-cell" data-cat="' + cat + '" data-g="' + c[0] + '" data-s="' + c[1] + '">' + list.map(function(x){
+            var st = drCardState(x);
+            if(draftOnly && st === 'same') return '';
+            return '<div class="dr-card st-' + st + (draftSel === x.id ? ' sel' : '') + '" data-id="' + x.id + '"' + (locked ? '' : ' draggable="true"') + '>' +
+              '<span class="nm">' + escapeHtml(x.name) + '</span><span class="cr">' + x.credits + '</span>' +
+              (st === 'new' ? '<i>新增</i>' : st === 'del' ? '<i>刪除</i>' : st === 'chg' ? '<i>異動</i>' : '') + (x.dual ? '<i class="dl">對開</i>' : '') + '</div>';
+          }).join('') + (locked ? '' : '<button type="button" class="dr-add" data-add="1" title="新增科目到此格">＋</button>') + '</td>';
+        }).join('') + '</tr>';
+      }).join('') + '</tbody></table></div>';
+    html += '<div class="dr-legend"><span class="st-same">未變動</span><span class="st-chg">有異動</span><span class="st-new">新增</span><span class="st-del">刪除</span></div>';
+    html += '<div id="drPanel"></div>';
+    // 異動清單
+    html += '<div class="card-head" style="margin-top:14px;"><h3 style="font-size:13.5px;">異動清單（與 ' + DRAFT_BASE + ' 學年度比較，系統自動產生）</h3><span class="req opt">' + diffs.length + ' 筆</span></div>' +
+      (diffs.length ? '<div class="table-wrap" style="max-height:none;"><table class="dr-diff"><thead><tr><th>異動</th><th>科目</th><th>' + DRAFT_BASE + '</th><th>' + DRAFT_YEAR + '</th><th style="min-width:220px;">異動理由</th></tr></thead><tbody>' +
+        diffs.map(function(x){ var c = x.c;
+          return '<tr><td>' + x.types.join('、') + '</td><td>' + escapeHtml(c.name) + (c.abbr ? ' <span class="hint" style="margin:0;">(' + escapeHtml(c.abbr) + ')</span>' : (c.temp ? ' <span class="hint" style="margin:0;">（新設科目，代碼待編）</span>' : '')) + '</td>' +
+            '<td>' + escapeHtml(drPlace(c.orig)) + '</td><td>' + (c.del ? '—' : escapeHtml(drPlace(c))) + '</td>' +
+            '<td><input type="text" class="dr-reason" data-reason="' + c.id + '" value="' + escapeHtml(c.reason || '') + '" placeholder="請說明異動理由"' + (locked ? ' disabled' : '') + '></td></tr>';
+        }).join('') + '</tbody></table></div>' : '<div class="hint">目前沒有異動。</div>');
+    el.innerHTML = html;
+    bindDraftHead();
+    bindDraftBody(data, locked);
+    renderDraftPanel();
+  }
+  function bindDraftHead(){
+    var ts = document.getElementById('drTrack');
+    if(ts) ts.onchange = function(){ planSel.track = ts.value; draftSel = null; draftAdd = null; draftUndo = []; renderDraftCard(); };
+  }
+  function draftCourse(id){ var d = draftOf(); return d && d.data ? d.data.courses.filter(function(c){ return c.id === id; })[0] : null; }
+  function bindDraftBody(data, locked){
+    var el = document.getElementById('draftBody');
+    var u = document.getElementById('drUndo');
+    if(u) u.onclick = function(){ var d = draftOf(); if(!draftUndo.length || !d) return; d.data = JSON.parse(draftUndo.pop()); draftSave(); renderDraftCard(); };
+    var o = document.getElementById('drOnly');
+    if(o) o.onchange = function(){ draftOnly = o.checked; renderDraftCard(); };
+    var sb = document.getElementById('drSubmit');
+    if(sb) sb.onclick = function(){
+      var d = draftOf(); if(!d) return;
+      if(!authToken()){ needLogin(); return; }
+      if(d.status === '已送出'){ d.status = '編輯中'; draftSave(); renderDraftCard(); return; }
+      var miss = draftDiffs(d.data).filter(function(x){ return !String(x.c.reason || '').trim(); }).length;
+      var bad = draftChecks(d.data).filter(function(k){ return k.ok === false; }).length;
+      if(!window.confirm('確定送出 ' + DRAFT_YEAR + ' 學年度課程計畫表草稿？' + (miss ? '\n・尚有 ' + miss + ' 筆異動未填理由' : '') + (bad ? '\n・學分檢核有 ' + bad + ' 項不符' : '') + '\n送出後將鎖定，需撤回才能再修改。')) return;
+      d.status = '已送出'; draftSave(); renderDraftCard();
+    };
+    if(locked) return;
+    Array.prototype.forEach.call(el.querySelectorAll('[data-rule]'), function(inp){
+      inp.addEventListener('change', function(){ var d = draftOf(); draftSnapshot(); d.data.rules[inp.dataset.rule] = inp.value === '' ? '' : Number(inp.value); draftSave(); renderDraftCard(); });
+    });
+    Array.prototype.forEach.call(el.querySelectorAll('.dr-reason'), function(inp){
+      var pre = null;
+      inp.addEventListener('focus', function(){ var d = draftOf(); pre = d && d.data ? JSON.stringify(d.data) : null; });
+      inp.addEventListener('input', function(){ var c = draftCourse(inp.dataset.reason); if(c){ c.reason = inp.value; draftSave(); } });
+      inp.addEventListener('change', function(){ if(pre){ draftUndo.push(pre); pre = null; var u = document.getElementById('drUndo'); if(u) u.disabled = false; } });
+    });
+    Array.prototype.forEach.call(el.querySelectorAll('.dr-card'), function(cd){
+      cd.addEventListener('click', function(){ draftSel = draftSel === cd.dataset.id ? null : cd.dataset.id; draftAdd = null; renderDraftCard(); });
+      cd.addEventListener('dragstart', function(e){
+        if(!authToken()){ e.preventDefault(); needLogin(); return; }
+        draftDragId = cd.dataset.id; e.dataTransfer.setData('text/plain', cd.dataset.id); e.dataTransfer.effectAllowed = 'move'; cd.classList.add('drag');
+      });
+      cd.addEventListener('dragend', function(){ cd.classList.remove('drag'); setTimeout(function(){ draftDragId = null; }, 0); });
+    });
+    Array.prototype.forEach.call(el.querySelectorAll('.dr-cell'), function(td){
+      td.addEventListener('dragover', function(e){ e.preventDefault(); td.classList.add('over'); });
+      td.addEventListener('dragleave', function(){ td.classList.remove('over'); });
+      td.addEventListener('drop', function(e){
+        e.preventDefault(); td.classList.remove('over');
+        var c = draftCourse(e.dataTransfer.getData('text/plain') || draftDragId);
+        if(!c) return;
+        var cat = td.dataset.cat, g = Number(td.dataset.g), s = td.dataset.s;
+        if(c.cat === cat && c.grade === g && c.sem === s) return;
+        draftChange(function(){ c.cat = cat; c.grade = g; c.sem = s; });
+      });
+      var ab = td.querySelector('[data-add]');
+      if(ab) ab.addEventListener('click', function(e){ e.stopPropagation(); draftSel = null; draftAdd = {cat:td.dataset.cat, grade:Number(td.dataset.g), sem:td.dataset.s, q:''}; renderDraftCard(); });
+    });
+  }
+  // 卡片編輯／新增科目面板
+  function renderDraftPanel(){
+    var box = document.getElementById('drPanel');
+    if(!box) return;
+    var GN = ['', '一', '二', '三', '四', '五', '六'];
+    if(draftSel){
+      var c = draftCourse(draftSel); if(!c){ box.innerHTML = ''; return; }
+      box.innerHTML = '<div class="dr-panel"><div class="dr-ph">編輯科目：' + escapeHtml(c.name) + (c.abbr ? '（' + escapeHtml(c.abbr) + '）' : '') + (c.orig ? '<span class="hint" style="margin:0 0 0 8px;">' + DRAFT_BASE + '：' + escapeHtml(drPlace(c.orig) + '・' + c.orig.name) + '</span>' : '') + '</div>' +
+        '<div class="dr-pf"><label>科目名稱<input type="text" id="drpName" value="' + escapeHtml(c.name) + '"></label>' +
+        '<label>學分<input type="number" min="0" id="drpCr" value="' + c.credits + '"></label>' +
+        '<label>類別<select id="drpCat">' + DR_CATS.map(function(k){ return '<option value="' + k + '"' + (k === c.cat ? ' selected' : '') + '>' + (PLAN_CAT_LABEL[k] || k) + '</option>'; }).join('') + '</select></label>' +
+        '<label>年級<select id="drpG">' + [1,2,3,4,5].map(function(g){ return '<option value="' + g + '"' + (g === c.grade ? ' selected' : '') + '>' + GN[g] + '年級</option>'; }).join('') + '</select></label>' +
+        '<label>學期<select id="drpS"><option' + (c.sem === '上' ? ' selected' : '') + '>上</option><option' + (c.sem === '下' ? ' selected' : '') + '>下</option></select></label></div>' +
+        '<div class="dr-pb">' + (c.orig ? '<button type="button" class="btn" id="drpDel" style="width:auto;">' + (c.del ? '復原（取消刪除）' : '刪除此科目') + '</button>' +
+          (drCardState(c) === 'chg' ? '<button type="button" class="btn" id="drpReset" style="width:auto;">還原成 ' + DRAFT_BASE + '</button>' : '')
+          : '<button type="button" class="btn" id="drpRemove" style="width:auto;">移除新增的科目</button>') +
+        '<button type="button" class="btn" id="drpClose" style="width:auto;">關閉</button></div></div>';
+      var upd = function(fn){ draftChange(fn); };
+      document.getElementById('drpName').onchange = function(e){ var v = e.target.value.trim(); if(v) upd(function(){ c.name = v; }); };
+      document.getElementById('drpCr').onchange = function(e){ var v = Number(e.target.value); if(v >= 0) upd(function(){ c.credits = v; }); };
+      document.getElementById('drpCat').onchange = function(e){ upd(function(){ c.cat = e.target.value; }); };
+      document.getElementById('drpG').onchange = function(e){ upd(function(){ c.grade = Number(e.target.value); }); };
+      document.getElementById('drpS').onchange = function(e){ upd(function(){ c.sem = e.target.value; }); };
+      var bd = document.getElementById('drpDel'); if(bd) bd.onclick = function(){ upd(function(){ c.del = !c.del; }); };
+      var br = document.getElementById('drpReset'); if(br) br.onclick = function(){ upd(function(){ var o = c.orig; c.cat = o.cat; c.grade = o.grade; c.sem = o.sem; c.credits = o.credits; c.name = o.name; c.del = false; }); };
+      var rm = document.getElementById('drpRemove'); if(rm) rm.onclick = function(){ var d = draftOf(); draftSel = null; draftChange(function(){ d.data.courses = d.data.courses.filter(function(x){ return x !== c; }); }); };
+      document.getElementById('drpClose').onclick = function(){ draftSel = null; renderDraftCard(); };
+      return;
+    }
+    if(draftAdd){
+      var a = draftAdd;
+      box.innerHTML = '<div class="dr-panel"><div class="dr-ph">新增科目到：' + (PLAN_CAT_LABEL[a.cat] || a.cat) + '・' + GN[a.grade] + '年級' + a.sem + '學期</div>' +
+        '<div class="dr-pf"><label style="flex:1 1 260px;">從既有科目搜尋（名稱或學科簡碼）<input type="search" id="drpQ" value="' + escapeHtml(a.q) + '" placeholder="例如：成本會計、DAC21P"></label></div>' +
+        '<div id="drpRes" class="dr-res"></div>' +
+        '<div class="dr-ph" style="margin-top:10px;">或建立新設科目（尚無學科代碼，先以暫時編號記錄）</div>' +
+        '<div class="dr-pf"><label style="flex:1 1 220px;">科目名稱<input type="text" id="drpNewName"></label><label>學分<input type="number" min="0" id="drpNewCr" value="2"></label>' +
+        '<button type="button" class="btn primary" id="drpNewAdd" style="width:auto;align-self:flex-end;">新增新設科目</button></div>' +
+        '<div class="dr-pb"><button type="button" class="btn" id="drpClose" style="width:auto;">關閉</button></div></div>';
+      var res = document.getElementById('drpRes');
+      var doSearch = function(){
+        var q = a.q.trim().toLowerCase();
+        if(q.length < 2){ res.innerHTML = '<div class="hint" style="margin:4px;">請輸入至少 2 個字。</div>'; return; }
+        var seen = {}, hits = [];
+        PLAN_DATA.rows.forEach(function(r){
+          var k = r['學科代碼'] || r['科目名稱'];
+          if(seen[k]) return;
+          if(String(r['科目名稱']).toLowerCase().indexOf(q) < 0 && String(r['學科簡碼'] || '').toLowerCase().indexOf(q) < 0) return;
+          seen[k] = 1; hits.push(r);
+        });
+        res.innerHTML = hits.slice(0, 30).map(function(r, i){
+          return '<button type="button" class="dr-hit" data-i="' + i + '">' + escapeHtml(r['科目名稱']) + ' <span class="hint" style="margin:0;">' + escapeHtml((r['學科簡碼'] || '') + '・' + r['學分'] + '學分・' + r['系所'] + ' ' + r['入學學年度'] + '・' + r['類別'] + ' ' + r['年級'] + r['學期']) + '</span></button>';
+        }).join('') + (hits.length > 30 ? '<div class="hint" style="margin:4px;">共 ' + hits.length + ' 筆，僅顯示前 30 筆，請輸入更精確的關鍵字。</div>' : (hits.length ? '' : '<div class="hint" style="margin:4px;">找不到符合的科目，可用下方「新設科目」。</div>'));
+        Array.prototype.forEach.call(res.querySelectorAll('.dr-hit'), function(b){
+          b.onclick = function(){
+            var r = hits[Number(b.dataset.i)], d = draftOf();
+            draftAdd = null;
+            draftChange(function(){ d.data.courses.push({id:'n' + Date.now().toString(36), code:r['學科代碼'] || '', abbr:r['學科簡碼'] || '', name:r['科目名稱'], cat:a.cat, grade:a.grade, sem:a.sem,
+              credits:Number(r['學分']) || 0, half:r['半全'] || '半', dual:false, del:false, reason:'', orig:null}); });
+          };
+        });
+      };
+      var qi = document.getElementById('drpQ');
+      qi.oninput = function(){ a.q = qi.value; doSearch(); };
+      doSearch();
+      document.getElementById('drpNewAdd').onclick = function(){
+        var nm = document.getElementById('drpNewName').value.trim(), cr = Number(document.getElementById('drpNewCr').value) || 0;
+        if(!nm){ toast('請輸入科目名稱'); return; }
+        var d = draftOf(); draftAdd = null;
+        draftChange(function(){ d.data.courses.push({id:'n' + Date.now().toString(36), code:'T' + Date.now().toString(36).toUpperCase(), temp:true, abbr:'', name:nm, cat:a.cat, grade:a.grade, sem:a.sem,
+          credits:cr, half:'半', dual:false, del:false, reason:'', orig:null}); });
+      };
+      document.getElementById('drpClose').onclick = function(){ draftAdd = null; renderDraftCard(); };
+      return;
+    }
+    box.innerHTML = '';
+  }
   /* 產業職缺：瀏覽器暫存＋雲端（Apps Script「產業職缺」分頁）同步 */
   var IND_PENDING_KEY = 'aiCourseAudit_industry_pending_v1';
   var indPending = {};  // 僅記錄本次頁面內尚未送出的修改（不寫入本機）
