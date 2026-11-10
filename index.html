@@ -133,6 +133,15 @@
   .chip-toggle button{padding:8px 13px;border:none;background:var(--surface);color:var(--ink-2);font-size:12.5px;font-weight:600;cursor:pointer;border-right:1px solid var(--border);}
   .chip-toggle button:last-child{border-right:none;}
   .chip-toggle button.active{background:var(--accent);color:var(--accent-ink);}
+  .dept-tabs{display:flex;gap:4px;border-bottom:2px solid var(--border);margin:0 0 16px;flex-wrap:wrap;}
+  .dept-tabs button{font:inherit;font-size:14px;font-weight:700;padding:10px 18px;border:1px solid transparent;border-bottom:none;border-radius:10px 10px 0 0;
+    background:transparent;color:var(--ink-2);cursor:pointer;margin-bottom:-2px;}
+  .dept-tabs button:hover{background:var(--grid);}
+  .dept-tabs button.active{background:var(--surface);color:var(--ink);border-color:var(--border);border-bottom:2px solid var(--surface);}
+  #deptContent[data-tab="comp"] .tab-main, #deptContent[data-tab="comp"] .tab-ind,
+  #deptContent[data-tab="ind"] .tab-main, #deptContent[data-tab="ind"] .tab-comp,
+  #deptContent[data-tab="main"] .tab-comp, #deptContent[data-tab="main"] .tab-ind{display:none !important;}
+  #deptContent:not([data-tab="main"]) .layout-2col{grid-template-columns:1fr;}
   .scope-tabs{margin-bottom:18px;}
   .scope-tabs button{padding:9px 16px;}
 
@@ -524,12 +533,17 @@
         請於左側選單依序選擇學年度 > 校區 > 學院 > 學系，載入該系所課程清單以進行 AI 能力盤點。
       </div>
 
-      <div id="deptContent" style="display:none;">
-        <div class="chip-toggle" id="deptModeSel" style="display:none;">
+      <div id="deptContent" style="display:none;" data-tab="main">
+        <div class="dept-tabs" id="deptTabs" role="tablist">
+          <button type="button" data-tab="main" class="active">課程盤點與標註</button>
+          <button type="button" data-tab="comp">專業 AI 能力地圖（一系一能力地圖）</button>
+          <button type="button" data-tab="ind">產業對接：職缺能力需求與課程支撐</button>
+        </div>
+        <div class="chip-toggle tab-main" id="deptModeSel" style="display:none;">
           <button type="button" data-mode="plan" class="active">四年課程計畫表（科目標註）</button>
           <button type="button" data-mode="offer">依開課課號盤點</button>
         </div>
-        <div class="stat-row mode-offer">
+        <div class="stat-row mode-offer tab-main">
           <div class="stat-tile"><div class="slabel">課程總數</div><div class="sval" id="statTotal">0<small>門</small></div></div>
           <div class="stat-tile"><div class="slabel">AI涉入判定進度</div><div class="sval" id="statTriageRate">0<small>%</small></div><div class="scap">已判斷「有無涉及AI」的課程比例</div></div>
           <div class="stat-tile"><div class="slabel">已完成盤點</div><div class="sval" id="statDone">0<small>門</small></div></div>
@@ -537,11 +551,11 @@
           <div class="stat-tile"><div class="slabel">盤點完成率</div><div class="sval" id="statRate">0<small>%</small></div><div class="scap">已按下「標記完成」的課程比例</div><div class="scap" id="statRateReq" style="margin-top:2px;"></div></div>
         </div>
 
-        <div class="card health-check mode-offer" id="deptHealthCheck" style="margin-bottom:16px;"></div>
+        <div class="card health-check mode-offer tab-main" id="deptHealthCheck" style="margin-bottom:16px;"></div>
 
         <div class="layout-2col">
           <div class="stack">
-            <div class="card mode-offer">
+            <div class="card mode-offer tab-main">
               <div class="card-head"><h3>課程清單</h3><span class="req opt" id="courseCountTag">0 門課程</span></div>
               <div class="hint">點選任一課程展開下方盤點表單；資料來源為校務課程主檔匯入。</div>
               <div class="toolbar-row">
@@ -561,7 +575,7 @@
               </div>
             </div>
 
-            <div class="card mode-plan" id="planCard">
+            <div class="card mode-plan tab-main" id="planCard">
               <div class="card-head"><h3>四年課程架構（課程計畫表）</h3><span class="req opt">試作版</span></div>
               <div class="hint">依校務系統「四年課程計畫表」（CE0901）列出本系各年級、學期的必選修科目。科目標註以學科代碼為單位，點選任一科目即可在下方標註；過去依開課課號完成的盤點已自動沿用（取最近一次），請學系確認。</div>
               <div class="pl-bar" style="margin-top:6px;"><label class="hint" style="margin:0;">政策框架</label>
@@ -571,14 +585,14 @@
               <div id="planBody"><div class="hint">課程計畫表讀取中…</div></div>
             </div>
 
-            <div class="card mode-plan" id="compCard">
+            <div class="card mode-plan tab-comp" id="compCard">
               <div class="card-head"><h3>專業 AI 能力地圖</h3><span class="req opt">一系一能力地圖</span></div>
               <div class="hint">依高教深耕計畫：「各系專業AI能力地圖界定學生應具備的專業AI能力及發展層次」。下方列出本系的專業 AI 能力、三個發展層次，以及承載各層次的課程。</div>
               <div class="hint" id="compSync" style="margin:-2px 0 6px;font-size:11.5px;"></div>
               <div id="compBody"></div>
             </div>
 
-            <div class="card" id="courseDetailCard" style="display:none;">
+            <div class="card tab-main" id="courseDetailCard" style="display:none;">
               <div class="course-detail-head">
                 <div>
                   <h3 id="dcName">—</h3>
@@ -642,7 +656,7 @@
               <div id="noAiDoneNote" style="display:none;margin-top:16px;padding:12px 15px;border-radius:10px;background:var(--good-bg);color:var(--good);font-weight:700;font-size:13px;">✓ 已完成盤點（本課程不涉及AI）。點選當下即自動存檔，不需要再按其他按鈕。</div>
             </div>
 
-            <div class="card" id="industryCard">
+            <div class="card tab-ind" id="industryCard">
           <div class="card-head"><h3>產業對接：職缺能力需求與課程支撐</h3><span class="req opt">試作版</span></div>
           <div class="hint">依兩種職缺類型（<b>現有工作導入 AI</b>：原本就有、要會用 AI 提升效能的工作；<b>AI 帶來的新工作</b>：因 AI 而出現或大幅轉型的職缺）列出本領域的職缺，每個職缺可選擇兩種設定方式：<b>依能力指標</b>（點一下為<b>必要</b>、再點一下為<b>加分</b>、再點一下取消），或<b>依課程</b>（直接勾選這個職缺需要修的本系課程，系統彙整這些課涵蓋哪些能力、哪裡還有缺口）。系統會用本系<b>已完成盤點、該指標達 3 級（中度關聯）以上</b>的課程數判斷支撐程度：2 門以上為「已有支撐」、1 門為「支撐偏弱」、0 門為「能力缺口」。</div>
           <div class="hint" style="margin-top:-4px;">職缺所需能力以教育部「未來人才AI能力圖像」（115.05.22）大專校院核心能力描述（滑鼠移到指標上可看說明）；兩種職缺類型的分類為本校自訂。職缺設定以 G2 帳號登入後存到雲端。</div>
@@ -658,7 +672,7 @@
         </div>
           </div>
 
-          <div class="summary-panel">
+          <div class="summary-panel tab-main">
             <div class="card">
               <div class="card-head"><h3 style="font-size:13.5px;">系所能力剖面（平均）</h3></div>
               <div class="radar-wrap" id="deptRadarWrap"></div>
@@ -2385,6 +2399,27 @@
     Array.prototype.forEach.call(document.querySelectorAll('#deptModeSel button'), function(b){
       b.classList.toggle('active', b.dataset.mode === (isPlanMode() ? 'plan' : 'offer'));
     });
+    renderDeptTabs();
+  }
+  // 系所頁分頁：課程盤點與標註／專業 AI 能力地圖（僅計畫表模式）／產業對接
+  var deptTab = 'main';
+  function renderDeptTabs(){
+    var box = document.getElementById('deptContent');
+    if(!box) return;
+    var compOk = isPlanMode();
+    if(deptTab === 'comp' && !compOk) deptTab = 'main';
+    box.setAttribute('data-tab', deptTab);
+    Array.prototype.forEach.call(document.querySelectorAll('#deptTabs button'), function(b){
+      b.style.display = (b.dataset.tab === 'comp' && !compOk) ? 'none' : '';
+      b.classList.toggle('active', b.dataset.tab === deptTab);
+    });
+  }
+  function setDeptTab(t){
+    deptTab = t; renderDeptTabs();
+    if(t === 'comp' && typeof renderCompCard === 'function') renderCompCard();
+    if(t === 'ind'){ renderIndustryJobs(); renderIndustryGap(); }
+    var box = document.getElementById('deptTabs');
+    if(box && box.getBoundingClientRect().top < 0 && box.scrollIntoView) box.scrollIntoView({block:'start'});
   }
   function loadTags(){
     if(!WEBAPP_URL || tagsLoadState === 'loading') return;
@@ -4201,6 +4236,9 @@
   });
   document.getElementById('addJobDir1').addEventListener('click', function(){ addIndustryJob('1'); });
   document.getElementById('addJobDir2').addEventListener('click', function(){ addIndustryJob('2'); });
+  Array.prototype.forEach.call(document.querySelectorAll('#deptTabs button'), function(b){
+    b.addEventListener('click', function(){ setDeptTab(b.dataset.tab); });
+  });
   document.getElementById('jobXlsxBtn').addEventListener('click', function(){ exportJobXlsx(); });
   document.getElementById('teacherChgBtn').addEventListener('click', function(){
     teacherChgOnly = !teacherChgOnly;
