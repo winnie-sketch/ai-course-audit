@@ -233,6 +233,15 @@
   .level-btn:hover{background:var(--grid);}
   .level-btn.active{color:#fff;}
   @media (max-width:560px){ .indicator-row{grid-template-columns:1fr;} }
+  .indicator-row .stmt-box{grid-column:1/-1;}
+  .stmt-box textarea,.need-row textarea{width:100%;min-height:40px;padding:6px 9px;border:1px solid var(--border);border-radius:8px;font:inherit;font-size:12px;resize:vertical;background:var(--surface);color:var(--ink);box-sizing:border-box;}
+  .stmt-box .sl{font-size:11px;color:var(--muted);margin:2px 0 3px;}
+  .need-wrap{margin-top:10px;border:1px solid var(--border);border-radius:10px;overflow:hidden;}
+  .need-wrap .nh{padding:8px 12px;font-size:12px;font-weight:700;background:var(--grid);}
+  .need-row{display:grid;grid-template-columns:minmax(150px,1fr) auto;gap:6px 10px;align-items:center;padding:8px 12px;border-top:1px solid var(--border);}
+  .need-row .nl{font-size:12px;}
+  .need-row textarea{grid-column:1/-1;}
+  .gap-stmt{font-size:11px;color:var(--ink-2);margin-top:2px;}
 
   .evidence-item{padding:11px 0;border-top:1px solid var(--border);}
   .evidence-item:first-child{border-top:none;}
@@ -318,6 +327,36 @@
   .ind-mx td.warn{background:var(--warning-bg);color:#a06600;font-weight:700;}
   .ind-mx td.crit{background:var(--critical-bg);color:var(--critical);font-weight:700;}
   .ind-mx td.na{color:var(--muted);}
+  /* 專業 AI 能力地圖 */
+  .cp-guide{background:var(--surface-raised);border-radius:10px;padding:10px 14px;font-size:12.5px;line-height:1.8;margin:6px 0 10px;}
+  .cp-guide ol{margin:4px 0 0;padding-left:20px;}
+  table.cp-mx{border-collapse:collapse;width:100%;font-size:12px;}
+  table.cp-mx th{background:var(--surface-raised);padding:6px 8px;border:1px solid var(--border);white-space:nowrap;}
+  table.cp-mx td{border:1px solid var(--border);padding:7px 8px;vertical-align:top;line-height:1.55;}
+  table.cp-mx{table-layout:fixed;min-width:760px;}
+  table.cp-mx th:first-child,table.cp-mx td.cn{width:24%;}
+  table.cp-mx td.cn,table.cp-mx td.lv,table.cp-mx th{white-space:normal;word-break:break-word;}
+  .cp-name{font-weight:700;font-size:13px;}
+  .cp-core{font-size:11.5px;color:var(--muted);}
+  .cp-st{display:inline-block;font-size:10.5px;padding:0 6px;border-radius:5px;font-weight:700;margin-top:3px;}
+  .cp-st.tpl{background:var(--warning-bg);color:#a06600;} .cp-st.ok{background:var(--good-bg);color:var(--good);} .cp-st.edit{background:var(--grid);color:var(--ink-2);}
+  .cp-moe{display:flex;flex-wrap:wrap;gap:3px;margin-top:4px;}
+  .cp-moe span{font-size:10.5px;padding:0 5px;border-radius:4px;font-weight:700;}
+  .cp-c{display:inline-block;margin:4px 4px 0 0;padding:1px 7px;border-radius:6px;background:var(--surface-raised);border:1px solid var(--border);font-size:11.5px;}
+  .cp-none{display:inline-block;margin-top:4px;font-size:11px;color:var(--critical);font-weight:700;}
+  .cp-act{margin-top:6px;display:flex;gap:6px;flex-wrap:wrap;}
+  .cp-act button{font:inherit;font-size:11.5px;padding:2px 9px;border-radius:7px;border:1px solid var(--border);background:var(--surface);color:var(--ink);cursor:pointer;}
+  .cp-ed{background:var(--surface-raised);border-radius:10px;padding:12px;}
+  .cp-ed label{display:block;font-size:12px;font-weight:700;margin:8px 0 3px;}
+  .cp-ed input[type=text],.cp-ed textarea{width:100%;box-sizing:border-box;font:inherit;font-size:12.5px;padding:6px 9px;border-radius:8px;border:1px solid var(--border);background:var(--surface);color:var(--ink);}
+  .cp-ed textarea{min-height:52px;}
+  .cp-chipset{display:flex;flex-wrap:wrap;gap:5px;}
+  .cp-chipset label{display:inline-flex;align-items:center;gap:4px;font-weight:400;margin:0;padding:2px 8px;border:1px solid var(--border);border-radius:99px;background:var(--surface);cursor:pointer;font-size:11.5px;}
+  .cp-lvgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;}
+  @media (max-width:900px){ .cp-lvgrid{grid-template-columns:1fr;} }
+  .cp-clist{max-height:180px;overflow:auto;border:1px solid var(--border);border-radius:8px;background:var(--surface);padding:3px 6px;margin-top:5px;}
+  .cp-clist label{display:flex;gap:6px;font-weight:400;font-size:11.5px;margin:0;padding:2px 0;border-bottom:1px dashed var(--border);}
+  .cp-warn{font-size:11.5px;color:#a06600;margin-top:4px;}
   /* 職缺總表（仿 SE0201 就業-職業類別） */
   .js-wrap{margin:6px 0 14px;}
   table.js-tbl{border-collapse:collapse;width:100%;font-size:12px;}
@@ -524,6 +563,13 @@
               <div id="planBody"><div class="hint">課程計畫表讀取中…</div></div>
             </div>
 
+            <div class="card mode-plan" id="compCard">
+              <div class="card-head"><h3>專業 AI 能力地圖</h3><span class="req opt">一系一能力地圖</span></div>
+              <div class="hint">依高教深耕計畫：「各系專業AI能力地圖界定學生應具備的專業AI能力及發展層次」。下方列出本系的專業 AI 能力、三個發展層次，以及承載各層次的課程。</div>
+              <div class="hint" id="compSync" style="margin:-2px 0 6px;font-size:11.5px;"></div>
+              <div id="compBody"></div>
+            </div>
+
             <div class="card" id="courseDetailCard" style="display:none;">
               <div class="course-detail-head">
                 <div>
@@ -591,13 +637,14 @@
             <div class="card" id="industryCard">
           <div class="card-head"><h3>產業對接：職缺能力需求與課程支撐</h3><span class="req opt">試作版</span></div>
           <div class="hint">依兩種職缺類型（<b>現有工作導入 AI</b>：原本就有、要會用 AI 提升效能的工作；<b>AI 帶來的新工作</b>：因 AI 而出現或大幅轉型的職缺）列出本領域的職缺，每個職缺可選擇兩種設定方式：<b>依能力指標</b>（點一下為<b>必要</b>、再點一下為<b>加分</b>、再點一下取消），或<b>依課程</b>（直接勾選這個職缺需要修的本系課程，系統彙整這些課涵蓋哪些能力、哪裡還有缺口）。系統會用本系<b>已完成盤點、該指標達 3 級（中度關聯）以上</b>的課程數判斷支撐程度：2 門以上為「已有支撐」、1 門為「支撐偏弱」、0 門為「能力缺口」。</div>
-          <div class="hint" style="margin-top:-4px;">職缺所需能力以教育部「未來人才AI能力圖像」（115.05.22）大專校院核心能力描述（滑鼠移到指標上可看說明）；兩種職缺類型的分類為本校自訂。試作版：職缺設定目前只保存在這台電腦的瀏覽器中。</div>
+          <div class="hint" style="margin-top:-4px;">職缺所需能力以教育部「未來人才AI能力圖像」（115.05.22）大專校院核心能力描述（滑鼠移到指標上可看說明）；兩種職缺類型的分類為本校自訂。職缺設定以 G2 帳號登入後存到雲端。</div>
           <div class="hint" id="industrySync" style="margin:-2px 0 6px;font-size:11.5px;"></div>
           <div id="jobSummary" class="js-wrap"></div>
           <div id="industryJobs"></div>
           <div style="display:flex;gap:8px;flex-wrap:wrap;margin:4px 0 6px;">
             <button type="button" class="btn" id="addJobDir1" style="width:auto;">＋ 新增職缺：現有工作導入 AI</button>
             <button type="button" class="btn" id="addJobDir2" style="width:auto;">＋ 新增職缺：AI 帶來的新工作</button>
+            <button type="button" class="btn" id="jobXlsxBtn" style="width:auto;">⬇ 下載 Excel（職業 × 課程 × AI 能力）</button>
           </div>
           <div id="industryGap"></div>
         </div>
@@ -1282,6 +1329,7 @@
     });
     deptMode = 'plan';
     currentSubject = null;
+    compEditing = null; compShowTpl = false; setCompSync('');
     applyDeptMode();
     renderIndustryJobs();
     setIndSync('');
@@ -1473,12 +1521,17 @@
         var ivHtml = iv ? '<span class="iv-line">大專校院核心能力 <b>'+iv.code+'</b> '+iv.title+
           '<details><summary>說明</summary><span class="iv-desc">'+iv.desc+'</span></details></span>' : '';
         row.innerHTML = '<div class="label"><span class="code" style="color:'+dimColor(dim.id)+'">'+ind.code+'</span>'+ind.label+ivHtml+'</div>' +
-          '<div class="level-group">'+levels+'</div>';
+          '<div class="level-group">'+levels+'</div>' +
+          ((rec.stmt && (rec.ratings[ind.code] || 0) > 0) ? '<div class="stmt-box"><div class="sl">具體能力表述：學生修完本課程，在這項能力上「能做到什麼」（建議句型：能＋運用 AI＋做什麼＋依據什麼查核）</div>' +
+            '<textarea data-stmt="'+ind.code+'" placeholder="例：能運用 AI 產生分析初稿，並以課程所學原則查核其正確性、說明修正理由。">'+escapeHtml(rec.stmt[ind.code] || '')+'</textarea></div>' : '');
         wrap.appendChild(row);
       });
       el.appendChild(wrap);
     });
 
+    Array.prototype.forEach.call(el.querySelectorAll('textarea[data-stmt]'), function(ta){
+      ta.addEventListener('input', function(){ rec.stmt[ta.dataset.stmt] = ta.value; });
+    });
     Array.prototype.forEach.call(el.querySelectorAll('.level-btn'), function(btn){
       btn.addEventListener('click', function(){
         rec.ratings[btn.dataset.code] = parseInt(btn.dataset.lv, 10);
@@ -2081,7 +2134,7 @@
     renderHealthCheck('deptHealthCheck', list, null, null);
     renderAggregateRadar('deptRadarWrap', list);
     applyDeptMode();
-    if(isPlanMode()){ renderPlanRadar(); renderPlanProgress(); }
+    if(isPlanMode()){ renderPlanRadar(); renderPlanProgress(); renderCompCard(); }
     renderIndustryGap();
     renderPlanCard();
   }
@@ -2308,7 +2361,7 @@
         INDICATORS.forEach(function(i){ var v = r[ix(i.code)]; if(v !== '' && v != null) ratings[i.code] = Number(v); });
         var ai = r[ix('是否涉及AI')];
         T[r[ix('學科代碼')]] = {name:r[ix('科目名稱')], ai: ai === '是' ? true : (ai === '否' ? false : null), ratings:ratings,
-          evidence:parseEvidence(r[ix('佐證說明')]), st:r[ix('狀態')], src:r[ix('來源')], srcCode:r[ix('來源課號')], srcTerm:r[ix('來源學年期')], at:r[ix('更新時間')]};
+          evidence:parseEvidence(r[ix('佐證說明')]), stmt:parseObj(r[ix('具體能力表述')]), st:r[ix('狀態')], src:r[ix('來源')], srcCode:r[ix('來源課號')], srcTerm:r[ix('來源學年期')], at:r[ix('更新時間')]};
       });
       TAGS = T; tagsLoadState = 'ok';
       if(currentDept) renderCurrentScope();
@@ -2320,6 +2373,7 @@
       .then(function(r){ return r.text(); }).then(function(t){ ok(JSON.parse(t)); })
       .catch(function(){ jsonp(q, ok, fail, 30000); });
   }
+  function parseObj(s){ try{ var o = JSON.parse(s || '{}'); return (o && typeof o === 'object') ? o : {}; }catch(e){ return {}; } }
   function parseEvidence(s){
     var o = {};
     String(s || '').split(' ／ ').forEach(function(part){
@@ -2336,7 +2390,7 @@
     var t = TAGS[code];
     if(!t) return null;
     var status = t.st === '草稿' ? 'draft' : (t.ai === true ? 'done' : (t.ai === false ? 'no-ai' : 'draft'));
-    return {status:status, aiInvolved:t.ai, ratings:t.ratings || {}, evidence:t.evidence || {}, tagStatus:t.st};
+    return {status:status, aiInvolved:t.ai, ratings:t.ratings || {}, evidence:t.evidence || {}, stmt:t.stmt || {}, tagStatus:t.st};
   }
   function tagKind(code){
     var t = TAGS[code];
@@ -2511,7 +2565,7 @@
     var t = TAGS[code];
     var rows = planRows(planSel.track, planSel.year).filter(function(r){ return r['學科代碼'] === code; });
     var r0 = rows[0] || {};
-    var rec = {aiInvolved: t ? t.ai : null, ratings: t ? Object.assign({}, t.ratings) : {}, evidence: t ? Object.assign({}, t.evidence) : {}, status:'draft'};
+    var rec = {aiInvolved: t ? t.ai : null, ratings: t ? Object.assign({}, t.ratings) : {}, evidence: t ? Object.assign({}, t.evidence) : {}, stmt: t ? Object.assign({}, t.stmt || {}) : {}, status:'draft'};
     var card = document.getElementById('courseDetailCard');
     card.style.display = 'block';
     document.getElementById('dcName').textContent = r0['科目名稱'] || (t && t.name) || code;
@@ -2549,7 +2603,7 @@
       card.classList.toggle('checked', (choice === 'yes' && rec.aiInvolved === true) || (choice === 'no' && rec.aiInvolved === false));
       card.onclick = function(){
         rec.aiInvolved = (choice === 'yes');
-        if(rec.aiInvolved === false){ rec.ratings = {}; rec.evidence = {}; }
+        if(rec.aiInvolved === false){ rec.ratings = {}; rec.evidence = {}; if(rec.stmt) rec.stmt = {}; }
         renderSubjectAi(rec); renderDimGroups(rec); renderEvidence(rec); renderRadar(rec);
       };
     });
@@ -2561,12 +2615,14 @@
     if(!authToken()){ needLogin(); return; }
     var name = document.getElementById('dcName').textContent;
     var ratings = rec.aiInvolved ? rec.ratings : {};
-    TAGS[code] = {name:name, ai:rec.aiInvolved, ratings:Object.assign({}, ratings), evidence:Object.assign({}, rec.aiInvolved ? rec.evidence : {}),
+    var stmt = {};
+    if(rec.aiInvolved && rec.stmt) INDICATORS.forEach(function(i){ var v = String(rec.stmt[i.code] || '').trim(); if(v && (ratings[i.code] || 0) > 0) stmt[i.code] = v; });
+    TAGS[code] = {name:name, ai:rec.aiInvolved, ratings:Object.assign({}, ratings), evidence:Object.assign({}, rec.aiInvolved ? rec.evidence : {}), stmt:stmt,
       st:status, src:'學系填寫', srcCode:'', srcTerm:'', at:fmtTime(new Date())};
     if(WEBAPP_URL){
       fetch(WEBAPP_URL, {method:'POST', mode:'no-cors', headers:{'Content-Type':'text/plain;charset=utf-8'},
         body: JSON.stringify({type:'tag', fw:TAG_FW, code:code, name:name, aiInvolved:rec.aiInvolved, ratings:ratings,
-          evidence:serializeEvidence(rec.aiInvolved ? rec.evidence : {}), status:status, auth:authToken()})})
+          evidence:serializeEvidence(rec.aiInvolved ? rec.evidence : {}), stmt:stmt, status:status, auth:authToken()})})
         .then(function(){ toast(status === '已確認' ? '已確認並存到雲端' : '草稿已存到雲端'); })
         .catch(function(){ toast('雲端儲存失敗，請稍後再試'); });
     }
@@ -2603,6 +2659,179 @@
   function saveIndustryLocal(){
     try{ localStorage.setItem(INDUSTRY_KEY, JSON.stringify(industryState)); }catch(e){}
   }
+  /* ---------- 專業 AI 能力地圖 ---------- */
+  var COMP_LEVELS = ['層次一（基礎）', '層次二（進階）', '層次三（整合）'];
+  var COMP_EIGHT = ['問題定義與分析','資訊查證與批判判斷','AI協作與提示設計','專業知識與AI產出的交叉驗證','跨域合作與複雜問題解決','創意發想','敘事表達與溝通協作','學習反思與自主學習'];
+  var COMP_TEMPLATE_DEPT = '會計學系';
+  var COMPS = {}, compLoading = {}, compEditing = null, compShowTpl = false, compPending = {}, compTimers = {};
+  function loadComps(dept, then){
+    if(!WEBAPP_URL || !dept || compLoading[dept]) return;
+    compLoading[dept] = true;
+    var q = 'type=comp&dept=' + encodeURIComponent(dept);
+    var ok = function(d){ compLoading[dept] = false; if(compPending[dept]) return; COMPS[dept] = (d && d[dept]) || []; if(then) then(); renderCompCard(); };
+    var fail = function(){ compLoading[dept] = false; };
+    fetch(WEBAPP_URL + (WEBAPP_URL.indexOf('?') < 0 ? '?' : '&') + q, {credentials:'omit'})
+      .then(function(r){ return r.text(); }).then(function(t){ ok(JSON.parse(t)); })
+      .catch(function(){ jsonp(q, ok, fail, 30000); });
+  }
+  function setCompSync(t, warn){ var el = document.getElementById('compSync'); if(el){ el.textContent = t || ''; el.style.color = warn ? 'var(--critical)' : 'var(--muted)'; } }
+  function saveComps(dept){
+    compPending[dept] = 1;
+    clearTimeout(compTimers[dept]);
+    compTimers[dept] = setTimeout(function(){ pushComps(dept); }, 1500);
+  }
+  function pushComps(dept){
+    if(!authToken()){ setCompSync('尚未以 G2 帳號登入：修改暫存在此頁面，登入後再修改任一欄位即會上傳', true); return; }
+    setCompSync('雲端儲存中…');
+    var items = (COMPS[dept] || []).map(function(it){ return {id:it.id, name:it.name, core:it.core, desc:it.desc, levels:it.levels, moe:it.moe, eight:it.eight, courses:it.courses, status:it.status}; });
+    fetch(WEBAPP_URL, {method:'POST', mode:'no-cors', headers:{'Content-Type':'text/plain;charset=utf-8'},
+      body: JSON.stringify({type:'comp', dept:dept, items:items, auth:authToken()})})
+      .then(function(){ delete compPending[dept]; setCompSync('已存到雲端（' + fmtTime(new Date()) + '）'); })
+      .catch(function(){ setCompSync('雲端儲存失敗，請稍後再修改一次', true); });
+  }
+  function compSubjects(){
+    var m = {};
+    planPseudoCourses(false).forEach(function(c){ m[c.code6] = c; });
+    return m;
+  }
+  function compCheck(it, subj){
+    var mins = [0,1,2].map(function(l){
+      var g = (it.courses || []).filter(function(c){ return c.level === l + 1 && subj[c.code]; }).map(function(c){ return Number(subj[c.code].grade); });
+      return g.length ? Math.min.apply(null, g) : null;
+    });
+    var warn = [];
+    if(mins[1] != null && mins[0] != null && mins[1] < mins[0]) warn.push('層次二最早出現在 ' + mins[1] + ' 年級，早於層次一（' + mins[0] + ' 年級）');
+    if(mins[2] != null && mins[1] != null && mins[2] < mins[1]) warn.push('層次三最早出現在 ' + mins[2] + ' 年級，早於層次二（' + mins[1] + ' 年級）');
+    return warn;
+  }
+  function compMatrixHtml(list, editable){
+    var subj = compSubjects();
+    var empty = 0;
+    var rows = list.map(function(it, i){
+      var st = String(it.status || '');
+      var stCls = st.indexOf('範本') === 0 ? 'tpl' : (st === '學系確認' ? 'ok' : 'edit');
+      var moe = (it.moe || []).map(function(code){ var ind = INDICATORS.filter(function(x){ return x.code === code; })[0];
+        return '<span style="background:' + (ind ? 'var(--dim-' + ind.dim.toLowerCase() + '-bg)' : 'var(--grid)') + ';color:' + (ind ? dimColor(ind.dim) : 'inherit') + '" title="' + escapeHtml(ivTitle(code)) + '">' + code + '</span>'; }).join('');
+      var cells = [1,2,3].map(function(l){
+        var cs = (it.courses || []).filter(function(c){ return c.level === l; });
+        if(!cs.length) empty++;
+        return '<td class="lv">' + escapeHtml((it.levels || [])[l-1] || '（未填寫）') +
+          '<div>' + (cs.length ? cs.map(function(c){ var x = subj[c.code]; return '<span class="cp-c">' + escapeHtml(x ? x.name : c.code) + (x ? '・' + x.grade + x.term : '') + '</span>'; }).join('') : '<span class="cp-none">尚無對應課程</span>') + '</div></td>';
+      }).join('');
+      var warn = compCheck(it, subj);
+      return '<tr><td class="cn"><div class="cp-name">' + escapeHtml(it.name || '（未命名能力）') + '</div>' +
+        (it.core ? '<div class="cp-core">對應系核心能力：' + escapeHtml(it.core) + '</div>' : '') +
+        '<span class="cp-st ' + stCls + '">' + escapeHtml(st || '學系填寫') + '</span>' +
+        '<div class="cp-moe">' + moe + '</div>' +
+        (it.eight && it.eight.length ? '<div class="cp-core" style="margin-top:3px;">八項核心能力：' + it.eight.map(escapeHtml).join('、') + '</div>' : '') +
+        (warn.length ? '<div class="cp-warn">⚠ ' + warn.join('；') + '</div>' : '') +
+        (editable ? '<div class="cp-act"><button data-cp="edit" data-i="' + i + '">' + (compEditing === it.id ? '收合編輯' : '編輯') + '</button>' +
+          (stCls !== 'ok' ? '<button data-cp="confirm" data-i="' + i + '">確認採用</button>' : '') +
+          '<button data-cp="del" data-i="' + i + '">刪除</button></div>' : '') +
+        '</td>' + cells + '</tr>' +
+        (editable && compEditing === it.id ? '<tr><td colspan="4">' + compEditorHtml(it, i, subj) + '</td></tr>' : '');
+    }).join('');
+    return {html:'<div class="table-wrap" style="max-height:none;"><table class="cp-mx"><thead><tr><th>專業 AI 能力</th>' +
+      COMP_LEVELS.map(function(l){ return '<th>' + l + '</th>'; }).join('') + '</tr></thead><tbody>' + rows + '</tbody></table></div>', empty:empty};
+  }
+  function compEditorHtml(it, i, subj){
+    var list = Object.keys(subj).map(function(k){ return subj[k]; }).sort(function(a, b){
+      return (Number(a.grade) * 2 + (a.term === '下' ? 1 : 0)) - (Number(b.grade) * 2 + (b.term === '下' ? 1 : 0)) || a.name.localeCompare(b.name, 'zh-Hant');
+    });
+    var has = function(l, code){ return (it.courses || []).some(function(c){ return c.level === l && c.code === code; }); };
+    return '<div class="cp-ed" data-i="' + i + '">' +
+      '<label>專業 AI 能力名稱</label><input type="text" data-cf="name" value="' + escapeHtml(it.name || '') + '" placeholder="例：AI 輔助成本分析">' +
+      '<label>對應系核心能力</label><input type="text" data-cf="core" value="' + escapeHtml(it.core || '') + '" placeholder="例：會計處理能力（可參考 SE0201 學生核心能力）">' +
+      '<label>能力說明</label><textarea data-cf="desc">' + escapeHtml(it.desc || '') + '</textarea>' +
+      '<label>對應教育部 AI 能力指標</label><div class="cp-chipset">' + INDICATORS.map(function(ind){
+        return '<label title="' + escapeHtml(ivTitle(ind.code)) + '"><input type="checkbox" data-cmoe="' + ind.code + '"' + ((it.moe || []).indexOf(ind.code) >= 0 ? ' checked' : '') + '>' + ind.code + '</label>'; }).join('') + '</div>' +
+      '<label>對應本計畫八項學生核心能力</label><div class="cp-chipset">' + COMP_EIGHT.map(function(e){
+        return '<label><input type="checkbox" data-ceight="' + escapeHtml(e) + '"' + ((it.eight || []).indexOf(e) >= 0 ? ' checked' : '') + '>' + escapeHtml(e) + '</label>'; }).join('') + '</div>' +
+      '<div class="cp-lvgrid" style="margin-top:8px;">' + [1,2,3].map(function(l){
+        return '<div><label>' + COMP_LEVELS[l-1] + '：學生要做到</label><textarea data-clv="' + (l-1) + '">' + escapeHtml((it.levels || [])[l-1] || '') + '</textarea>' +
+          '<div class="cp-core" style="margin-top:4px;">承載此層次的課程（可複選）</div><input type="text" class="cp-search" placeholder="搜尋課程…" style="margin-top:3px;">' +
+          '<div class="cp-clist">' + list.map(function(c){
+            return '<label data-q="' + escapeHtml(c.name.toLowerCase()) + '"><input type="checkbox" data-clevel="' + l + '" value="' + escapeHtml(c.code6) + '"' + (has(l, c.code6) ? ' checked' : '') + '>' +
+              escapeHtml(c.name) + ' <span class="cp-core">' + c.grade + '年級' + c.term + '・' + escapeHtml(c.reqType) + '</span></label>'; }).join('') + '</div></div>';
+      }).join('') + '</div></div>';
+  }
+  function renderCompCard(){
+    var el = document.getElementById('compBody');
+    if(!el) return;
+    if(!currentDept){ el.innerHTML = ''; return; }
+    if(!COMPS[currentDept]){ el.innerHTML = '<div class="hint">讀取中…</div>'; loadComps(currentDept); return; }
+    var list = COMPS[currentDept];
+    var guide = '<details class="cp-guide"' + (list.length ? '' : ' open') + '><summary style="cursor:pointer;font-weight:700;">怎麼建立？（三個步驟）</summary><ol>' +
+      '<li><b>列出專業 AI 能力</b>：從本系「學生核心能力」出發，每項想一想：本系畢業生在這個專業領域，會怎麼用 AI 工作？寫成 3～6 項專業 AI 能力。</li>' +
+      '<li><b>寫出三個發展層次</b>：層次一（基礎）會用、能說明；層次二（進階）能以專業知識查證並修正 AI 產出；層次三（整合）能設計流程、做專業判斷並承擔責任。</li>' +
+      '<li><b>勾選承載課程</b>：每個層次勾選培養它的課程。系統會檢查哪個層次還沒有課程，以及層次與年級順序是否合理。</li></ol>' +
+      '<div style="margin-top:4px;">不確定怎麼寫，可以先看「' + COMP_TEMPLATE_DEPT + '範本」（教務處依該系 SE0201 學生核心能力草擬，承載課程由學系勾選）。</div></details>';
+    var html = guide;
+    if(list.length){
+      var mx = compMatrixHtml(list, true);
+      var conf = list.filter(function(it){ return it.status === '學系確認'; }).length;
+      html += '<div class="pl-sum">專業 AI 能力 <b>' + list.length + '</b> 項（學系確認 ' + conf + '）・尚無對應課程的層次 <b style="color:' + (mx.empty ? 'var(--critical)' : 'inherit') + '">' + mx.empty + '</b> 個</div>' + mx.html;
+    } else {
+      html += '<div class="empty-state" style="padding:14px;">本系尚未建立專業 AI 能力地圖。</div>';
+    }
+    html += '<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px;"><button type="button" class="btn" id="cpAdd" style="width:auto;">＋ 新增一項專業 AI 能力</button>' +
+      (currentDept !== COMP_TEMPLATE_DEPT ? '<button type="button" class="btn" id="cpTpl" style="width:auto;">' + (compShowTpl ? '收合' : '查看') + '「' + COMP_TEMPLATE_DEPT + '」範本</button>' : '') + '</div>';
+    if(compShowTpl && currentDept !== COMP_TEMPLATE_DEPT){
+      var tl = COMPS[COMP_TEMPLATE_DEPT];
+      html += '<div style="margin-top:10px;"><div class="hint"><b>' + COMP_TEMPLATE_DEPT + '範本（僅供參考，不會寫入本系）</b></div>' +
+        (tl ? (tl.length ? compMatrixHtml(tl, false).html : '<div class="hint">範本尚未建立。</div>') : '<div class="hint">讀取中…</div>') + '</div>';
+      if(!tl) loadComps(COMP_TEMPLATE_DEPT);
+    }
+    el.innerHTML = html;
+    var dept = currentDept;
+    var touch = function(it){ if(String(it.status || '').indexOf('範本') === 0 || it.status === '學系確認') it.status = '學系填寫'; saveComps(dept); };
+    document.getElementById('cpAdd').onclick = function(){
+      if(!authToken()){ needLogin(); return; }
+      var it = {id:'c' + Date.now().toString(36), name:'', core:'', desc:'', levels:['','',''], moe:[], eight:[], courses:[], status:'學系填寫'};
+      list.push(it); compEditing = it.id; saveComps(dept); renderCompCard();
+    };
+    var tb = document.getElementById('cpTpl'); if(tb) tb.onclick = function(){ compShowTpl = !compShowTpl; renderCompCard(); };
+    Array.prototype.forEach.call(el.querySelectorAll('[data-cp]'), function(b){
+      b.onclick = function(){
+        var it = list[Number(b.dataset.i)];
+        if(b.dataset.cp === 'edit'){ compEditing = compEditing === it.id ? null : it.id; renderCompCard(); return; }
+        if(!authToken()){ needLogin(); return; }
+        if(b.dataset.cp === 'confirm'){ it.status = '學系確認'; saveComps(dept); renderCompCard(); return; }
+        if(b.dataset.cp === 'del'){ if(!window.confirm('確定刪除「' + (it.name || '未命名能力') + '」？')) return; list.splice(list.indexOf(it), 1); saveComps(dept); renderCompCard(); }
+      };
+    });
+    Array.prototype.forEach.call(el.querySelectorAll('.cp-ed'), function(box){
+      var it = list[Number(box.dataset.i)];
+      var guard = function(){ if(!authToken()){ needLogin(); return false; } return true; };
+      Array.prototype.forEach.call(box.querySelectorAll('[data-cf]'), function(inp){
+        inp.addEventListener('input', function(){ if(!guard()) return; it[inp.dataset.cf] = inp.value; touch(it); });
+        inp.addEventListener('change', function(){ renderCompCard(); });
+      });
+      Array.prototype.forEach.call(box.querySelectorAll('[data-clv]'), function(inp){
+        inp.addEventListener('input', function(){ if(!guard()) return; it.levels = it.levels || ['','','']; it.levels[Number(inp.dataset.clv)] = inp.value; touch(it); });
+        inp.addEventListener('change', function(){ renderCompCard(); });
+      });
+      Array.prototype.forEach.call(box.querySelectorAll('[data-cmoe]'), function(cb){
+        cb.addEventListener('change', function(){ if(!guard()){ cb.checked = !cb.checked; return; } var c = cb.dataset.cmoe; it.moe = (it.moe || []).filter(function(x){ return x !== c; }); if(cb.checked) it.moe.push(c);
+          it.moe.sort(); touch(it); renderCompCard(); });
+      });
+      Array.prototype.forEach.call(box.querySelectorAll('[data-ceight]'), function(cb){
+        cb.addEventListener('change', function(){ if(!guard()){ cb.checked = !cb.checked; return; } var e = cb.dataset.ceight; it.eight = (it.eight || []).filter(function(x){ return x !== e; }); if(cb.checked) it.eight.push(e);
+          it.eight.sort(function(a, b){ return COMP_EIGHT.indexOf(a) - COMP_EIGHT.indexOf(b); }); touch(it); renderCompCard(); });
+      });
+      Array.prototype.forEach.call(box.querySelectorAll('[data-clevel]'), function(cb){
+        cb.addEventListener('change', function(){ if(!guard()){ cb.checked = !cb.checked; return; } var l = Number(cb.dataset.clevel), code = cb.value;
+          it.courses = (it.courses || []).filter(function(c){ return !(c.level === l && c.code === code); });
+          if(cb.checked) it.courses.push({code:code, level:l});
+          touch(it); renderCompCard(); });
+      });
+      Array.prototype.forEach.call(box.querySelectorAll('.cp-search'), function(sx){
+        sx.addEventListener('input', function(){ var q = sx.value.trim().toLowerCase();
+          Array.prototype.forEach.call(sx.nextElementSibling.querySelectorAll('label'), function(lb){ lb.style.display = !q || lb.dataset.q.indexOf(q) >= 0 ? '' : 'none'; }); });
+      });
+    });
+  }
+
   /* ---------- 職涯進路課程地圖（依職缺勾選的課程） ---------- */
   var JOB_MAP_TPL = "<!doctype html>\n<html lang=\"zh-Hant\">\n<head>\n<meta charset=\"utf-8\">\n<meta name=\"viewport\" content=\"width=device-width,initial-scale=1\">\n<title>職涯進路課程地圖</title>\n<style>\n:root{\n  --bg:#f6f7f9; --surface:#fff; --raised:#f1f3f6; --ink:#1d2330; --ink2:#4a5263; --muted:#7a8394; --border:#e1e5ec;\n  --a:#2a78d6; --b:#eb6834; --c:#1baf7a; --d:#4a3aa7;\n  --a-bg:rgba(42,120,214,.10); --b-bg:rgba(235,104,52,.10); --c-bg:rgba(27,175,122,.10); --d-bg:rgba(74,58,167,.10);\n  --good:#1a7f4b; --good-bg:#e6f4ec; --warn:#a06600; --warn-bg:#fff4dc; --crit:#c0392b; --crit-bg:#fdecea; --accent:#9a5b13;\n}\n@media (prefers-color-scheme:dark){:root:not([data-theme=\"light\"]){\n  --bg:#14171c; --surface:#1c2027; --raised:#232831; --ink:#e7eaf0; --ink2:#b9c0cc; --muted:#8a93a3; --border:#323844;\n  --a:#3987e5; --b:#d95926; --c:#199e70; --d:#9085e9;\n  --a-bg:rgba(57,135,229,.16); --b-bg:rgba(217,89,38,.18); --c-bg:rgba(25,158,112,.18); --d-bg:rgba(144,133,233,.16);\n  --good:#4cc38a; --good-bg:rgba(76,195,138,.14); --warn:#fab219; --warn-bg:rgba(250,178,25,.14); --crit:#ef6b5e; --crit-bg:rgba(239,107,94,.14); --accent:#e0a453;\n}}\n*{box-sizing:border-box}\nbody{margin:0;background:var(--bg);color:var(--ink);font-family:\"Noto Sans TC\",\"Microsoft JhengHei\",system-ui,sans-serif;font-size:14px;line-height:1.6}\n.wrap{max-width:1180px;margin:0 auto;padding:20px 16px 60px}\n.sample{font-size:12px;color:var(--warn);background:var(--warn-bg);padding:6px 10px;border-radius:8px;margin-bottom:12px}\nh1{font-size:22px;margin:0 0 2px}\n.sub{color:var(--muted);font-size:12.5px}\n.tabs{display:flex;gap:6px;flex-wrap:wrap;margin:16px 0 14px;border-bottom:1px solid var(--border)}\n.tabs button{font:inherit;font-size:13.5px;border:0;background:none;padding:9px 14px;cursor:pointer;color:var(--ink2);border-bottom:3px solid transparent;margin-bottom:-1px}\n.tabs button.on{color:var(--accent);border-bottom-color:var(--accent);font-weight:700}\n.tabs .aud{font-size:11px;color:var(--muted);display:block;font-weight:400}\n.view{display:none}.view.on{display:block}\n.card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:16px;margin-bottom:14px}\n.card h2{font-size:15.5px;margin:0 0 4px}\n.card .hint{font-size:12px;color:var(--muted);margin:0 0 10px}\n.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-bottom:14px}\n.kpi{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:12px 14px}\n.kpi b{display:block;font-size:24px;line-height:1.2}\n.kpi span{font-size:12px;color:var(--muted)}\n.tw{overflow-x:auto}\ntable{border-collapse:collapse;width:100%;font-size:12.5px}\nth,td{border-bottom:1px solid var(--border);padding:7px 8px;text-align:left;vertical-align:top}\nth{background:var(--raised);white-space:nowrap;font-weight:700}\ntd.num,th.num{text-align:center}\ntd.cat{font-weight:700;white-space:nowrap;background:var(--raised)}\ntd.cell{min-width:110px}\n.chip{display:block;border:1px solid var(--border);border-radius:8px;padding:4px 6px;margin:0 0 5px;background:var(--surface);line-height:1.35}\n.chip .nm{font-weight:600}\n.chip small{color:var(--muted);margin-left:3px}\n.chip.noai{background:var(--raised);color:var(--ink2)}\n.chip.none{background:var(--warn-bg);border-color:transparent}\n.chip.ghost{border-style:dashed;color:var(--muted);background:transparent}\n.flag{display:inline-block;font-size:10.5px;padding:0 5px;border-radius:5px;margin-left:3px;font-weight:700}\n.flag.pend{background:var(--a-bg);color:var(--a)}\n.flag.none{background:var(--warn-bg);color:var(--warn)}\n.flag.ghost{background:var(--crit-bg);color:var(--crit)}\n.bars{display:flex;gap:3px;margin-top:3px}\n.bars i{display:block;flex:1;height:5px;border-radius:3px;background:var(--border);position:relative;overflow:hidden}\n.bars i>u{position:absolute;left:0;top:0;bottom:0;text-decoration:none}\n.legend{display:flex;flex-wrap:wrap;gap:12px;font-size:11.5px;color:var(--muted);margin-top:8px;align-items:center}\n.sw{display:inline-block;width:12px;height:12px;border-radius:3px;vertical-align:-2px;margin-right:4px}\n.badge{display:inline-block;padding:1px 8px;border-radius:99px;font-size:11px;font-weight:700;white-space:nowrap}\n.badge.good{background:var(--good-bg);color:var(--good)}.badge.warn{background:var(--warn-bg);color:var(--warn)}.badge.crit{background:var(--crit-bg);color:var(--crit)}\nul.todo{margin:6px 0 0;padding-left:18px;font-size:12.5px}\nul.todo li{margin:3px 0}\n.narr{font-size:14px;line-height:1.9;white-space:pre-wrap}\n.src{font-size:11.5px;color:var(--muted);margin-top:8px}\n.stu{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:12px}\n.yr{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:14px}\n.yr h3{margin:0 0 8px;font-size:16px}\n.yr .lbl{font-size:11.5px;color:var(--muted);font-weight:700;margin:10px 0 4px}\n.sc{border-radius:10px;padding:8px 10px;margin-bottom:6px;background:var(--raised)}\n.sc .nm{font-weight:700}\n.tags{margin-top:4px;display:flex;flex-wrap:wrap;gap:4px}\n.tag{font-size:11px;padding:1px 7px;border-radius:99px;font-weight:600}\n.empty{font-size:12px;color:var(--muted)}\n.btnp{font:inherit;padding:6px 14px;border-radius:8px;border:1px solid var(--border);background:var(--surface);color:var(--ink);cursor:pointer}\n@media print{body{background:#fff}.tabs,.sample,.noprint{display:none!important}.view{display:none!important}.view.print{display:block!important}.card{break-inside:avoid;border-color:#ccc}}\n</style>\n</head>\n<body>\n<div class=\"wrap\">\n  <div class=\"sample\" id=\"srcBanner\"></div>\n  <h1 id=\"ttl\"></h1>\n  <div class=\"sub\" id=\"sub\"></div>\n  <div class=\"tabs\">\n    <button data-v=\"v1\" class=\"on\">學系自我檢視<span class=\"aud\">檢查路徑與缺口</span></button>\n    <button data-v=\"v2\">計畫書／評鑑<span class=\"aud\">正式版面，可列印</span></button>\n    <button data-v=\"v3\">學生選課<span class=\"aud\">職涯修課路徑</span></button>\n  </div>\n  <div class=\"view on\" id=\"v1\"></div>\n  <div class=\"view\" id=\"v2\"></div>\n  <div class=\"view\" id=\"v3\"></div>\n</div>\n<script>\nvar J = __DATA__;\nvar SNAP = J.snap;\ndocument.title = J.dept + '｜' + J.job + '｜職涯進路課程地圖';\ndocument.getElementById('srcBanner').textContent = '職業與課程對應：學系於課程盤點工具「產業對接」設定；課程位置：' + J.entry + ' 學年度入學四年課程計畫表（CE0901）；AI 能力：課程盤點工具「科目標註」（' + J.snap + '）。';\nvar DIMS = [\n  {id:'A', name:'運用 AI 學習的能力', stu:'用 AI 幫助自己學習'},\n  {id:'B', name:'負責任使用 AI 的能力', stu:'AI 倫理、法規與資安'},\n  {id:'C', name:'運用 AI 解決問題的能力', stu:'用 AI 分析與解決專業問題'},\n  {id:'D', name:'AI 無法取代的能力', stu:'判斷力、同理心與創意'}\n];\nvar INDS = [['A-1','A','理解AI工具以提升專業學習成效'],['A-2','A','建立AI賦能自主學習與終身學習能力'],\n  ['B-1','B','具備專業領域之AI倫理與法規素養'],['B-2','B','具備AI資安與風險意識'],['B-3','B','具備價值判斷與當責能力'],\n  ['C-1','C','運用AI分析與解決問題的能力'],['C-2','C','強化邏輯思維及跨領域整合能力'],['C-3','C','專業導向的人機協作策劃與流程優化能力'],\n  ['D-1','D','善用AI提升判斷與決策力'],['D-2','D','AI協作中的同理心與職場互動能力'],['D-3','D','對真實世界的洞察與創意整合能力']];\nvar CATL = {'校必':'校訂必修','院必':'院訂必修','系必':'系訂必修','系選':'系訂選修'};\nfunction esc(s){ return String(s == null ? '' : s).replace(/[&<>\"]/g, function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','\"':'&quot;'}[c]; }); }\nfunction dv(id){ return 'var(--' + id.toLowerCase() + ')'; }\nfunction dbg(id){ return 'var(--' + id.toLowerCase() + '-bg)'; }\nfunction isReq(s){ return s.cat !== '系選'; }\nfunction dimMax(s, d){ return s.r ? Math.max.apply(null, INDS.map(function(x, i){ return x[1] === d ? s.r[i] : 0; })) : 0; }\nfunction ai3(s){ return s.ai === '是' && s.r && Math.max.apply(null, s.r) >= 3; }\n\n/* ---------- 計算（數字一律由此計算） ---------- */\nvar P = J.path;\nvar K = {\n  n:P.length, req:P.filter(isReq).length, ele:P.filter(function(s){ return !isReq(s); }).length,\n  reqCr:P.filter(isReq).reduce(function(a, s){ return a + s.credits; }, 0),\n  eleCr:P.filter(function(s){ return !isReq(s); }).reduce(function(a, s){ return a + s.credits; }, 0),\n  ai3:P.filter(ai3).length, noai:P.filter(function(s){ return s.ai === '否'; }).length,\n  untag:P.filter(function(s){ return s.st === '未標註'; }), pend:P.filter(function(s){ return s.st === '沿用待確認' || s.st === '結果不一致'; })\n};\nvar years = {}; P.forEach(function(s){ years[s.grade] = 1; });\nvar emptyYears = [1,2,3,4].filter(function(g){ return !years[g]; });\nvar indRows = INDS.map(function(x, i){\n  var sup = P.filter(function(s){ return s.ai === '是' && s.r && s.r[i] >= 3; });\n  var req = sup.filter(isReq), ele = sup.filter(function(s){ return !isReq(s); });\n  var lv = req.length >= 2 ? {c:'good', t:'必修已有支撐'} : (req.length === 1 ? {c:'warn', t:'必修僅 1 門'} : (ele.length ? {c:'warn', t:'僅靠選修'} : {c:'crit', t:'未涵蓋'}));\n  return {code:x[0], dim:x[1], title:x[2], sup:sup, req:req, ele:ele, lv:lv};\n});\nvar gaps = indRows.filter(function(x){ return x.lv.c === 'crit'; });\ndocument.getElementById('ttl').textContent = J.dept + '｜' + J.job + '　職涯進路課程地圖';\ndocument.getElementById('sub').textContent = J.entry + ' 學年度入學適用・路徑科目 ' + K.n + ' 門（必修 ' + K.reqCr + ' 學分、選修 ' + K.eleCr + ' 學分）・資料日期 ' + SNAP;\n\nfunction chip(s, ghost){\n  var cls = ghost ? ' ghost' : (s.ai === '否' ? ' noai' : (s.st === '未標註' ? ' none' : ''));\n  var flag = ghost ? '<span class=\"flag ghost\">未列入此職業</span>' : (s.st === '未標註' ? '<span class=\"flag none\">未標註</span>' : ((s.st === '沿用待確認' || s.st === '結果不一致') ? '<span class=\"flag pend\">待確認</span>' : ''));\n  var bars = (s.ai === '是' && s.r) ? '<div class=\"bars\" title=\"A ' + dimMax(s,'A') + '・B ' + dimMax(s,'B') + '・C ' + dimMax(s,'C') + '・D ' + dimMax(s,'D') + '\">' +\n    DIMS.map(function(d){ return '<i><u style=\"width:' + (dimMax(s, d.id) / 5 * 100) + '%;background:' + dv(d.id) + '\"></u></i>'; }).join('') + '</div>' : '';\n  return '<span class=\"chip' + cls + '\" title=\"' + esc(s.abbr + '／' + s.code + '｜' + CATL[s.cat]) + '\"><span class=\"nm\">' + esc(s.name) + '</span><small>' + s.credits + '</small>' + flag + bars + '</span>';\n}\nfunction pathGrid(withRelated){\n  var cols = []; for(var g = 1; g <= 4; g++){ cols.push(g + '上'); cols.push(g + '下'); }\n  var rowsDef = [{k:'req', label:'必修', f:isReq}, {k:'ele', label:'選修', f:function(s){ return !isReq(s); }}];\n  var h = '<div class=\"tw\"><table><thead><tr><th></th>' + cols.map(function(c){ return '<th class=\"num\">' + c.charAt(0) + ' 年級' + c.charAt(1) + '</th>'; }).join('') + '</tr></thead><tbody>';\n  rowsDef.forEach(function(rd){\n    h += '<tr><td class=\"cat\">' + rd.label + '</td>' + cols.map(function(c){\n      var inP = P.filter(function(s){ return rd.f(s) && s.grade + s.sem === c; }).map(function(s){ return chip(s, false); });\n      var inR = withRelated ? J.related.filter(function(s){ return rd.f(s) && s.grade + s.sem === c; }).map(function(s){ return chip(s, true); }) : [];\n      return '<td class=\"cell\">' + inP.concat(inR).join('') + '</td>';\n    }).join('') + '</tr>';\n  });\n  return h + '</tbody></table></div>';\n}\nvar legend = '<div class=\"legend\">' + DIMS.map(function(d){ return '<span><span class=\"sw\" style=\"background:' + dv(d.id) + '\"></span>' + d.id + ' ' + d.name + '</span>'; }).join('') +\n  '<span>色帶＝該面向最高等級（滿格 5 級）；灰底＝不涉及 AI；數字＝學分</span></div>';\n\n/* ---------- 版本一：學系自我檢視 ---------- */\n(function(){\n  var h = '<div class=\"kpis\">' +\n    '<div class=\"kpi\"><b>' + K.n + '</b><span>路徑科目（必修 ' + K.req + '、選修 ' + K.ele + '）</span></div>' +\n    '<div class=\"kpi\"><b>' + K.ai3 + '</b><span>至少一項 AI 指標達 3 級</span></div>' +\n    '<div class=\"kpi\"><b>' + gaps.length + '</b><span>11 項指標中未涵蓋</span></div>' +\n    '<div class=\"kpi\"><b>' + (K.untag.length + K.pend.length) + '</b><span>科目標註未完成（未標註 ' + K.untag.length + '、待確認 ' + K.pend.length + '）</span></div></div>';\n  h += '<div class=\"card\"><h2>四年修課路徑</h2><p class=\"hint\">依學系為「' + esc(J.job) + '」勾選的課程，放在課程計畫表的年級學期位置。</p>' + pathGrid(false) + legend + '</div>';\n  h += '<div class=\"card\"><h2>11 項 AI 指標涵蓋</h2><p class=\"hint\">「支撐」＝科目標註該指標達 3 級以上。</p><div class=\"tw\"><table><thead><tr><th>指標</th><th class=\"num\">必修</th><th class=\"num\">選修</th><th>判斷</th><th>支撐科目</th></tr></thead><tbody>' +\n    indRows.map(function(x){\n      return '<tr><td><b style=\"color:' + dv(x.dim) + '\">' + x.code + '</b> ' + esc(x.title) + '</td><td class=\"num\">' + x.req.length + '</td><td class=\"num\">' + x.ele.length + '</td>' +\n        '<td><span class=\"badge ' + x.lv.c + '\">' + x.lv.t + '</span></td><td>' + (x.sup.map(function(s){ return isReq(s) ? '<b>' + esc(s.name) + '</b>' : esc(s.name); }).join('、') || '—') + '</td></tr>';\n    }).join('') + '</tbody></table></div><p class=\"hint\" style=\"margin-top:6px\">粗體為必修。</p></div>';\n  var items = [];\n  if(J.notInPlan) items.push('<b>未放入地圖：</b>此職缺勾選的課程中有 ' + J.notInPlan + ' 門不在本系課程計畫表上。');\n  if(emptyYears.length) items.push('<b>路徑空檔：</b>' + emptyYears.map(function(g){ return g + ' 年級'; }).join('、') + '沒有任何對應課程。');\n  if(gaps.length) items.push('<b>AI 能力缺口：</b>' + gaps.map(function(x){ return x.code; }).join('、') + ' 在此路徑中沒有課程達 3 級。');\n  if(K.untag.length) items.push('<b>未標註：</b>' + K.untag.map(function(s){ return esc(s.name); }).join('、') + '。');\n  if(K.pend.length) items.push('<b>沿用待確認：</b>' + K.pend.map(function(s){ return esc(s.name); }).join('、') + '。');\n  h += '<div class=\"card\"><h2>需要確認的項目</h2><ul class=\"todo\">' + items.map(function(x){ return '<li>' + x + '</li>'; }).join('') + '</ul></div>';\n  document.getElementById('v1').innerHTML = h;\n})();\n\n/* ---------- 版本二：計畫書／評鑑 ---------- */\n(function(){\n  var h = '<div class=\"noprint\" style=\"text-align:right;margin-bottom:8px\"><button class=\"btnp\" onclick=\"printV2()\">列印／另存 PDF</button></div>';\n  h += '<div class=\"card\"><h2>一、職涯修課路徑</h2>' + pathGrid(false) + legend + '</div>';\n  h += '<div class=\"card\"><h2>二、AI 能力面向涵蓋</h2><div class=\"tw\"><table><thead><tr><th>能力面向</th><th class=\"num\">指標數</th><th class=\"num\">有課程達 3 級的指標</th><th>達 3 級科目</th></tr></thead><tbody>' +\n    DIMS.map(function(d){\n      var ir = indRows.filter(function(x){ return x.dim === d.id; });\n      var ss = P.filter(function(s){ return s.ai === '是' && dimMax(s, d.id) >= 3; });\n      return '<tr><td style=\"color:' + dv(d.id) + ';font-weight:700\">' + d.id + '　' + d.name + '</td><td class=\"num\">' + ir.length + '</td><td class=\"num\">' + ir.filter(function(x){ return x.sup.length; }).length + '</td>' +\n        '<td>' + (ss.map(function(s){ return esc(s.name); }).join('、') || '—') + '</td></tr>';\n    }).join('') + '</tbody></table></div></div>';\n  var covered = indRows.filter(function(x){ return x.sup.length; }).length;\n  var txt = '本系「' + J.job + '」職涯路徑依學系設定，共對應 ' + K.n + ' 門課程（必修 ' + K.req + ' 門 ' + K.reqCr + ' 學分、選修 ' + K.ele + ' 門 ' + K.eleCr + ' 學分），' +\n    '其中 ' + K.ai3 + ' 門課程至少一項「未來人才AI能力圖像」指標達中度關聯（3 級）以上。' +\n    '\\n\\n就 11 項指標而言，此路徑已涵蓋 ' + covered + ' 項' + (gaps.length ? '；尚未涵蓋者為：' + gaps.map(function(x){ return x.code + ' ' + x.title; }).join('、') + '。' : '。') +\n    ((K.untag.length || K.pend.length) ? '\\n\\n另有 ' + (K.untag.length + K.pend.length) + ' 門課程之 AI 能力標註尚待學系確認，完成後將更新本路徑之涵蓋情形。' : '');\n  h += '<div class=\"card\"><h2>三、說明（可直接引用）</h2><div class=\"narr\">' + esc(txt) + '</div>' +\n    '<div class=\"src\">資料來源：學系於課程盤點工具「產業對接」設定之職缺課程、' + J.entry + ' 學年度入學四年課程計畫表（CE0901）、課程盤點工具科目標註；指標依教育部「未來人才AI能力圖像」（115.05.22）。資料日期 ' + SNAP + '。等級為學系／授課教師評估，0–5 級量尺為本校自訂。</div></div>';\n  document.getElementById('v2').innerHTML = h;\n})();\nfunction printV2(){ var v = document.getElementById('v2'); v.classList.add('print'); window.print(); v.classList.remove('print'); }\n\n/* ---------- 版本三：學生選課 ---------- */\n(function(){\n  var h = '<div class=\"card\"><h2>想成為「' + esc(J.job) + '」，可以這樣修課</h2><p class=\"hint\" style=\"margin:0\">依學系規劃的職涯課程，按年級排列。有標示 AI 能力的課程，代表授課內容會培養該項 AI 能力（評估達「中度」以上）。</p>' +\n    '<div class=\"legend\" style=\"margin-top:10px\">' + DIMS.map(function(d){ return '<span><span class=\"sw\" style=\"background:' + dv(d.id) + '\"></span>' + d.stu + '</span>'; }).join('') + '</div></div>';\n  h += '<div class=\"stu\">' + [1,2,3,4].map(function(g){\n    var ss = P.filter(function(s){ return s.grade === g; });\n    function card(s){\n      var tags = ai3(s) ? DIMS.filter(function(d){ return dimMax(s, d.id) >= 3; }) : [];\n      return '<div class=\"sc\"><div class=\"nm\">' + esc(s.name) + ' <span style=\"font-weight:400;color:var(--muted);font-size:12px\">' + s.credits + ' 學分・' + s.sem + '學期</span></div>' +\n        (tags.length ? '<div class=\"tags\">' + tags.map(function(d){ return '<span class=\"tag\" style=\"background:' + dbg(d.id) + ';color:' + dv(d.id) + '\">' + d.stu + '</span>'; }).join('') + '</div>' : '') + '</div>';\n    }\n    var req = ss.filter(isReq), ele = ss.filter(function(s){ return !isReq(s); });\n    return '<div class=\"yr\"><h3>' + ['一','二','三','四'][g-1] + '年級</h3>' +\n      '<div class=\"lbl\">必修</div>' + (req.map(card).join('') || '<div class=\"empty\">—</div>') +\n      '<div class=\"lbl\">建議選修</div>' + (ele.map(card).join('') || '<div class=\"empty\">—</div>') + '</div>';\n  }).join('') + '</div>';\n  h += '<p class=\"src\">依 ' + J.entry + ' 學年度入學課程計畫表與學系職涯課程規劃整理（' + SNAP + '）。未標示 AI 能力的課程，可能尚未完成評估，不代表與 AI 無關；實際開課以每學期課表為準。</p>';\n  document.getElementById('v3').innerHTML = h;\n})();\n\nArray.prototype.forEach.call(document.querySelectorAll('.tabs button'), function(b){\n  b.addEventListener('click', function(){\n    document.querySelectorAll('.tabs button').forEach(function(x){ x.classList.toggle('on', x === b); });\n    document.querySelectorAll('.view').forEach(function(v){ v.classList.toggle('on', v.id === b.dataset.v); });\n  });\n});\n<\/script>\n</body>\n</html>\n";
   function jobMapData(job){
@@ -2682,7 +2911,7 @@
   function indCloudJobs(list){
     return (list || []).map(function(j){
       if(!j.id) j.id = 'j' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
-      return {id:j.id, dir:j.dir || '1', title:j.title || '', desc:j.desc || '', req:j.req || {}, mode:j.mode || 'ind', courses:j.courses || []};
+      return {id:j.id, dir:j.dir || '1', title:j.title || '', desc:j.desc || '', req:j.req || {}, mode:j.mode || 'ind', courses:j.courses || [], need:j.need || {}};
     });
   }
   function setIndSync(state){
@@ -2727,7 +2956,7 @@
       var openById = {};
       (industryState[key] || []).forEach(function(j){ if(j.id) openById[j.id] = !!j.open; });
       industryState[key] = cloud.map(function(j){
-        return {id:j.id, dir:j.dir || '1', title:j.title || '', desc:j.desc || '', req:j.req || {}, mode:j.mode || 'ind', courses:j.courses || [], open:!!openById[j.id]};
+        return {id:j.id, dir:j.dir || '1', title:j.title || '', desc:j.desc || '', req:j.req || {}, mode:j.mode || 'ind', courses:j.courses || [], need:j.need || {}, open:!!openById[j.id]};
       });
       indLastSent[key] = JSON.stringify(indCloudJobs(industryState[key]));
       saveIndustryLocal();
@@ -2784,7 +3013,7 @@
           '<button type="button" class="ind-del" data-act="del">刪除</button>' +
         '</div>' +
         '<textarea data-f="desc" placeholder="工作內容（簡述此職缺如何運用 AI）">'+escapeHtml(job.desc)+'</textarea>' +
-        (job.mode === 'course' ? coursePickHtml(job) :
+        (job.mode === 'course' ? coursePickHtml(job) + needEditorHtml(job) :
           '<div class="ind-chips">' + INDICATORS.map(function(ind){ return chipHtml(job, ind); }).join('') + '</div>' +
           selectedIvHtml(job)) +
         '<div class="ind-ref">參考（初步建議，非教育部官方對應）：「'+dir.short+'」較常相關 '+dir.ref.join('、')+'。滑鼠移到指標上可看完整說明。</div>' +
@@ -2830,6 +3059,25 @@
           renderIndustryGap();
         });
       });
+      Array.prototype.forEach.call(box.querySelectorAll('.need-row .level-btn'), function(b){
+        b.addEventListener('click', function(){
+          if(!job.need) job.need = {};
+          var c = b.dataset.code, lv = parseInt(b.dataset.lv, 10), cur = job.need[c] || {};
+          if(cur.lv === lv) delete cur.lv; else cur.lv = lv;
+          if(cur.lv === undefined && !cur.txt) delete job.need[c]; else job.need[c] = cur;
+          saveIndustry(); renderIndustryJobs(); renderIndustryGap();
+        });
+      });
+      Array.prototype.forEach.call(box.querySelectorAll('.need-row textarea'), function(ta){
+        ta.addEventListener('input', function(){
+          if(!job.need) job.need = {};
+          var c = ta.dataset.code, cur = job.need[c] || {};
+          cur.txt = ta.value;
+          if(cur.lv === undefined && !cur.txt) delete job.need[c]; else job.need[c] = cur;
+          saveIndustry();
+          clearTimeout(ta._gt); ta._gt = setTimeout(renderIndustryGap, 800);
+        });
+      });
       Array.prototype.forEach.call(box.querySelectorAll('.ind-chip'), function(chip){
         chip.addEventListener('click', function(){
           var c = chip.dataset.code, v = job.req[c] || '';
@@ -2841,6 +3089,172 @@
           renderIndustryGap();
         });
       });
+    });
+  }
+  // 依課程職缺：本職業的 AI 能力需求（11 項指標 × 需求程度 0–5 ＋ 具體能力表述）
+  var NEED_LABEL = ['不需要','偶爾用到','有幫助','經常需要','重要能力','核心能力'];
+  function jobNeedSet(job){ return INDICATORS.some(function(i){ var n = (job.need || {})[i.code]; return n && n.lv !== undefined; }); }
+  function needEditorHtml(job){
+    var need = job.need || {};
+    return '<div class="need-wrap"><div class="nh">本職業的 AI 能力需求（每項指標選需求程度 0–5，並寫出這個職業「需要能做到什麼」；同一門課在不同職業的差異寫在這裡）' +
+      '<div class="hint" style="margin:4px 0 0;font-weight:400;">需求程度：0 不需要｜1 偶爾用到｜2 有幫助｜3 經常需要｜4 重要能力｜5 核心能力（本校自訂參考）。再點一次同一個數字可取消。</div></div>' +
+      INDICATORS.map(function(ind){
+        var n = need[ind.code] || {}, col = dimColor(ind.dim);
+        var btns = [0,1,2,3,4,5].map(function(lv){
+          var a = n.lv === lv;
+          return '<button type="button" class="level-btn'+(a?' active':'')+'" data-code="'+ind.code+'" data-lv="'+lv+'"'+(a?' style="background:'+col+';"':'')+' title="'+NEED_LABEL[lv]+'">'+lv+'</button>';
+        }).join('');
+        return '<div class="need-row"><div class="nl"><b style="color:'+col+'">'+ind.code+'</b> '+escapeHtml(CORE_IV[ind.code] ? CORE_IV[ind.code].title : ind.label)+'</div>' +
+          '<div class="level-group">'+btns+'</div>' +
+          '<textarea data-code="'+ind.code+'" placeholder="本職業的具體能力表述（例：能運用 AI 分析差異原因並提出判斷）">'+escapeHtml(n.txt || '')+'</textarea></div>';
+      }).join('') + '</div>';
+  }
+  /* ---------- 下載 Excel：職業 × 課程 × AI 能力（ExcelJS，按下時才載入） ---------- */
+  var EXCELJS_URL = 'https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.4.0/exceljs.min.js';
+  function loadScriptOnce(url){
+    return new Promise(function(res, rej){
+      if(window.ExcelJS) return res();
+      var sc = document.createElement('script'); sc.src = url; sc.onload = function(){ res(); }; sc.onerror = function(){ rej(new Error('load')); };
+      document.head.appendChild(sc);
+    });
+  }
+  var xlsxBusy = false;
+  function exportJobXlsx(){
+    if(xlsxBusy) return;
+    if(!currentDept){ toast('請先選擇系所'); return; }
+    var jobs = industryJobs().filter(function(j){ return j.mode === 'course' && (j.courses || []).length && (j.title || '').trim(); });
+    if(!jobs.length){ toast('本系尚無「依課程」設定且已勾選課程的職缺'); return; }
+    if(planLoadState !== 'ok' || !planTracks().length){ toast('本系尚無課程計畫表資料'); return; }
+    toast('Excel 產生中…'); xlsxBusy = true;
+    loadScriptOnce(EXCELJS_URL).then(function(){ return buildJobXlsx(jobs); })
+      .catch(function(){ toast('Excel 產生失敗，請確認網路後再試'); })
+      .then(function(){ xlsxBusy = false; });
+  }
+  function buildJobXlsx(jobs){
+    var X = window.ExcelJS, wb = new X.Workbook();
+    var DIMC = {A:'FFD9E8FB', B:'FFFBE3D6', C:'FFD5F2E6', D:'FFE2DEF5'};
+    var thin = {style:'thin', color:{argb:'FFBFBFBF'}}, BD = {top:thin, left:thin, bottom:thin, right:thin};
+    var HFILL = {type:'pattern', pattern:'solid', fgColor:{argb:'FF1F4E79'}};
+    var fill = function(c){ return {type:'pattern', pattern:'solid', fgColor:{argb:c}}; };
+    var head = function(cell, v, f, white){ cell.value = v; cell.fill = f || HFILL; cell.font = {bold:true, color:{argb: white === false ? 'FF000000' : 'FFFFFFFF'}};
+      cell.alignment = {horizontal:'center', vertical:'middle', wrapText:true}; cell.border = BD; };
+    var body = function(row){ row.eachCell({includeEmpty:true}, function(c){ c.border = BD; c.alignment = {vertical:'top', wrapText:true}; }); };
+    var ivName = function(i){ return i.code + ' ' + (CORE_IV[i.code] ? CORE_IV[i.code].title : i.label); };
+    var dimFill = function(i){ return fill(DIMC[i.dim]); };
+    var catTxt = function(c){ return JS_CAT[c] || c; };
+    var data = jobs.map(function(j){ return {job:j, J:jobMapData(j)}; });
+    var courses = [], byCode = {};
+    data.forEach(function(d){ d.J.path.forEach(function(x){ if(!byCode[x.code]){ byCode[x.code] = x; courses.push(x); } }); });
+    courses.sort(function(a, b){ return (a.grade * 2 + (a.sem === '下' ? 1 : 0)) - (b.grade * 2 + (b.sem === '下' ? 1 : 0)); });
+    var rate = function(code, ic){ var t = TAGS[code]; if(!t) return ''; if(t.ai === false) return 0; var v = t.ratings[ic]; return v === undefined ? '' : v; };
+    var stm = function(code, ic){ var t = TAGS[code]; return t && t.stmt && t.stmt[ic] ? t.stmt[ic] : ''; };
+    var today = fmtTime(new Date()).slice(0, 10);
+
+    // 說明
+    var w0 = wb.addWorksheet('說明');
+    w0.getColumn(1).width = 120;
+    [[currentDept + '　職業 × 課程 × 教育部 AI 能力（由課程盤點工具匯出）', {bold:true, size:14}],
+     ['匯出日期：' + today + '　計畫表：' + (planSel.track || '') + ' ' + (planSel.year || '') + ' 學年度入學', null], ['', null],
+     ['職業類別：一列＝一個職業 × 一門課；右側為該課在 11 項指標的關聯度與具體能力表述（取自科目標註）。', null],
+     ['職業能力需求：一列＝一個職業；各指標的需求程度（0–5）與本職業的具體能力表述。', null],
+     ['課程能力對照：一列＝一門課（每門課只評一次）；標註狀態為「已確認／沿用待確認／草稿／未標註」。', null],
+     ['職業能力缺口：課程最高關聯度 < 需求程度 → 缺口（只計入已完成標註的課程）。', null], ['', null],
+     ['資料來源：' + MOE_SOURCE + '大專校院階段（IV）；需求程度 0–5 說明為本校自訂參考。本檔為匯出檔，修改請回到課程盤點工具。', {color:{argb:'FF595959'}}]
+    ].forEach(function(x, i){ var c = w0.getCell(i + 1, 1); c.value = x[0]; if(x[1]) c.font = x[1]; c.alignment = {wrapText:true}; });
+
+    // 職業類別
+    var w1 = wb.addWorksheet('職業類別', {views:[{state:'frozen', xSplit:3, ySplit:1}]});
+    var base1 = [['職業類別',16],['學科簡碼',10],['科目名稱',22],['年級',6],['學期',6],['必選修',8],['學分',6]];
+    base1.forEach(function(b, j){ head(w1.getCell(1, j + 1), b[0]); w1.getColumn(j + 1).width = b[1]; });
+    INDICATORS.forEach(function(i, k){
+      var c = base1.length + 1 + 2 * k;
+      head(w1.getCell(1, c), i.code + '\n關聯度', dimFill(i), false); w1.getColumn(c).width = 7;
+      head(w1.getCell(1, c + 1), ivName(i) + '\n具體能力表述', dimFill(i), false); w1.getColumn(c + 1).width = 30;
+    });
+    w1.getRow(1).height = 48;
+    data.forEach(function(d){
+      d.J.path.forEach(function(x){
+        var v = [d.job.title, x.abbr || x.code, x.name, x.grade, x.sem, catTxt(x.cat), x.credits];
+        INDICATORS.forEach(function(i){ v.push(rate(x.code, i.code), stm(x.code, i.code)); });
+        body(w1.addRow(v));
+      });
+    });
+    w1.autoFilter = {from:{row:1, column:1}, to:{row:1, column:base1.length + 22}};
+
+    // 職業能力需求
+    var w2 = wb.addWorksheet('職業能力需求', {views:[{state:'frozen', xSplit:2, ySplit:2}]});
+    [['職業類別',16],['職業說明',26]].forEach(function(b, j){ w2.mergeCells(1, j + 1, 2, j + 1); head(w2.getCell(1, j + 1), b[0]); w2.getColumn(j + 1).width = b[1]; });
+    INDICATORS.forEach(function(i, k){
+      var c = 3 + 2 * k;
+      w2.mergeCells(1, c, 1, c + 1); head(w2.getCell(1, c), ivName(i), dimFill(i), false);
+      head(w2.getCell(2, c), '需求程度\n(0–5)', dimFill(i), false); head(w2.getCell(2, c + 1), '本職業的具體能力表述', dimFill(i), false);
+      w2.getColumn(c).width = 8; w2.getColumn(c + 1).width = 32;
+    });
+    w2.getRow(1).height = 40; w2.getRow(2).height = 30;
+    data.forEach(function(d){
+      var v = [d.job.title, d.job.desc || ''], nd = d.job.need || {};
+      INDICATORS.forEach(function(i){ var n = nd[i.code] || {}; v.push(n.lv === undefined ? '' : n.lv, n.txt || ''); });
+      body(w2.addRow(v));
+    });
+
+    // 課程能力對照
+    var w3 = wb.addWorksheet('課程能力對照', {views:[{state:'frozen', xSplit:2, ySplit:2}]});
+    var base3 = [['學科簡碼',10],['科目名稱',22],['年級',6],['學期',6],['必選修',8],['標註狀態',12],['出現的職業類別',22]];
+    base3.forEach(function(b, j){ w3.mergeCells(1, j + 1, 2, j + 1); head(w3.getCell(1, j + 1), b[0]); w3.getColumn(j + 1).width = b[1]; });
+    INDICATORS.forEach(function(i, k){
+      var c = base3.length + 1 + 2 * k;
+      w3.mergeCells(1, c, 1, c + 1); head(w3.getCell(1, c), ivName(i), dimFill(i), false);
+      head(w3.getCell(2, c), '關聯度\n(0–5)', dimFill(i), false); head(w3.getCell(2, c + 1), '具體能力表述（學生能做到什麼）', dimFill(i), false);
+      w3.getColumn(c).width = 8; w3.getColumn(c + 1).width = 32;
+    });
+    w3.getRow(1).height = 40; w3.getRow(2).height = 30;
+    courses.forEach(function(x){
+      var inJobs = data.filter(function(d){ return d.J.path.some(function(y){ return y.code === x.code; }); }).map(function(d){ return d.job.title; });
+      var v = [x.abbr || x.code, x.name, x.grade, x.sem, catTxt(x.cat), tagStatusLabel(x.code), inJobs.join('、')];
+      INDICATORS.forEach(function(i){ v.push(rate(x.code, i.code), stm(x.code, i.code)); });
+      body(w3.addRow(v));
+    });
+
+    // 職業能力缺口
+    var w4 = wb.addWorksheet('職業能力缺口', {views:[{state:'frozen', xSplit:1, ySplit:2}]});
+    w4.mergeCells(1, 1, 2, 1); head(w4.getCell(1, 1), '職業類別'); w4.getColumn(1).width = 16;
+    INDICATORS.forEach(function(i, k){
+      var c = 2 + 3 * k;
+      w4.mergeCells(1, c, 1, c + 2); head(w4.getCell(1, c), ivName(i), dimFill(i), false);
+      ['需求','課程最高','判讀'].forEach(function(t, q){ head(w4.getCell(2, c + q), t, dimFill(i), false); w4.getColumn(c + q).width = 8; });
+    });
+    w4.getRow(1).height = 40;
+    data.forEach(function(d){
+      var g = courseJobGap(d.job), v = [d.job.title];
+      g.rows.forEach(function(r){ v.push(r.need.lv === undefined ? '' : r.need.lv, r.maxLv || 0, r.level.label); });
+      var row = w4.addRow(v); body(row);
+      row.eachCell(function(c, col){ if(col > 1){ c.alignment = {horizontal:'center', vertical:'top'}; if(c.value === '缺口'){ c.fill = fill('FFFCE4D6'); c.font = {bold:true, color:{argb:'FFC00000'}}; } } });
+    });
+    w4.addRow([]); w4.addRow(['判讀：有設定需求程度時，課程最高關聯度 < 需求程度 → 缺口；未設定需求時，依「達 3 級課程數」判讀（2 門以上已有支撐、1 門支撐偏弱、0 門未涵蓋）。']);
+
+    // 指標與判斷標準
+    var w5 = wb.addWorksheet('指標與判斷標準');
+    ['構面','指標','大專校院階段（IV）核心能力','說明'].forEach(function(h, j){ head(w5.getCell(1, j + 1), h); });
+    [22, 8, 34, 90].forEach(function(wd, j){ w5.getColumn(j + 1).width = wd; });
+    INDICATORS.forEach(function(i){
+      var d = DIMENSIONS.filter(function(x){ return x.id === i.dim; })[0], iv = CORE_IV[i.code] || {};
+      var row = w5.addRow([d ? d.name : i.dim, i.code, (iv.code || '') + ' ' + (iv.title || i.label), iv.desc || '']); body(row);
+      row.getCell(1).fill = dimFill(i); row.getCell(2).fill = dimFill(i);
+    });
+    w5.addRow([]);
+    w5.addRow(['課程關聯度判斷標準']).getCell(1).font = {bold:true};
+    Array.prototype.slice.call(document.querySelectorAll('.rubric-item'), 0, 6).forEach(function(it){
+      body(w5.addRow([it.querySelector('dt').textContent, '', it.querySelector('dd').textContent]));
+    });
+    w5.addRow([]);
+    w5.addRow(['職業需求程度（本校自訂參考）：' + NEED_LABEL.map(function(t, i){ return i + ' ' + t; }).join('｜')]);
+
+    return wb.xlsx.writeBuffer().then(function(buf){
+      var a = document.createElement('a'), url = URL.createObjectURL(new Blob([buf], {type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'}));
+      a.href = url; a.download = '課程能力對照表_' + currentDept + '_' + today.replace(/\//g, '') + '.xlsx';
+      document.body.appendChild(a); a.click();
+      setTimeout(function(){ a.remove(); URL.revokeObjectURL(url); }, 2000);
+      toast('Excel 已下載');
     });
   }
   function selectedIvHtml(job){
@@ -2860,7 +3274,7 @@
       if(!(job.courses || []).length) return {cls:'muted', text:'尚未勾選課程'};
       var g = courseJobGap(job), c = 0;
       g.rows.forEach(function(r){ if(r.level.cls === 'crit') c++; });
-      return {cls: c ? 'crit' : 'good', text:'選 '+g.courses.length+' 門課・未涵蓋 '+c+' 項'};
+      return {cls: c ? 'crit' : 'good', text:'選 '+g.courses.length+' 門課・'+(g.useNeed ? '缺口 ' : '未涵蓋 ')+c+' 項'};
     }
     if(!Object.keys(job.req || {}).length) return {cls:'muted', text:'尚未勾選指標'};
     var d = industryGapData([job], indCourses())[0];
@@ -2871,7 +3285,7 @@
   function jobIndicatorCells(job){
     var out = {};
     if(job.mode === 'course'){
-      courseJobGap(job).rows.forEach(function(r){ out[r.ind.code] = {cls:r.level.cls, need:''}; });
+      courseJobGap(job).rows.forEach(function(r){ if(r.level.cls === 'na' || r.level.label === '未設需求') return; out[r.ind.code] = {cls:(r.level.cls === 'muted' ? 'crit' : r.level.cls), need:''}; });
     } else {
       industryGapData([job], indCourses())[0].rows.forEach(function(r){
         out[r.ind.code] = {cls:(r.level.cls === 'muted' ? 'crit' : r.level.cls), need:r.need};
@@ -2953,22 +3367,34 @@
   function courseJobGap(job){
     var cs = jobCourses(job);
     var rated = cs.map(function(c){ return {c:c, rec:peekRecord(c.dept, c.id)}; }).filter(function(x){ return x.rec && x.rec.status === 'done'; });
+    var useNeed = jobNeedSet(job);
     var rows = INDICATORS.map(function(ind){
       var sup = rated.filter(function(x){ return (x.rec.ratings[ind.code] || 0) >= 3; })
         .sort(function(a,b){ return (b.rec.ratings[ind.code]||0) - (a.rec.ratings[ind.code]||0); });
       var maxLv = rated.reduce(function(m,x){ return Math.max(m, x.rec.ratings[ind.code] || 0); }, 0);
-      var lv = sup.length >= 2 ? {cls:'good', label:'已有支撐'} : (sup.length === 1 ? {cls:'warn', label:'支撐偏弱'} : {cls:'crit', label:'未涵蓋'});
-      return {ind:ind, sup:sup, maxLv:maxLv, level:lv};
+      var n = (job.need || {})[ind.code] || {};
+      var lv;
+      if(useNeed){
+        if(n.lv === undefined) lv = {cls:'muted', label:'未設需求'};
+        else if(n.lv === 0) lv = {cls:'na', label:'不需要'};
+        else if(!rated.length) lv = {cls:'muted', label:'課程未評'};
+        else lv = maxLv >= n.lv ? {cls:'good', label:'達到需求'} : {cls:'crit', label:'缺口'};
+      } else {
+        lv = sup.length >= 2 ? {cls:'good', label:'已有支撐'} : (sup.length === 1 ? {cls:'warn', label:'支撐偏弱'} : {cls:'crit', label:'未涵蓋'});
+      }
+      var all = rated.filter(function(x){ return (x.rec.ratings[ind.code] || 0) > 0; })
+        .sort(function(a,b){ return (b.rec.ratings[ind.code]||0) - (a.rec.ratings[ind.code]||0); });
+      return {ind:ind, sup:sup, all:all, maxLv:maxLv, need:n, level:lv};
     });
     var st = {done:0, noai:0, other:0};
     cs.forEach(function(c){ var s2 = statusOf(c); if(s2 === 'done') st.done++; else if(s2 === 'no-ai') st.noai++; else st.other++; });
     st.none = jobPlanOnly(job).length;
-    return {job:job, courses:cs, st:st, rows:rows};
+    return {job:job, courses:cs, st:st, rows:rows, useNeed:useNeed};
   }
   function addIndustryJob(dir){
     if(!currentDept){ toast('請先選擇系所'); return; }
     industryJobs().forEach(function(j){ j.open = false; });
-    industryJobs().push({id:'j' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6), dir:dir, title:'', desc:'', req:{}, mode:'ind', courses:[], open:true});
+    industryJobs().push({id:'j' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6), dir:dir, title:'', desc:'', req:{}, mode:'ind', courses:[], need:{}, open:true});
     saveIndustry();
     renderIndustryJobs();
     renderIndustryGap();
@@ -3039,13 +3465,20 @@
     return '<details class="ind-gap-job"><summary>'+escapeHtml(g.job.title || '（未命名職缺）')+'<span class="hint" style="margin-left:8px;font-weight:600;">'+dir.short+'・依課程</span></summary>' +
       '<div class="ind-gap-sum">所選 '+(g.courses.length + (g.st.none || 0))+' 門課（已盤點 '+g.st.done+'、不涉及AI '+g.st.noai+'、未盤點 '+g.st.other+(g.st.none ? '、尚未開課 '+g.st.none : '')+'）；11 項能力：已有支撐 '+cnt.good+'、支撐偏弱 '+cnt.warn+'、未涵蓋 '+cnt.crit+'</div>' +
       (g.st.other ? '<div class="hint">有 '+g.st.other+' 門所選課程尚未完成盤點，結果可能低估實際涵蓋。</div>' : '') +
-      '<div class="table-wrap" style="max-height:none;"><table><thead><tr><th>指標</th><th>最高等級</th><th>達3級課程數</th><th>狀態</th><th>涵蓋課程（等級）</th></tr></thead><tbody>' +
+      (g.useNeed ? '<div class="hint">判讀：課程最高關聯度 &lt; 本職業需求程度 → 缺口（與「課程能力對照表」Excel 相同）。</div>' :
+        '<div class="hint">尚未設定本職業的 AI 能力需求，以下暫依「達 3 級課程數」判讀；展開編輯可設定需求程度。</div>') +
+      '<div class="table-wrap" style="max-height:none;"><table><thead><tr><th>指標</th>' + (g.useNeed ? '<th>需求</th><th style="min-width:180px;">本職業的具體能力表述</th>' : '') +
+        '<th>課程最高</th><th>狀態</th><th>課程（關聯度）：具體能力表述</th></tr></thead><tbody>' +
       g.rows.map(function(r){
-        var names = r.sup.map(function(x){ return escapeHtml(x.c.name)+'（'+x.rec.ratings[r.ind.code]+'）'; }).join('、');
-        return '<tr><td style="white-space:normal;min-width:220px;"><b style="color:'+dimColor(r.ind.dim)+'">'+r.ind.code+'</b> '+escapeHtml(CORE_IV[r.ind.code] ? CORE_IV[r.ind.code].title : r.ind.label)+'</td>' +
-          '<td>'+(r.maxLv || '—')+'</td><td>'+r.sup.length+' 門</td>' +
-          '<td><span class="badge '+r.level.cls+'">'+r.level.label+'</span></td>' +
-          '<td style="white-space:normal;min-width:200px;">'+(names || '—')+'</td></tr>';
+        var names = r.all.map(function(x){
+          var code = String(x.c.code6 || String(x.c.code || '').slice(1, 7)), st = TAGS[code] && TAGS[code].stmt ? TAGS[code].stmt[r.ind.code] : '';
+          return '<div>'+escapeHtml(x.c.name)+'（'+x.rec.ratings[r.ind.code]+'）'+(st ? '<div class="gap-stmt">'+escapeHtml(st)+'</div>' : '')+'</div>';
+        }).join('');
+        return '<tr><td style="white-space:normal;min-width:200px;"><b style="color:'+dimColor(r.ind.dim)+'">'+r.ind.code+'</b> '+escapeHtml(CORE_IV[r.ind.code] ? CORE_IV[r.ind.code].title : r.ind.label)+'</td>' +
+          (g.useNeed ? '<td>'+(r.need.lv !== undefined ? r.need.lv : '—')+'</td><td style="white-space:normal;">'+escapeHtml(r.need.txt || '')+'</td>' : '') +
+          '<td>'+(r.maxLv || '—')+'</td>' +
+          '<td><span class="badge '+(r.level.cls === 'na' ? 'muted' : r.level.cls)+'">'+r.level.label+'</span></td>' +
+          '<td style="white-space:normal;min-width:220px;">'+(names || '—')+'</td></tr>';
       }).join('') + '</tbody></table></div></details>';
   }
   function industryPlanSectionHtml(){
@@ -3733,6 +4166,7 @@
   });
   document.getElementById('addJobDir1').addEventListener('click', function(){ addIndustryJob('1'); });
   document.getElementById('addJobDir2').addEventListener('click', function(){ addIndustryJob('2'); });
+  document.getElementById('jobXlsxBtn').addEventListener('click', function(){ exportJobXlsx(); });
   document.getElementById('teacherChgBtn').addEventListener('click', function(){
     teacherChgOnly = !teacherChgOnly;
     renderCourseTable();
