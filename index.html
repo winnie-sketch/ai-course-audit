@@ -234,6 +234,14 @@
   .level-btn.active{color:#fff;}
   @media (max-width:560px){ .indicator-row{grid-template-columns:1fr;} }
   .indicator-row .stmt-box{grid-column:1/-1;}
+  .login-alert{position:fixed;top:14px;left:50%;transform:translateX(-50%);z-index:9999;width:min(560px,calc(100vw - 32px));
+    background:#fff4dc;color:#5c3b00;border:2px solid #e0a020;border-radius:12px;box-shadow:0 8px 28px rgba(0,0,0,.22);padding:14px 16px;font-size:13.5px;line-height:1.6;display:none;}
+  .login-alert.show{display:block;}
+  .login-alert b{color:#a04a00;}
+  .login-alert .la-btns{display:flex;gap:8px;margin-top:10px;flex-wrap:wrap;}
+  .login-alert button{font:inherit;font-size:13px;font-weight:700;border-radius:8px;padding:6px 14px;cursor:pointer;border:1px solid #c88a10;background:#fff;color:#5c3b00;}
+  .login-alert button.go{background:#1f4e79;border-color:#1f4e79;color:#fff;}
+  @media (prefers-color-scheme:dark){ .login-alert{background:#3a2c0c;color:#ffe2a8;border-color:#c88a10;} .login-alert b{color:#ffc266;} .login-alert button{background:#2a2310;color:#ffe2a8;} }
   .stmt-box textarea,.need-row textarea{width:100%;min-height:40px;padding:6px 9px;border:1px solid var(--border);border-radius:8px;font:inherit;font-size:12px;resize:vertical;background:var(--surface);color:var(--ink);box-sizing:border-box;}
   .stmt-box .sl{font-size:11px;color:var(--muted);margin:2px 0 3px;}
   .need-wrap{margin-top:10px;border:1px solid var(--border);border-radius:10px;overflow:hidden;}
@@ -964,7 +972,38 @@
     var b = document.getElementById('g2LoginBtn'); if(b) b.onclick = g2Login;
     var l = document.getElementById('g2LogoutLink'); if(l) l.onclick = function(e){ e.preventDefault(); g2Logout(); };
   }
-  function needLogin(){ toast('請先以 G2 帳號登入才能存檔（左側「以 G2 帳號登入」）'); }
+  // 未登入時的明顯提醒（不只 toast）：說明修改「還沒存到雲端」，並提供登入按鈕
+  var LOGIN_MSG = '新增、修改、刪除都需要<b>先以實踐大學 G2 帳號登入</b>才能進行。未登入時無法編輯，也不會保留任何修改。';
+  function showLoginAlert(kind){
+    var el = document.getElementById('loginAlert');
+    if(!el){
+      el = document.createElement('div'); el.id = 'loginAlert'; el.className = 'login-alert'; el.setAttribute('role', 'alert');
+      el.innerHTML = '<div style="font-weight:800;font-size:14.5px;margin-bottom:4px;">⚠ 請先登入才能編輯（尚未以 G2 帳號登入或登入已逾時）</div><div class="la-msg"></div>' +
+        '<div class="la-btns"><button type="button" class="go">以 G2 帳號登入</button><button type="button" class="later">稍後再說</button></div>';
+      document.body.appendChild(el);
+      el.querySelector('.go').onclick = function(){ g2Login(); };
+      el.querySelector('.later').onclick = function(){ el.classList.remove('show'); };
+    }
+    el.querySelector('.la-msg').innerHTML = LOGIN_MSG;
+    el.classList.add('show');
+  }
+  function hideLoginAlert(){ var el = document.getElementById('loginAlert'); if(el) el.classList.remove('show'); }
+  function needLogin(kind){ showLoginAlert(kind); }
+  // 未登入時：在使用者動手編輯「之前」就攔下（新增、修改、刪除一律需要登入），並跳出提醒
+  var EDIT_SEL = ['#addJobDir1', '#addJobDir2', '#industryJobs .ind-del', '#industryJobs .ind-chip', '#industryJobs .level-btn',
+    '#industryJobs input', '#industryJobs textarea', '#industryJobs select',
+    '#courseDetailCard .option-card', '#courseDetailCard .level-btn', '#courseDetailCard textarea', '#courseDetailCard input', '#courseDetailCard select',
+    '#saveDraftBtn', '#markDoneBtn', '#cpAdd', '#compCard [data-cp="edit"]', '#compCard [data-cp="confirm"]', '#compCard [data-cp="del"]',
+    '#compCard .cp-ed input', '#compCard .cp-ed textarea', '#compCard .cp-ed select'].join(',');
+  function editGate(e){
+    if(authToken()) return;
+    var t = e.target;
+    if(!t || !t.closest || !t.closest(EDIT_SEL) || t.closest('input[type=search]')) return;
+    e.preventDefault(); e.stopPropagation();
+    if(e.type === 'focusin' && t.blur) t.blur();
+    if(e.type !== 'mousedown') showLoginAlert();
+  }
+  ['mousedown', 'click', 'focusin'].forEach(function(ev){ document.addEventListener(ev, editGate, true); });
   // 開課盤點：未登入時先暫存，登入後自動補送
   var RATING_PENDING_KEY = 'aiCourseAudit_pendingRatings_v1';
   function queueRating(payload){
@@ -985,8 +1024,7 @@
   }
   function afterLogin(){
     renderAuthBox();
-    flushRatings();
-    if(typeof indPending !== 'undefined') Object.keys(indPending).forEach(function(k){ pushIndustry(k); });
+    if(authToken()){ hideLoginAlert(); toast('已登入，可以開始編輯'); }
   }
   window.addEventListener('storage', function(e){ if(e.key === AUTH_KEY) afterLogin(); });
   /* 盤點結果讀取（各校院盤點彙整儀表板）：試算表「發布到網路」的公開 CSV 網址，用 fetch 讀取。
@@ -2262,7 +2300,7 @@
     '2': {label:'AI 開展的新型態工作與職缺', short:'AI 帶來的新工作', ref:['C-2','A-2','B-3','D-1','D-2','D-3']}
   };
   var industryState = (function(){
-    try{ return JSON.parse(localStorage.getItem(INDUSTRY_KEY)) || {}; }catch(e){ return {}; }
+    return {};  // 一律以雲端為準，不讀本機暫存
   })();
   /* ---------- 四年課程架構（課程計畫表） ---------- */
   var PLAN_DATA = null, planLoadState = 'idle', planSel = {year:null, track:null};
@@ -2612,7 +2650,7 @@
     document.getElementById('noAiDoneNote').style.display = 'none';
   }
   function saveSubject(code, rec, status){
-    if(!authToken()){ needLogin(); return; }
+    if(!authToken()){ needLogin('tag'); return; }
     var name = document.getElementById('dcName').textContent;
     var ratings = rec.aiInvolved ? rec.ratings : {};
     var stmt = {};
@@ -2654,10 +2692,10 @@
 
   /* 產業職缺：瀏覽器暫存＋雲端（Apps Script「產業職缺」分頁）同步 */
   var IND_PENDING_KEY = 'aiCourseAudit_industry_pending_v1';
-  var indPending = (function(){ try{ return JSON.parse(localStorage.getItem(IND_PENDING_KEY)) || {}; }catch(e){ return {}; } })();
+  var indPending = {};  // 僅記錄本次頁面內尚未送出的修改（不寫入本機）
   var indLastSent = {}, indTimers = {}, indSync = {state:'', at:''};
   function saveIndustryLocal(){
-    try{ localStorage.setItem(INDUSTRY_KEY, JSON.stringify(industryState)); }catch(e){}
+    /* 不再寫入本機暫存 */
   }
   /* ---------- 專業 AI 能力地圖 ---------- */
   var COMP_LEVELS = ['層次一（基礎）', '層次二（進階）', '層次三（整合）'];
@@ -2681,7 +2719,7 @@
     compTimers[dept] = setTimeout(function(){ pushComps(dept); }, 1500);
   }
   function pushComps(dept){
-    if(!authToken()){ setCompSync('尚未以 G2 帳號登入：修改暫存在此頁面，登入後再修改任一欄位即會上傳', true); return; }
+    if(!authToken()){ delete compPending[dept]; setCompSync('尚未以 G2 帳號登入：修改未存到雲端', true); needLogin(); return; }
     setCompSync('雲端儲存中…');
     var items = (COMPS[dept] || []).map(function(it){ return {id:it.id, name:it.name, core:it.core, desc:it.desc, levels:it.levels, moe:it.moe, eight:it.eight, courses:it.courses, status:it.status}; });
     fetch(WEBAPP_URL, {method:'POST', mode:'no-cors', headers:{'Content-Type':'text/plain;charset=utf-8'},
@@ -2786,7 +2824,7 @@
     var dept = currentDept;
     var touch = function(it){ if(String(it.status || '').indexOf('範本') === 0 || it.status === '學系確認') it.status = '學系填寫'; saveComps(dept); };
     document.getElementById('cpAdd').onclick = function(){
-      if(!authToken()){ needLogin(); return; }
+      if(!authToken()){ needLogin('comp'); return; }
       var it = {id:'c' + Date.now().toString(36), name:'', core:'', desc:'', levels:['','',''], moe:[], eight:[], courses:[], status:'學系填寫'};
       list.push(it); compEditing = it.id; saveComps(dept); renderCompCard();
     };
@@ -2795,14 +2833,14 @@
       b.onclick = function(){
         var it = list[Number(b.dataset.i)];
         if(b.dataset.cp === 'edit'){ compEditing = compEditing === it.id ? null : it.id; renderCompCard(); return; }
-        if(!authToken()){ needLogin(); return; }
+        if(!authToken()){ needLogin('comp'); return; }
         if(b.dataset.cp === 'confirm'){ it.status = '學系確認'; saveComps(dept); renderCompCard(); return; }
         if(b.dataset.cp === 'del'){ if(!window.confirm('確定刪除「' + (it.name || '未命名能力') + '」？')) return; list.splice(list.indexOf(it), 1); saveComps(dept); renderCompCard(); }
       };
     });
     Array.prototype.forEach.call(el.querySelectorAll('.cp-ed'), function(box){
       var it = list[Number(box.dataset.i)];
-      var guard = function(){ if(!authToken()){ needLogin(); return false; } return true; };
+      var guard = function(){ if(!authToken()){ needLogin('comp'); return false; } return true; };
       Array.prototype.forEach.call(box.querySelectorAll('[data-cf]'), function(inp){
         inp.addEventListener('input', function(){ if(!guard()) return; it[inp.dataset.cf] = inp.value; touch(it); });
         inp.addEventListener('change', function(){ renderCompCard(); });
@@ -2904,7 +2942,6 @@
     if(!currentDept || !currentYear) return;
     var key = currentYear + '||' + currentDept;
     indPending[key] = 1;
-    try{ localStorage.setItem(IND_PENDING_KEY, JSON.stringify(indPending)); }catch(e){}
     clearTimeout(indTimers[key]);
     indTimers[key] = setTimeout(function(){ pushIndustry(key); }, 1500);
   }
@@ -2919,8 +2956,8 @@
     var el = document.getElementById('industrySync');
     if(!el) return;
     el.textContent = state === 'saving' ? '雲端儲存中…' : (state === 'saved' ? '已存到雲端（' + indSync.at + '）' :
-      (state === 'error' ? '雲端儲存失敗，已暫存在本機，稍後自動重試' : (state === 'loaded' ? '已讀取雲端資料' :
-      (state === 'needlogin' ? '尚未以 G2 帳號登入：修改已暫存在本機，登入後自動上傳雲端' : ''))));
+      (state === 'error' ? '雲端儲存失敗，請重新整理後再試一次' : (state === 'loaded' ? '已讀取雲端資料' :
+      (state === 'needlogin' ? '尚未以 G2 帳號登入：修改未存到雲端，請登入後重新編輯' : ''))));
     el.style.color = (state === 'error' || state === 'needlogin') ? 'var(--critical)' : 'var(--muted)';
   }
   function pushIndustry(key){
@@ -2931,23 +2968,21 @@
     var sig = JSON.stringify(jobs);
     var done = function(){
       delete indPending[key];
-      try{ localStorage.setItem(IND_PENDING_KEY, JSON.stringify(indPending)); }catch(e){}
     };
     if(indLastSent[key] === sig){ done(); return; }
-    if(!authToken()){ setIndSync('needlogin'); return; }
+    if(!authToken()){ delete indPending[key]; setIndSync('needlogin'); needLogin(); return; }
     setIndSync('saving');
     fetch(WEBAPP_URL, {
       method:'POST', mode:'no-cors',
       headers:{'Content-Type':'text/plain;charset=utf-8'},
       body: JSON.stringify({type:'industry', year:parts[0], dept:parts[1], jobs:jobs, auth:authToken()})
     }).then(function(){ indLastSent[key] = sig; done(); setIndSync('saved'); })
-      .catch(function(){ setIndSync('error'); setTimeout(function(){ if(indPending[key]) pushIndustry(key); }, 60000); });
+      .catch(function(){ delete indPending[key]; setIndSync('error'); });
   }
   // 選系時讀雲端；本機若有尚未上傳的修改，以本機為準並補傳
   function loadIndustryFromCloud(year, dept){
     if(!WEBAPP_URL || !year || !dept) return;
     var key = year + '||' + dept;
-    if(indPending[key]){ pushIndustry(key); return; }
     var url = WEBAPP_URL + (WEBAPP_URL.indexOf('?') < 0 ? '?' : '&') + 'type=industry&year=' + encodeURIComponent(year) + '&dept=' + encodeURIComponent(dept);
     var ok = function(d){
       if(!d || typeof d !== 'object' || Array.isArray(d)) return;
@@ -3844,7 +3879,7 @@
       }).filter(Boolean).join(' ／ ')
     };
     var tok = authToken();
-    if(!tok){ queueRating(payload); toast('已存在本機；以 G2 帳號登入後會自動上傳雲端'); return; }
+    if(!tok){ needLogin(); return; }
     payload.auth = tok;
     // text/plain 避免瀏覽器對 Apps Script 網域送出 CORS 預檢請求（Apps Script 不處理 OPTIONS）
     fetch(WEBAPP_URL, {
@@ -4176,7 +4211,6 @@
   initDeptSelect();
   updateSyncPill();
   renderAuthBox();
-  if(readAuth()) flushRatings();
   renderCurrentScope(); // 先用本機/內嵌資料渲染一次，不用等雲端資料讀取成功才有畫面
   // 再讀雲端課程主檔（每日更新）；讀到後更新選單，接著讀盤點結果
   loadCourseMaster(function(){
@@ -4186,7 +4220,6 @@
     loadCloudData(true);
     loadPlanData();
     loadTags();
-    Object.keys(indPending).forEach(function(k){ pushIndustry(k); });
   });
 })();
 </script>
