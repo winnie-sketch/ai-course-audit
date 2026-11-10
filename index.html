@@ -581,10 +581,10 @@
 
       <div id="deptContent" style="display:none;" data-tab="main">
         <div class="dept-tabs" id="deptTabs" role="tablist">
-          <button type="button" data-tab="main" class="active">課程盤點與標註</button>
-          <button type="button" data-tab="comp">專業 AI 能力地圖（一系一能力地圖）</button>
-          <button type="button" data-tab="ind">產業對接：職缺能力需求與課程支撐</button>
-          <button type="button" data-tab="draft">116 課程架構調整（草稿）</button>
+          <button type="button" data-tab="draft">① 116 課程架構調整</button>
+          <button type="button" data-tab="main" class="active">② 課程標註</button>
+          <button type="button" data-tab="ind">③ 產業對接</button>
+          <button type="button" data-tab="comp">④ 專業 AI 能力地圖</button>
         </div>
         <div class="chip-toggle tab-main" id="deptModeSel" style="display:none;">
           <button type="button" data-mode="plan" class="active">四年課程計畫表（科目標註）</button>
@@ -2489,12 +2489,13 @@
     renderDeptTabs();
   }
   // 系所頁分頁：課程盤點與標註／專業 AI 能力地圖（僅計畫表模式）／產業對接
-  var deptTab = 'main';
+  var deptTab = 'main', deptTabWant = 'draft';  // 預設停在 ① 116 課程架構調整（沒有計畫表的單位改停在課程標註）
   function renderDeptTabs(){
     var box = document.getElementById('deptContent');
     if(!box) return;
-    var compOk = isPlanMode();
-    if((deptTab === 'comp' || deptTab === 'draft') && !compOk) deptTab = 'main';
+    var compOk = isPlanMode(), prev = deptTab;
+    deptTab = ((deptTabWant === 'comp' || deptTabWant === 'draft') && !compOk) ? 'main' : deptTabWant;
+    if(prev !== deptTab && deptTab === 'draft') setTimeout(renderDraftCard, 0);
     box.setAttribute('data-tab', deptTab);
     Array.prototype.forEach.call(document.querySelectorAll('#deptTabs button'), function(b){
       b.style.display = ((b.dataset.tab === 'comp' || b.dataset.tab === 'draft') && !compOk) ? 'none' : '';
@@ -2502,7 +2503,7 @@
     });
   }
   function setDeptTab(t){
-    deptTab = t; renderDeptTabs();
+    deptTabWant = t; renderDeptTabs();
     if(t === 'comp' && typeof renderCompCard === 'function') renderCompCard();
     if(t === 'ind'){ renderIndustryJobs(); renderIndustryGap(); }
     if(t === 'draft') renderDraftCard();
@@ -2620,7 +2621,7 @@
     if(isDraftYear(planSel.track, planSel.year)){
       var dr = (DRAFTS[DRAFT_YEAR + '||' + planSel.track] || {}).data || {};
       if(!gradMin && dr.rules && dr.rules.total) gradMin = dr.rules.total;
-      html += '<div class="tag-note" style="margin:0 0 8px;"><b>點任一科目即可標註。</b>標示「待確認」的科目已先帶入去年的標註，看過沒問題按「確認標註」即可；課程如要調整，請到「' + DRAFT_YEAR + ' 課程架構調整」分頁。</div>';
+      html += '<div class="tag-note" style="margin:0 0 8px;"><b>點任一科目即可標註。</b>標示「待確認」的科目已先帶入去年的標註，看過沒問題按「確認標註」即可；課程如要調整，請到「① ' + DRAFT_YEAR + ' 課程架構調整」分頁。</div>';
     }
     html += '<div class="pl-sum">' + escapeHtml(planSel.track) + (gradMin ? '・畢業最低 <b>' + gradMin + '</b> 學分' : '') +
       (tagsLoadState === 'ok' ? '' : '・<span style="color:var(--muted)">科目標註讀取中…</span>') + '</div>';
@@ -2631,12 +2632,12 @@
     PLAN_CAT_ORDER.concat(Object.keys(rows.reduce(function(m, r){ if(PLAN_CAT_ORDER.indexOf(r['類別']) < 0) m[r['類別']] = 1; return m; }, {}))).forEach(function(cat){
       var catRows = rows.filter(function(r){ return r['類別'] === cat; });
       if(!catRows.length) return;
-      html += '<tr><td class="cat">' + escapeHtml(PLAN_CAT_LABEL[cat] || cat) + '</td>' + cols.map(function(col){
+      html += '<tr><td class="cat">' + escapeHtml(PLAN_CAT_LABEL[cat] || cat) + (cat === '校必' ? '<div style="font-weight:400;font-size:11px;color:var(--muted);">免標註</div>' : '') + '</td>' + cols.map(function(col){
         var inCell = catRows.filter(function(r){ return r['年級'] + r['學期'] === col; });
         if(cat !== '系選') inCell.forEach(function(r){ colCredits[col] = (colCredits[col] || 0) + (Number(r['學分']) || 0); });
         return '<td class="cell">' + inCell.map(function(r){
           var code = r['學科代碼'];
-          if(!code) return '<span class="pl-sub tg-gen" title="計畫表未列學科代碼，無法標註">' + escapeHtml(String(r['科目名稱']).replace(/^[A-Z0-9]{5}-/, '')) + '<small>' + r['學分'] + '</small></span>';
+          if(!code || cat === '校必') return '<span class="pl-sub tg-gen" title="校訂必修由通識中心統一標註，學系不需標註">' + escapeHtml(String(r['科目名稱']).replace(/^[A-Z0-9]{5}-/, '')) + '<small>' + r['學分'] + '</small></span>';
           var k = tagKind(code), t = TAGS[code];
           var marks = (r['上下對開'] === 'Y' ? '◎' : '') + (r['共同外系'] === 'Y' ? '＊' : '') + (r['新增'] === 'Y' ? '■' : '') + (r['修改'] === 'Y' ? '▲' : '');
           var flag = k === 'pend' ? '<span class="pl-flag pend">待確認</span>' : (k === 'conf' ? '<span class="pl-flag conf">不一致</span>' : (k === 'draft' ? '<span class="pl-flag draft">草稿</span>' : ''));
@@ -2653,7 +2654,7 @@
     html += '<tr class="tot"><td>必修學分</td>' + cols.map(function(c){ return '<td>' + (colCredits[c] || '') + '</td>'; }).join('') + '</tr>';
     html += '</tbody></table></div>';
     html += '<div class="pl-legend"><span class="pl-sub tg-ok">已確認</span><span class="pl-sub tg-noai">已確認・不涉及 AI</span>' +
-      '<span class="pl-sub tg-pend">沿用待確認</span><span class="pl-sub tg-conf">結果不一致</span><span class="pl-sub tg-none">未標註／草稿</span>' +
+      '<span class="pl-sub tg-pend">沿用待確認</span><span class="pl-sub tg-conf">結果不一致</span><span class="pl-sub tg-none">未標註／草稿</span><span class="pl-sub tg-gen">校訂必修（免標註）</span>' +
       '<span>科目下方 4 條色帶依序為 A／B／C／D 面向的最高等級；數字＝學分；◎ 上下學期對開、＊ 共同／外系開設、■ 新增、▲ 修改。</span></div>';
     var ruleKeys = ['學分數規範','實習學分說明','院訂畢業條件說明','系組訂畢業條件或其他條件說明'];
     var ruleHtml = ruleKeys.filter(function(k){ return String(rule[k] || '').trim(); }).map(function(k){
@@ -2676,6 +2677,7 @@
   function planTrackCodes(){
     var seen = {}, out = [];
     planRows(planSel.track, planSel.year).forEach(function(r){
+      if(r['類別'] === '校必') return;  // 校訂必修由通識中心標註，不列入學系標註
       var c = r['學科代碼']; if(c && !seen[c]){ seen[c] = 1; out.push({code:c, req:r['類別'] !== '系選'}); }
     });
     out.forEach(function(x){ if(planRows(planSel.track, planSel.year).some(function(r){ return r['學科代碼'] === x.code && r['類別'] !== '系選'; })) x.req = true; });
