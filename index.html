@@ -62,6 +62,23 @@
   .sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;}
 
   .app{display:grid;grid-template-columns:264px 1fr;min-height:100vh;}
+  /* ?view=plan|tag|ind|comp|dash：嵌在協作平台不同頁面，只顯示單一功能 */
+  html.view-mode .app{grid-template-columns:1fr;min-height:0;}
+  html.view-mode .sidebar{position:static;height:auto;min-height:0;display:flex;flex-wrap:wrap;align-items:flex-end;gap:10px 18px;padding:12px 18px;overflow:visible;}
+  html.view-mode .sidebar .brand, html.view-mode .legend-box, html.view-mode .sidebar-footer, html.view-mode .term-tag,
+  html.view-mode #syncPill, html.view-mode #syncNote, html.view-mode #courseSrcNote, html.view-mode .sync-box .legend-title{display:none !important;}
+  html.view-mode .sidebar{flex-direction:row !important;}
+  html.view-mode .field-block{display:flex !important;flex-direction:row !important;flex-wrap:wrap;gap:10px 14px;margin:0;padding:0;border:0;flex:1 1 auto;}
+  html.view-mode .field-block > div{width:180px;}
+  html.view-mode .field-block > div:first-child{display:none;}  /* 開課學年度固定，不需選 */
+  html.view-mode .field-block label{margin-bottom:4px;}
+  html.view-mode #authBox .sync-note{display:none;}
+  html.view-mode .sync-box{margin:0 0 0 auto;padding:0;border:0;background:transparent;display:flex;gap:10px;align-items:flex-end;flex-wrap:wrap;}
+  html.view-mode #refreshCloudBtn{width:auto !important;margin:0 !important;}
+  html.view-mode #authBox{margin:0 !important;max-width:280px;}
+  html.view-mode #deptTabs{display:none !important;}
+  .nd-view{display:none;} html.view-mode .nd-view{display:inline;} html.view-mode .nd-full{display:none;}
+  html.view-mode:not(.view-dash) #scopeTabs{display:none !important;}
   @media (max-width:900px){ .app{grid-template-columns:1fr;} .sidebar{position:relative;height:auto;} }
 
   /* ---------- SIDEBAR (fixed dark rail — not theme-swapped) ---------- */
@@ -576,7 +593,7 @@
 
       <div id="scopePanel-dept" style="display:none;">
       <div id="noDeptState" class="empty-state" style="margin-top:8px;">
-        請於左側選單依序選擇學年度 > 校區 > 學院 > 學系，載入該系所課程清單以進行 AI 能力盤點。
+        <span class="nd-full">請於左側選單依序選擇開課學年度 > 校區 > 學院 > 學系，載入該系所課程清單以進行 AI 能力盤點。</span><span class="nd-view">請先在上方選擇校區、學院與系所。</span>
       </div>
 
       <div id="deptContent" style="display:none;" data-tab="main">
@@ -1199,6 +1216,10 @@
   var state = loadState();
   var currentYear = '115';
   var currentDept = '';
+  var VIEW = (function(){ try{ var v = new URLSearchParams(location.search).get('view'); return ['plan','tag','ind','comp','dash'].indexOf(v) >= 0 ? v : ''; }catch(e){ return ''; } })();
+  if(VIEW){ document.documentElement.classList.add('view-mode', 'view-' + VIEW); }
+  var VIEW_TAB = {plan:'draft', tag:'main', ind:'ind', comp:'comp'};
+  var LAST_DEPT_KEY = 'aiCourseAudit_lastDept_v1';  // 各頁共用：記住上次選的系所（只是方便，不存任何填寫資料）
   var currentCourseId = null;
   var reqFilterVal = 'all';
   var teacherChgOnly = false;
@@ -1421,6 +1442,15 @@
         populateColleges(currentYear, '');
         populateDepts(currentYear, '', '');
       }
+      // 嵌入的單一功能頁：自動帶入上次在其他頁選的系所
+      if(VIEW && VIEW !== 'dash'){
+        var last = null; try{ last = JSON.parse(localStorage.getItem(LAST_DEPT_KEY)); }catch(e){}
+        if(last && last.dept && last.year === currentYear && hasOption(campusSel, last.campus)){
+          campusSel.value = last.campus; populateColleges(currentYear, last.campus);
+          if(hasOption(collegeSel, last.college)){ collegeSel.value = last.college; populateDepts(currentYear, last.campus, last.college);
+            if(hasOption(deptSel, last.dept)){ deptSel.value = last.dept; selectDept(last.dept); } }
+        }
+      }
     }
   }
 
@@ -1464,6 +1494,7 @@
     document.getElementById('topbarDept').textContent = dept || '請選擇開課學年度 > 校區 > 學院 > 學系';
     if(!dept){ if(dashboardScope === 'dept') clearTopbarStatus(); return; }
     setScope('dept'); // 選好系所後自動切到「學系儀表板」，直接進入填課程的工作區
+    try{ localStorage.setItem(LAST_DEPT_KEY, JSON.stringify({year:yearSel.value, campus:campusSel.value, college:collegeSel.value, dept:dept})); }catch(e){}
     document.getElementById('courseSearch').value = '';
     reqFilterVal = 'all';
     teacherChgOnly = false;
@@ -2525,7 +2556,7 @@
     renderDeptTabs();
   }
   // 系所頁分頁：課程盤點與標註／專業 AI 能力地圖（僅計畫表模式）／產業對接
-  var deptTab = 'main', deptTabWant = 'draft';  // 預設停在 ① 116 課程架構調整（沒有計畫表的單位改停在課程標註）
+  var deptTab = 'main', deptTabWant = VIEW_TAB[VIEW] || 'draft';  // 預設停在 ① 116 課程架構調整（沒有計畫表的單位改停在課程標註）
   function renderDeptTabs(){
     var box = document.getElementById('deptContent');
     if(!box) return;
@@ -4879,6 +4910,8 @@
   initDeptSelect();
   updateSyncPill();
   renderAuthBox();
+  if(VIEW && VIEW !== 'dash' && !currentDept) setScope('dept');
+  if(VIEW){ [['campusSelect','校區'],['collegeSelect','學院'],['deptSelect','系所']].forEach(function(x){ var l = document.querySelector('label[for="' + x[0] + '"]'); if(l) l.textContent = x[1]; }); }  // 單一功能頁：直接進學系工作區（先請使用者選系所）
   renderCurrentScope(); // 先用本機/內嵌資料渲染一次，不用等雲端資料讀取成功才有畫面
   // 再讀雲端課程主檔（每日更新）；讀到後更新選單，接著讀盤點結果
   loadCourseMaster(function(){
