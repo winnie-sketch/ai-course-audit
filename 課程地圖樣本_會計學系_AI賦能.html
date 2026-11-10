@@ -1,0 +1,295 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>AI 賦能課程地圖（樣本）</title>
+<style>
+:root{
+  --bg:#f6f7f9; --surface:#fff; --raised:#f1f3f6; --ink:#1d2330; --ink2:#4a5263; --muted:#7a8394; --border:#e1e5ec;
+  --a:#2a78d6; --b:#eb6834; --c:#1baf7a; --d:#4a3aa7;
+  --a-bg:rgba(42,120,214,.10); --b-bg:rgba(235,104,52,.10); --c-bg:rgba(27,175,122,.10); --d-bg:rgba(74,58,167,.10);
+  --good:#1a7f4b; --good-bg:#e6f4ec; --warn:#a06600; --warn-bg:#fff4dc; --crit:#c0392b; --crit-bg:#fdecea; --accent:#9a5b13;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#14171c; --surface:#1c2027; --raised:#232831; --ink:#e7eaf0; --ink2:#b9c0cc; --muted:#8a93a3; --border:#323844;
+  --a:#3987e5; --b:#d95926; --c:#199e70; --d:#9085e9;
+  --a-bg:rgba(57,135,229,.16); --b-bg:rgba(217,89,38,.18); --c-bg:rgba(25,158,112,.18); --d-bg:rgba(144,133,233,.16);
+  --good:#4cc38a; --good-bg:rgba(76,195,138,.14); --warn:#fab219; --warn-bg:rgba(250,178,25,.14); --crit:#ef6b5e; --crit-bg:rgba(239,107,94,.14); --accent:#e0a453;
+}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:"Noto Sans TC","Microsoft JhengHei",system-ui,sans-serif;font-size:14px;line-height:1.6}
+.wrap{max-width:1180px;margin:0 auto;padding:20px 16px 60px}
+.sample{font-size:12px;color:var(--warn);background:var(--warn-bg);padding:6px 10px;border-radius:8px;margin-bottom:12px}
+h1{font-size:22px;margin:0 0 2px}
+.sub{color:var(--muted);font-size:12.5px}
+.tabs{display:flex;gap:6px;flex-wrap:wrap;margin:16px 0 14px;border-bottom:1px solid var(--border)}
+.tabs button{font:inherit;font-size:13.5px;border:0;background:none;padding:9px 14px;cursor:pointer;color:var(--ink2);border-bottom:3px solid transparent;margin-bottom:-1px}
+.tabs button.on{color:var(--accent);border-bottom-color:var(--accent);font-weight:700}
+.tabs .aud{font-size:11px;color:var(--muted);display:block;font-weight:400}
+.view{display:none}.view.on{display:block}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:16px;margin-bottom:14px}
+.card h2{font-size:15.5px;margin:0 0 4px}
+.card .hint{font-size:12px;color:var(--muted);margin:0 0 10px}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-bottom:14px}
+.kpi{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:12px 14px}
+.kpi b{display:block;font-size:24px;line-height:1.2}
+.kpi span{font-size:12px;color:var(--muted)}
+.tw{overflow-x:auto}
+table{border-collapse:collapse;width:100%;font-size:12.5px}
+th,td{border-bottom:1px solid var(--border);padding:7px 8px;text-align:left;vertical-align:top}
+th{background:var(--raised);white-space:nowrap;font-weight:700}
+td.num,th.num{text-align:center}
+.grid td.cat{font-weight:700;white-space:nowrap;background:var(--raised)}
+.grid td.cell{min-width:120px}
+.chip{display:block;border:1px solid var(--border);border-radius:8px;padding:4px 6px;margin:0 0 5px;background:var(--surface);line-height:1.35}
+.chip .nm{font-weight:600}
+.chip small{color:var(--muted);margin-left:3px}
+.chip.st-todo{background:var(--warn-bg);border-color:transparent}
+.chip.st-none{border-style:dashed;color:var(--muted)}
+.chip.st-noai{background:var(--raised);color:var(--ink2)}
+.chip.st-gen{color:var(--muted)}
+.bars{display:flex;gap:3px;margin-top:3px}
+.bars i{display:block;flex:1;height:5px;border-radius:3px;background:var(--border);position:relative;overflow:hidden}
+.bars i>u{position:absolute;left:0;top:0;bottom:0;text-decoration:none}
+.flag{display:inline-block;font-size:10.5px;padding:0 5px;border-radius:5px;background:var(--crit-bg);color:var(--crit);margin-left:3px;font-weight:700}
+.legend{display:flex;flex-wrap:wrap;gap:12px;font-size:11.5px;color:var(--muted);margin-top:8px;align-items:center}
+.sw{display:inline-block;width:12px;height:12px;border-radius:3px;vertical-align:-2px;margin-right:4px}
+.badge{display:inline-block;padding:1px 8px;border-radius:99px;font-size:11px;font-weight:700;white-space:nowrap}
+.badge.good{background:var(--good-bg);color:var(--good)}.badge.warn{background:var(--warn-bg);color:var(--warn)}.badge.crit{background:var(--crit-bg);color:var(--crit)}
+ul.todo{margin:6px 0 0;padding-left:18px;font-size:12.5px}
+ul.todo li{margin:2px 0}
+.cols2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+@media (max-width:760px){.cols2{grid-template-columns:1fr}}
+/* 進程圖 */
+.path td{min-width:150px}
+.path td.dim{font-weight:700;white-space:nowrap;min-width:120px}
+.pchip{display:inline-block;margin:0 4px 4px 0;padding:2px 7px;border-radius:6px;font-size:12px}
+.pchip.req{font-weight:700}
+.narr{font-size:14px;line-height:1.9;white-space:pre-wrap}
+.src{font-size:11.5px;color:var(--muted);margin-top:8px}
+/* 學生版 */
+.stu-year{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:12px}
+.yr{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:14px}
+.yr h3{margin:0 0 8px;font-size:16px}
+.yr .lbl{font-size:11.5px;color:var(--muted);font-weight:700;margin:10px 0 4px}
+.sc{border-radius:10px;padding:8px 10px;margin-bottom:6px;background:var(--raised)}
+.sc .nm{font-weight:700}
+.sc .tags{margin-top:4px;display:flex;flex-wrap:wrap;gap:4px}
+.tag{font-size:11px;padding:1px 7px;border-radius:99px;font-weight:600}
+.empty{font-size:12px;color:var(--muted)}
+@media print{
+  body{background:#fff}.tabs,.sample,.noprint{display:none!important}
+  .view{display:none!important}.view.print{display:block!important}
+  .card{break-inside:avoid;border-color:#ccc}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="sample">樣本：資料為 2026/11/09 雲端資料庫快照（115 學年度入學課程計畫表、114–115 開課紀錄、教師盤點結果）。版面確認後再接上產生器。</div>
+  <h1 id="ttl">會計學系 AI 賦能課程地圖</h1>
+  <div class="sub" id="sub"></div>
+  <div class="tabs">
+    <button data-v="v1" class="on">學系自我檢視<span class="aud">找出缺口、決定調整</span></button>
+    <button data-v="v2">計畫書／評鑑<span class="aud">正式版面，可列印</span></button>
+    <button data-v="v3">學生選課<span class="aud">四年 AI 學習路徑</span></button>
+  </div>
+  <div class="view on" id="v1"></div>
+  <div class="view" id="v2"></div>
+  <div class="view" id="v3"></div>
+</div>
+<script>
+var DATA = {"rows": [{"類別": "校必", "年級": 1, "學期": "上", "科目名稱": "體育興趣選項", "學分": 2, "學科代碼": "", "上下對開": "", "共同外系": ""}, {"類別": "校必", "年級": 1, "學期": "上", "科目名稱": "主題式國文", "學分": 2, "學科代碼": "", "上下對開": "", "共同外系": ""}, {"類別": "校必", "年級": 1, "學期": "上", "科目名稱": "全校性英語文", "學分": 2, "學科代碼": "", "上下對開": "", "共同外系": ""}, {"類別": "校必", "年級": 2, "學期": "上", "科目名稱": "全校性英語文", "學分": 2, "學科代碼": "", "上下對開": "", "共同外系": ""}, {"類別": "校必", "年級": 2, "學期": "上", "科目名稱": "家庭科學", "學分": 1, "學科代碼": "9721K1", "上下對開": "", "共同外系": "Y"}, {"類別": "校必", "年級": 3, "學期": "上", "科目名稱": "生活藝術", "學分": 1, "學科代碼": "9721J1", "上下對開": "", "共同外系": "Y"}, {"類別": "校必", "年級": 1, "學期": "下", "科目名稱": "體育興趣選項", "學分": 2, "學科代碼": "", "上下對開": "", "共同外系": ""}, {"類別": "校必", "年級": 1, "學期": "下", "科目名稱": "主題式國文", "學分": 2, "學科代碼": "", "上下對開": "", "共同外系": ""}, {"類別": "校必", "年級": 1, "學期": "下", "科目名稱": "全校性英語文", "學分": 2, "學科代碼": "", "上下對開": "", "共同外系": ""}, {"類別": "校必", "年級": 2, "學期": "下", "科目名稱": "全校性英語文", "學分": 2, "學科代碼": "", "上下對開": "", "共同外系": ""}, {"類別": "院必", "年級": 1, "學期": "上", "科目名稱": "初級會計學(一)", "學分": 3, "學科代碼": "2111H1", "上下對開": "", "共同外系": ""}, {"類別": "院必", "年級": 1, "學期": "上", "科目名稱": "經濟學（一）", "學分": 3, "學科代碼": "2111R1", "上下對開": "", "共同外系": ""}, {"類別": "院必", "年級": 2, "學期": "上", "科目名稱": "統計學（一）", "學分": 3, "學科代碼": "2121G1", "上下對開": "", "共同外系": ""}, {"類別": "院必", "年級": 3, "學期": "上", "科目名稱": "專業英文(一)", "學分": 2, "學科代碼": "2131X1", "上下對開": "", "共同外系": ""}, {"類別": "院必", "年級": 1, "學期": "下", "科目名稱": "商事法", "學分": 2, "學科代碼": "2111A1", "上下對開": "", "共同外系": ""}, {"類別": "院必", "年級": 1, "學期": "下", "科目名稱": "管理學", "學分": 3, "學科代碼": "2111B1", "上下對開": "", "共同外系": ""}, {"類別": "院必", "年級": 1, "學期": "下", "科目名稱": "初級會計學(二)", "學分": 3, "學科代碼": "2111J1", "上下對開": "", "共同外系": ""}, {"類別": "院必", "年級": 2, "學期": "下", "科目名稱": "統計學（二）", "學分": 3, "學科代碼": "2121H1", "上下對開": "", "共同外系": ""}, {"類別": "院必", "年級": 3, "學期": "下", "科目名稱": "企業倫理", "學分": 2, "學科代碼": "2131Y1", "上下對開": "", "共同外系": ""}, {"類別": "院必", "年級": 3, "學期": "下", "科目名稱": "專業英文(二)", "學分": 2, "學科代碼": "2132A1", "上下對開": "", "共同外系": ""}, {"類別": "系必", "年級": 2, "學期": "上", "科目名稱": "租稅法", "學分": 3, "學科代碼": "2121A1", "上下對開": "", "共同外系": ""}, {"類別": "系必", "年級": 2, "學期": "上", "科目名稱": "中級會計學(一)", "學分": 4, "學科代碼": "2121P1", "上下對開": "", "共同外系": ""}, {"類別": "系必", "年級": 2, "學期": "上", "科目名稱": "成本及管理會計學(一)", "學分": 3, "學科代碼": "2121Z1", "上下對開": "", "共同外系": ""}, {"類別": "系必", "年級": 3, "學期": "上", "科目名稱": "高等會計學(一)", "學分": 3, "學科代碼": "2131J1", "上下對開": "", "共同外系": ""}, {"類別": "系必", "年級": 3, "學期": "上", "科目名稱": "中級會計學專題研討(一)", "學分": 2, "學科代碼": "2131S1", "上下對開": "", "共同外系": ""}, {"類別": "系必", "年級": 4, "學期": "上", "科目名稱": "會審專題研究", "學分": 3, "學科代碼": "2141Z1", "上下對開": "", "共同外系": ""}, {"類別": "系必", "年級": 2, "學期": "下", "科目名稱": "商業會計法", "學分": 3, "學科代碼": "2121L1", "上下對開": "", "共同外系": ""}, {"類別": "系必", "年級": 2, "學期": "下", "科目名稱": "中級會計學(二)", "學分": 4, "學科代碼": "2121Q1", "上下對開": "", "共同外系": ""}, {"類別": "系必", "年級": 2, "學期": "下", "科目名稱": "成本及管理會計學(二)", "學分": 3, "學科代碼": "2122A1", "上下對開": "", "共同外系": ""}, {"類別": "系必", "年級": 3, "學期": "下", "科目名稱": "中級會計學專題研討(二)", "學分": 2, "學科代碼": "2131T1", "上下對開": "", "共同外系": ""}, {"類別": "系選", "年級": 1, "學期": "上", "科目名稱": "民法", "學分": 2, "學科代碼": "2111D1", "上下對開": "", "共同外系": ""}, {"類別": "系選", "年級": 1, "學期": "上", "科目名稱": "初級會計學習作(一)", "學分": 2, "學科代碼": "2111K1", "上下對開": "", "共同外系": ""}, {"類別": "系選", "年級": 2, "學期": "上", "科目名稱": "政府會計", "學分": 3, "學科代碼": "2121D1", "上下對開": "", "共同外系": ""}, {"類別": "系選", "年級": 2, "學期": "上", "科目名稱": "公司法實務", "學分": 2, "學科代碼": "2121J1", "上下對開": "", "共同外系": ""}, {"類別": "系選", "年級": 2, "學期": "上", "科目名稱": "中級會計學習作(一)", "學分": 1, "學科代碼": "2122E1", "上下對開": "", "共同外系": ""}, {"類別": "系選", "年級": 3, "學期": "上", "科目名稱": "稅務會計", "學分": 3, "學科代碼": "2131H1", "上下對開": "", "共同外系": ""}, {"類別": "系選", "年級": 3, "學期": "上", "科目名稱": "審計學(一)", "學分": 3, "學科代碼": "2131L1", "上下對開": "", "共同外系": ""}, {"類別": "系選", "年級": 3, "學期": "上", "科目名稱": "營利事業所得稅查核實務", "學分": 2, "學科代碼": "2131N1", "上下對開": "", "共同外系": ""}, {"類別": "系選", "年級": 4, "學期": "上", "科目名稱": "永續報導專題", "學分": 3, "學科代碼": "214051", "上下對開": "", "共同外系": ""}, {"類別": "系選", "年級": 4, "學期": "上", "科目名稱": "財務報表分析", "學分": 2, "學科代碼": "2141B1", "上下對開": "", "共同外系": ""}, {"類別": "系選", "年級": 4, "學期": "上", "科目名稱": "會計資訊系統(一)", "學分": 2, "學科代碼": "2141T1", "上下對開": "", "共同外系": ""}, {"類別": "系選", "年級": 4, "學期": "上", "科目名稱": "(實)審計專業實習(一)", "學分": 4, "學科代碼": "2142A1", "上下對開": "", "共同外系": ""}, {"類別": "系選", "年級": 4, "學期": "上", "科目名稱": "(實)會計專業實習(一)", "學分": 3, "學科代碼": "2142C1", "上下對開": "", "共同外系": ""}, {"類別": "系選", "年級": 1, "學期": "下", "科目名稱": "初級會計學習作(二)", "學分": 2, "學科代碼": "2111L1", "上下對開": "", "共同外系": ""}, {"類別": "系選", "年級": 1, "學期": "下", "科目名稱": "經濟學（二）", "學分": 3, "學科代碼": "2111S1", "上下對開": "", "共同外系": ""}, {"類別": "系選", "年級": 2, "學期": "下", "科目名稱": "非營利組織會計", "學分": 2, "學科代碼": "2121R1", "上下對開": "", "共同外系": ""}, {"類別": "系選", "年級": 2, "學期": "下", "科目名稱": "中級會計學習作(二)", "學分": 1, "學科代碼": "2122F1", "上下對開": "", "共同外系": ""}, {"類別": "系選", "年級": 2, "學期": "下", "科目名稱": "租稅申報實務", "學分": 3, "學科代碼": "2131G1", "上下對開": "", "共同外系": ""}, {"類別": "系選", "年級": 3, "學期": "下", "科目名稱": "會計軟體應用", "學分": 2, "學科代碼": "2121T1", "上下對開": "", "共同外系": ""}, {"類別": "系選", "年級": 3, "學期": "下", "科目名稱": "高等會計學(二)", "學分": 3, "學科代碼": "2131K1", "上下對開": "", "共同外系": ""}, {"類別": "系選", "年級": 3, "學期": "下", "科目名稱": "審計學(二)", "學分": 3, "學科代碼": "2131M1", "上下對開": "", "共同外系": ""}, {"類別": "系選", "年級": 4, "學期": "下", "科目名稱": "(實)特殊行業會計", "學分": 2, "學科代碼": "214011", "上下對開": "", "共同外系": ""}, {"類別": "系選", "年級": 4, "學期": "下", "科目名稱": "氣候相關財務揭露專題", "學分": 3, "學科代碼": "214061", "上下對開": "", "共同外系": ""}, {"類別": "系選", "年級": 4, "學期": "下", "科目名稱": "企業會計準則實務", "學分": 3, "學科代碼": "2141M1", "上下對開": "", "共同外系": ""}, {"類別": "系選", "年級": 4, "學期": "下", "科目名稱": "會計資訊系統(二)", "學分": 2, "學科代碼": "2141U1", "上下對開": "", "共同外系": ""}, {"類別": "系選", "年級": 4, "學期": "下", "科目名稱": "(實)審計專業實習(二)", "學分": 4, "學科代碼": "2142B1", "上下對開": "", "共同外系": ""}, {"類別": "系選", "年級": 4, "學期": "下", "科目名稱": "(實)會計專業實習(二)", "學分": 3, "學科代碼": "2142D1", "上下對開": "", "共同外系": ""}], "rule": "(1) 畢業總學分最低：128學分\n(2) 校訂必修：18學分 , 興趣自選最低：10學分\n(3) 院訂必修：26學分\n(4) 系訂必修：30學分\n(5) 學籍分組必修：0學分\n(6) 選修學分數：44學分(本系專業選修最低：23學分)", "off": {"214011": {"st": "-", "r": null, "terms": ["114下"]}, "214051": {"st": "done", "r": [2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2], "terms": ["115上"]}, "2111H1": {"st": "done", "r": [3, 3, 3, 3, 3, 0, 0, 0, 3, 3, 3], "terms": ["114上", "114暑期", "115上"]}, "2121G1": {"st": "done", "r": [3, 3, 2, 2, 2, 2, 2, 2, 2, 2, 2], "terms": ["114上", "114暑期", "115上"]}, "2121P1": {"st": "done", "r": [3, 3, 2, 2, 2, 2, 2, 2, 0, 0, 0], "terms": ["114上", "114暑期", "115上"]}, "2141Z1": {"st": "done", "r": [5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5], "terms": ["114上", "114暑期", "115上"]}, "2111J1": {"st": "done", "r": [2, 2, 1, 1, 1, 2, 1, 2, 1, 0, 1], "terms": ["114下", "114暑期"]}, "2121H1": {"st": "-", "r": null, "terms": ["114下", "114暑期"]}, "2121Q1": {"st": "-", "r": null, "terms": ["114下", "114暑期"]}, "2111D1": {"st": "done", "r": [1, 1, 3, 3, 3, 1, 1, 1, 0, 0, 0], "terms": ["114上", "115上"]}, "2111K1": {"st": "done", "r": [3, 3, 3, 3, 3, 0, 0, 0, 3, 3, 3], "terms": ["114上", "115上"]}, "2111R1": {"st": "done", "r": [3, 3, 2, 2, 2, 2, 2, 2, 0, 0, 0], "terms": ["114上", "115上"]}, "2121A1": {"st": "done", "r": [2, 2, 2, 2, 2, 0, 0, 0, 2, 2, 2], "terms": ["114上", "115上"]}, "2121D1": {"st": "done", "r": [2, 2, 2, 2, 2, 0, 0, 0, 0, 0, 0], "terms": ["114上", "115上"]}, "2121J1": {"st": "done", "r": [1, 1, 3, 3, 3, 1, 1, 1, 0, 0, 0], "terms": ["114上", "115上"]}, "2121Z1": {"st": "done", "r": [3, 3, 3, 3, 3, 0, 0, 0, 3, 3, 3], "terms": ["114上", "115上"]}, "2122E1": {"st": "done", "r": [3, 3, 2, 2, 2, 2, 2, 2, 0, 0, 0], "terms": ["114上", "115上"]}, "2131H1": {"st": "done", "r": [3, 3, 2, 2, 2, 2, 2, 2, 2, 2, 2], "terms": ["114上", "115上"]}, "2131J1": {"st": "done", "r": [2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2], "terms": ["114上", "115上"]}, "2131L1": {"st": "done", "r": [2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2], "terms": ["114上", "115上"]}, "2131N1": {"st": "done", "r": [2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2], "terms": ["114上", "115上"]}, "2131S1": {"st": "done", "r": [2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2], "terms": ["114上", "115上"]}, "2131X1": {"st": "done", "r": [3, 3, 2, 2, 2, 2, 2, 2, 2, 2, 2], "terms": ["114上", "115上"]}, "2141B1": {"st": "done", "r": [4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4], "terms": ["114上", "115上"]}, "2141T1": {"st": "done", "r": [2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2], "terms": ["114上", "115上"]}, "2142A1": {"st": "done", "r": [3, 3, 2, 2, 2, 3, 3, 3, 2, 2, 2], "terms": ["114上", "115上"]}, "2142C1": {"st": "done", "r": [3, 3, 2, 2, 2, 3, 3, 3, 2, 2, 2], "terms": ["114上", "115上"]}, "9721J1": {"st": "done", "r": [1, 2, 2, 1, 1, 1, 2, 2, 3, 2, 4], "terms": ["114上", "114下", "115上"]}, "9721K1": {"st": "done", "r": [2, 2, 2, 2, 2, 2, 2, 1, 2, 2, 2], "terms": ["114上", "114下", "115上"]}, "2111A1": {"st": "-", "r": null, "terms": ["114下"]}, "2111B1": {"st": "-", "r": null, "terms": ["114下"]}, "2111L1": {"st": "-", "r": null, "terms": ["114下"]}, "2111S1": {"st": "-", "r": null, "terms": ["114下"]}, "2121L1": {"st": "-", "r": null, "terms": ["114下"]}, "2121R1": {"st": "-", "r": null, "terms": ["114下"]}, "2121T1": {"st": "-", "r": null, "terms": ["114下"]}, "2122A1": {"st": "-", "r": null, "terms": ["114下"]}, "2122F1": {"st": "-", "r": null, "terms": ["114下"]}, "2131G1": {"st": "-", "r": null, "terms": ["114下"]}, "2131K1": {"st": "-", "r": null, "terms": ["114下"]}, "2131M1": {"st": "-", "r": null, "terms": ["114下"]}, "2131T1": {"st": "-", "r": null, "terms": ["114下"]}, "2131Y1": {"st": "-", "r": null, "terms": ["114下"]}, "2132A1": {"st": "-", "r": null, "terms": ["114下"]}, "2141M1": {"st": "-", "r": null, "terms": ["114下"]}, "2141U1": {"st": "-", "r": null, "terms": ["114下"]}, "2142B1": {"st": "-", "r": null, "terms": ["114下"]}, "2142D1": {"st": "-", "r": null, "terms": ["114下"]}}};
+var DEPT = '會計學系', ENTRY = '115', SNAP = '2026/11/09';
+var DIMS = [
+  {id:'A', name:'運用 AI 學習的能力', short:'AI 學習', stu:'用 AI 幫助自己學習'},
+  {id:'B', name:'負責任使用 AI 的能力', short:'負責任使用', stu:'AI 倫理、法規與資安'},
+  {id:'C', name:'運用 AI 解決問題的能力', short:'解決問題', stu:'用 AI 分析與解決專業問題'},
+  {id:'D', name:'AI 無法取代的能力', short:'無法取代', stu:'判斷力、同理心與創意'}
+];
+var INDS = [
+  ['A-1','A','理解AI工具以提升專業學習成效'],['A-2','A','建立AI賦能自主學習與終身學習能力'],
+  ['B-1','B','具備專業領域之AI倫理與法規素養'],['B-2','B','具備AI資安與風險意識'],['B-3','B','具備價值判斷與當責能力'],
+  ['C-1','C','運用AI分析與解決問題的能力'],['C-2','C','強化邏輯思維及跨領域整合能力'],['C-3','C','專業導向的人機協作策劃與流程優化能力'],
+  ['D-1','D','善用AI提升判斷與決策力'],['D-2','D','AI協作中的同理心與職場互動能力'],['D-3','D','對真實世界的洞察與創意整合能力']
+];
+var CAT_LABEL = {'校必':'校訂必修','院必':'院訂必修','系必':'系訂必修','系選':'系訂選修'};
+var CATS = ['校必','院必','系必','系選'];
+function esc(s){ return String(s == null ? '' : s).replace(/[&<>"]/g, function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]; }); }
+function dv(id){ return 'var(--' + id.toLowerCase() + ')'; }
+function dbg(id){ return 'var(--' + id.toLowerCase() + '-bg)'; }
+
+/* ---------- 計算（數字一律由此計算） ---------- */
+var subj = {}, order = [];
+DATA.rows.forEach(function(r){
+  var code = r['學科代碼'];
+  var id = code || ('名稱:' + r['科目名稱'] + r['年級'] + r['學期']);
+  if(!subj[id]){
+    var o = code ? DATA.off[code] : null;
+    var s = {id:id, code:code, name:r['科目名稱'], credits:Number(r['學分']), cat:r['類別'], req:r['類別'] !== '系選',
+      places:[], st: !code ? 'gen' : (!o ? 'none' : (o.st === 'done' ? 'done' : (o.st === 'no-ai' ? 'noai' : 'todo'))),
+      r: o && o.r ? o.r : null, terms: o ? o.terms : [], shared:r['共同外系'] === 'Y'};
+    if(s.r){
+      s.dim = {};
+      DIMS.forEach(function(d){ s.dim[d.id] = Math.max.apply(null, INDS.map(function(x, i){ return x[1] === d.id ? s.r[i] : 0; })); });
+      s.max = Math.max.apply(null, s.r);
+      s.uniform = s.r.every(function(v){ return v === s.r[0]; }) && s.r[0] >= 2;
+    }
+    subj[id] = s; order.push(id);
+  }
+  subj[id].places.push(r['年級'] + r['學期']);
+});
+var list = order.map(function(id){ return subj[id]; });
+var coded = list.filter(function(s){ return s.code; });
+function lv3(s, i){ return s.st === 'done' && s.r && s.r[i] >= 3; }
+function firstGrade(s){ return Math.min.apply(null, s.places.map(function(p){ return Number(p.charAt(0)); })); }
+var K = {
+  total: coded.length,
+  req: coded.filter(function(s){ return s.req; }).length,
+  done: coded.filter(function(s){ return s.st === 'done'; }).length,
+  todo: coded.filter(function(s){ return s.st === 'todo'; }).length,
+  none: coded.filter(function(s){ return s.st === 'none'; }).length,
+  noai: coded.filter(function(s){ return s.st === 'noai'; }).length,
+  ai3: coded.filter(function(s){ return s.st === 'done' && s.max >= 3; }).length,
+  ai3req: coded.filter(function(s){ return s.req && s.st === 'done' && s.max >= 3; }).length,
+  uniform: coded.filter(function(s){ return s.uniform; })
+};
+var indRows = INDS.map(function(x, i){
+  var sup = coded.filter(function(s){ return lv3(s, i); });
+  var req = sup.filter(function(s){ return s.req; }), ele = sup.filter(function(s){ return !s.req; });
+  var fg = sup.length ? Math.min.apply(null, sup.map(firstGrade)) : null;
+  var lvl = req.length >= 2 ? {c:'good', t:'必修已有支撐'} : (req.length === 1 ? {c:'warn', t:'必修僅 1 門'} : (ele.length ? {c:'warn', t:'僅靠選修'} : {c:'crit', t:'未涵蓋'}));
+  return {code:x[0], dim:x[1], title:x[2], sup:sup, req:req, ele:ele, fg:fg, lvl:lvl};
+});
+var rule = String(DATA.rule || '');
+var gradMin = (rule.match(/畢業總學分最低：(\d+)/) || [])[1];
+document.getElementById('sub').textContent = ENTRY + ' 學年度入學適用・畢業最低 ' + (gradMin || '—') + ' 學分・資料日期 ' + SNAP;
+
+/* ---------- 共用：四年架構表 ---------- */
+function gridHtml(chipFn){
+  var cols = []; for(var g = 1; g <= 4; g++){ cols.push(g + '上'); cols.push(g + '下'); }
+  var h = '<div class="tw"><table class="grid"><thead><tr><th>類別</th>' + cols.map(function(c){ return '<th class="num">' + c.charAt(0) + ' 年級' + c.charAt(1) + '</th>'; }).join('') + '</tr></thead><tbody>';
+  CATS.forEach(function(cat){
+    h += '<tr><td class="cat">' + CAT_LABEL[cat] + '</td>' + cols.map(function(col){
+      var inCell = DATA.rows.filter(function(r){ return r['類別'] === cat && r['年級'] + r['學期'] === col; });
+      return '<td class="cell">' + inCell.map(function(r){
+        var s = subj[r['學科代碼'] || ('名稱:' + r['科目名稱'] + r['年級'] + r['學期'])];
+        return chipFn(s, r);
+      }).join('') + '</td>';
+    }).join('') + '</tr>';
+  });
+  return h + '</tbody></table></div>';
+}
+function barsHtml(s){
+  return '<div class="bars" title="A ' + s.dim.A + '・B ' + s.dim.B + '・C ' + s.dim.C + '・D ' + s.dim.D + '（各面向最高等級）">' + DIMS.map(function(d){
+    return '<i><u style="width:' + (s.dim[d.id] / 5 * 100) + '%;background:' + dv(d.id) + '"></u></i>';
+  }).join('') + '</div>';
+}
+
+/* ---------- 版本一：學系自我檢視 ---------- */
+(function(){
+  var h = '<div class="kpis">' +
+    '<div class="kpi"><b>' + K.total + '</b><span>計畫表科目（必修 ' + K.req + '）</span></div>' +
+    '<div class="kpi"><b>' + K.ai3 + '</b><span>至少一項指標達 3 級的科目（必修 ' + K.ai3req + '）</span></div>' +
+    '<div class="kpi"><b>' + (K.todo + K.none) + '</b><span>計畫表科目待盤點</span></div>' +
+    '<div class="kpi"><b>' + K.uniform.length + '</b><span>11 項指標評分全同（建議確認）</span></div></div>';
+  h += '<div class="card"><h2>四年課程架構 × AI 能力</h2><p class="hint">每門科目下方 4 條色帶依序為 A／B／C／D 面向的最高等級（滿格 5 級）。黃底＝已開課但尚未盤點；虛線＝114–115 學年度尚未開課；灰字＝計畫表未列學科代碼，無法對照。</p>' +
+    gridHtml(function(s, r){
+      if(s.st === 'gen') return '<span class="chip st-gen"><span class="nm">' + esc(s.name) + '</span><small>' + r['學分'] + '</small></span>';
+      var cls = s.st === 'done' ? '' : (s.st === 'todo' ? ' st-todo' : (s.st === 'none' ? ' st-none' : ' st-noai'));
+      return '<span class="chip' + cls + '" title="' + esc(s.code + '｜開課：' + (s.terms.join('、') || '無')) + '"><span class="nm">' + esc((r['上下對開'] === 'Y' ? '◎' : '') + (s.shared ? '＊' : '') + s.name) + '</span><small>' + r['學分'] + '</small>' +
+        (s.uniform ? '<span class="flag">同分</span>' : '') +
+        (s.st === 'done' ? barsHtml(s) : '') + '</span>';
+    }) +
+    '<div class="legend">' + DIMS.map(function(d){ return '<span><span class="sw" style="background:' + dv(d.id) + '"></span>' + d.id + ' ' + d.name + '</span>'; }).join('') + '</div></div>';
+
+  h += '<div class="card"><h2>11 項指標涵蓋情形</h2><p class="hint">「支撐」＝已盤點且該指標達 3 級（中度關聯）以上。學生一定修得到的是必修，因此以必修門數判斷。</p><div class="tw"><table><thead><tr><th>指標</th><th class="num">必修</th><th class="num">選修</th><th class="num">最早年級</th><th>判斷</th><th>支撐科目</th></tr></thead><tbody>' +
+    indRows.map(function(x){
+      return '<tr><td><b style="color:' + dv(x.dim) + '">' + x.code + '</b> ' + esc(x.title) + '</td><td class="num">' + x.req.length + '</td><td class="num">' + x.ele.length + '</td><td class="num">' + (x.fg || '—') + '</td>' +
+        '<td><span class="badge ' + x.lvl.c + '">' + x.lvl.t + '</span></td><td style="min-width:220px">' +
+        (x.sup.map(function(s){ return (s.req ? '<b>' + esc(s.name) + '</b>' : esc(s.name)); }).join('、') || '—') + '</td></tr>';
+    }).join('') + '</tbody></table></div><p class="hint" style="margin-top:6px">粗體為必修。</p></div>';
+
+  // 待盤點：以四年課程計畫表為準（計畫表上有學科代碼、尚未完成盤點的科目），依計畫表年級學期排列
+  var pos = function(s){ var p = s.places.slice().sort()[0]; return Number(p.charAt(0)) * 2 + (p.charAt(1) === '下' ? 1 : 0); };
+  var todo = coded.filter(function(s){ return s.st === 'todo' || s.st === 'none'; })
+    .sort(function(a, b){ return pos(a) - pos(b) || CATS.indexOf(a.cat) - CATS.indexOf(b.cat); });
+  h += '<div>' +
+    '<div class="card"><h2>待盤點科目（' + todo.length + '）</h2><p class="hint">依 ' + ENTRY + ' 學年度入學四年課程計畫表，列出尚未完成 AI 盤點的科目（依計畫表年級學期排列）；完成後地圖會自動更新。</p>' +
+      '<div class="tw"><table><thead><tr><th>計畫表位置</th><th>科目</th><th>類別</th><th class="num">學分</th></tr></thead><tbody>' +
+      todo.map(function(s){
+        return '<tr><td>' + s.places.map(function(p){ return p.charAt(0) + ' 年級' + p.charAt(1); }).join('、') + '</td><td>' + esc(s.name) + '</td><td>' + CAT_LABEL[s.cat] + '</td><td class="num">' + s.credits + '</td></tr>';
+      }).join('') + '</tbody></table></div></div>' +
+    '<div class="card"><h2>需要確認的項目</h2>' +
+      '<p class="hint" style="margin:0 0 4px"><b>11 項指標評分全部相同（' + K.uniform.length + '）</b>：不一定有誤，但建議請授課教師確認是否逐項評估。</p><ul class="todo">' +
+      (K.uniform.map(function(s){ return '<li>' + esc(s.name) + '（全部 ' + s.r[0] + ' 級）</li>'; }).join('') || '<li>無</li>') + '</ul></div></div>';
+  document.getElementById('v1').innerHTML = h;
+})();
+
+/* ---------- 版本二：計畫書／評鑑 ---------- */
+(function(){
+  var h = '<div class="noprint" style="text-align:right;margin-bottom:8px"><button onclick="printV2()" style="font:inherit;padding:6px 14px;border-radius:8px;border:1px solid var(--border);background:var(--surface);color:var(--ink);cursor:pointer">列印／另存 PDF</button></div>';
+  h += '<div class="card"><h2>一、AI 能力進程圖</h2><p class="hint">列出各年級中，對該面向達 3 級（中度關聯）以上的科目；粗體為必修。</p><div class="tw"><table class="path"><thead><tr><th>能力面向</th>' +
+    [1,2,3,4].map(function(g){ return '<th>' + g + ' 年級</th>'; }).join('') + '</tr></thead><tbody>' +
+    DIMS.map(function(d){
+      return '<tr><td class="dim" style="color:' + dv(d.id) + '">' + d.id + '　' + d.name + '</td>' + [1,2,3,4].map(function(g){
+        var ss = coded.filter(function(s){ return s.st === 'done' && s.dim[d.id] >= 3 && s.places.some(function(p){ return Number(p.charAt(0)) === g; }); })
+          .sort(function(a, b){ return (b.req ? 1 : 0) - (a.req ? 1 : 0); });
+        return '<td>' + (ss.map(function(s){ return '<span class="pchip' + (s.req ? ' req' : '') + '" style="background:' + dbg(d.id) + '">' + esc(s.name) + '</span>'; }).join('') || '<span class="empty">—</span>') + '</td>';
+      }).join('') + '</tr>';
+    }).join('') + '</tbody></table></div></div>';
+
+  h += '<div class="card"><h2>二、各面向涵蓋統計</h2><div class="tw"><table><thead><tr><th>能力面向</th><th class="num">指標數</th><th class="num">必修已有支撐的指標</th><th class="num">達 3 級科目（必修／選修）</th></tr></thead><tbody>' +
+    DIMS.map(function(d){
+      var ir = indRows.filter(function(x){ return x.dim === d.id; });
+      var ss = coded.filter(function(s){ return s.st === 'done' && s.dim[d.id] >= 3; });
+      return '<tr><td style="color:' + dv(d.id) + ';font-weight:700">' + d.id + '　' + d.name + '</td><td class="num">' + ir.length + '</td><td class="num">' + ir.filter(function(x){ return x.req.length >= 2; }).length + '</td>' +
+        '<td class="num">' + ss.filter(function(s){ return s.req; }).length + '／' + ss.filter(function(s){ return !s.req; }).length + '</td></tr>';
+    }).join('') + '</tbody></table></div></div>';
+
+  // 說明文字：只用上方計算出的數字
+  var strong = DIMS.map(function(d){ return {d:d, n:coded.filter(function(s){ return s.req && s.st === 'done' && s.dim[d.id] >= 3; }).length}; }).sort(function(a, b){ return b.n - a.n; });
+  var gaps = indRows.filter(function(x){ return x.lvl.c === 'crit'; }), eleOnly = indRows.filter(function(x){ return !x.req.length && x.ele.length; });
+  var txt = '本系依 ' + ENTRY + ' 學年度入學課程計畫表，計畫表科目共 ' + K.total + ' 門（必修 ' + K.req + ' 門），已完成 AI 涉入程度盤點者 ' + K.done + ' 門，其中至少一項「未來人才AI能力圖像」指標達中度關聯（3 級）以上者 ' + K.ai3 + ' 門（必修 ' + K.ai3req + ' 門）。' +
+    '\n\n就能力面向而言，必修課程對「' + strong[0].d.name + '」的支撐最多（' + strong[0].n + ' 門），' +
+    '「' + strong[strong.length - 1].d.name + '」最少（' + strong[strong.length - 1].n + ' 門）。' +
+    (gaps.length ? '目前尚未有課程達 3 級的指標為：' + gaps.map(function(x){ return x.code + ' ' + x.title; }).join('、') + '。' : '11 項指標均已有課程達 3 級以上。') +
+    (eleOnly.length ? '另有 ' + eleOnly.length + ' 項指標僅由選修課程支撐（' + eleOnly.map(function(x){ return x.code; }).join('、') + '），未修讀相關選修之學生可能未能培養該能力。' : '') +
+    '\n\n計畫表尚有 ' + (K.todo + K.none) + ' 門科目待完成盤點，後續將持續更新。';
+  h += '<div class="card"><h2>三、說明（可直接引用）</h2><div class="narr">' + esc(txt) + '</div>' +
+    '<div class="src">資料來源：本校 ' + ENTRY + ' 學年度入學課程計畫表（校務系統 CE0901）、114–115 學年度開課資料、授課教師 AI 涉入程度盤點結果；指標依教育部「未來人才AI能力圖像」（115.05.22）大專校院核心能力。資料日期 ' + SNAP + '。等級為授課教師自評，0–5 級量尺為本校自訂。</div></div>';
+  document.getElementById('v2').innerHTML = h;
+})();
+function printV2(){ var v = document.getElementById('v2'); v.classList.add('print'); window.print(); v.classList.remove('print'); }
+
+/* ---------- 版本三：學生選課 ---------- */
+(function(){
+  var h = '<div class="card"><h2>你的四年 AI 學習路徑</h2><p class="hint" style="margin:0">下面列出各年級<b>明確培養 AI 能力</b>的課程（授課教師評估至少一項 AI 能力達「中度」以上）。必修是每個人都會修到的；想加強某項能力，可以參考建議選修。</p>' +
+    '<div class="legend" style="margin-top:10px">' + DIMS.map(function(d){ return '<span><span class="sw" style="background:' + dv(d.id) + '"></span>' + d.stu + '</span>'; }).join('') + '</div></div>';
+  h += '<div class="stu-year">' + [1,2,3,4].map(function(g){
+    var ss = coded.filter(function(s){ return s.st === 'done' && s.max >= 3 && s.places.some(function(p){ return Number(p.charAt(0)) === g; }); });
+    function card(s){
+      var tags = DIMS.filter(function(d){ return s.dim[d.id] >= 3; });
+      var sem = s.places.filter(function(p){ return Number(p.charAt(0)) === g; }).map(function(p){ return p.charAt(1); });
+      return '<div class="sc"><div class="nm">' + esc(s.name) + ' <span style="font-weight:400;color:var(--muted);font-size:12px">' + s.credits + ' 學分・' + esc(sem.join('/')) + '學期</span></div><div class="tags">' +
+        tags.map(function(d){ return '<span class="tag" style="background:' + dbg(d.id) + ';color:' + dv(d.id) + '">' + d.stu + '</span>'; }).join('') + '</div></div>';
+    }
+    var req = ss.filter(function(s){ return s.req; }), ele = ss.filter(function(s){ return !s.req; });
+    return '<div class="yr"><h3>' + ['一','二','三','四'][g-1] + '年級</h3>' +
+      '<div class="lbl">必修</div>' + (req.map(card).join('') || '<div class="empty">本年級必修暫無標示課程</div>') +
+      '<div class="lbl">建議選修</div>' + (ele.map(card).join('') || '<div class="empty">本年級選修暫無標示課程</div>') + '</div>';
+  }).join('') + '</div>';
+  h += '<p class="src">依 ' + ENTRY + ' 學年度入學課程計畫表與授課教師評估結果整理（' + SNAP + '）。尚未完成評估的課程不會出現在這裡，不代表與 AI 無關；實際開課以每學期課表為準。</p>';
+  document.getElementById('v3').innerHTML = h;
+})();
+
+Array.prototype.forEach.call(document.querySelectorAll('.tabs button'), function(b){
+  b.addEventListener('click', function(){
+    document.querySelectorAll('.tabs button').forEach(function(x){ x.classList.toggle('on', x === b); });
+    document.querySelectorAll('.view').forEach(function(v){ v.classList.toggle('on', v.id === b.dataset.v); });
+  });
+});
+</script>
+</body>
+</html>
