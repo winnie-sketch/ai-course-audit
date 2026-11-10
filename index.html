@@ -1017,12 +1017,25 @@
     if(!m) return false;
     var tok = decodeURIComponent(m[1]), o = decodeAuth(tok);
     if(o){ try{ localStorage.setItem(AUTH_KEY, JSON.stringify({token:tok, email:o.e, exp:o.x})); }catch(e){} }
+    // 從嵌入（Google 協作平台）頁面開啟的登入視窗：把通行證交回原頁面（嵌入頁的瀏覽器儲存與一般分頁分開）
+    if(o && window.opener){ try{ window.opener.postMessage({type:'g2auth', token:tok}, location.origin); }catch(e){} }
     try{ history.replaceState(null, '', location.pathname + location.search); }catch(e){ location.hash = ''; }
     if(window.name === 'g2login'){ try{ window.close(); }catch(e){} }
     return true;
   }
   captureAuthFromHash();
   window.addEventListener('hashchange', function(){ if(captureAuthFromHash()) afterLogin(); });
+  window.addEventListener('message', function(e){
+    if(e.origin !== location.origin || !e.data || e.data.type !== 'g2auth') return;
+    var o = decodeAuth(e.data.token);
+    if(!o) return;
+    try{ localStorage.setItem(AUTH_KEY, JSON.stringify({token:e.data.token, email:o.e, exp:o.x})); }catch(err){}
+    afterLogin();
+  });
+  // 是否嵌在其他網站（例如 Google 協作平台）中
+  var IS_EMBED = (function(){ try{ return window.self !== window.top; }catch(e){ return true; } })();
+  var TOOL_URL = 'https://winnie-sketch.github.io/ai-course-audit/';
+  function openToolTab(){ window.open(TOOL_URL, '_blank'); }
   function g2Login(){
     var url = LOGIN_URL + (LOGIN_URL.indexOf('?') < 0 ? '?' : '&') + 'type=login';
     var w = window.open(url, 'g2login', 'width=560,height=600');
@@ -1035,9 +1048,13 @@
     var a = readAuth();
     el.innerHTML = a
       ? '<div class="sync-note" style="margin:0;">已以 G2 帳號登入：<br><b>' + String(a.email).replace(/[&<>"]/g, '') + '</b>　<a href="#" id="g2LogoutLink">登出</a></div>'
-      : '<button type="button" class="btn-inline" id="g2LoginBtn" style="width:100%;">以 G2 帳號登入（編輯需要）</button>' +
-        '<div class="sync-note" style="margin-top:6px;">查看不需登入；新增或修改資料需以實踐大學 G2 帳號登入。</div>';
-    var b = document.getElementById('g2LoginBtn'); if(b) b.onclick = g2Login;
+      : (IS_EMBED
+        ? '<button type="button" class="btn-inline" id="g2NewTabBtn" style="width:100%;">開新分頁登入編輯</button>' +
+          '<div class="sync-note" style="margin-top:6px;">目前在學校網站內瀏覽，查看不需登入。<b>要新增或修改資料，請按上方按鈕在新分頁開啟本工具</b>，再以實踐大學 G2 帳號登入。<a href="#" id="g2LoginBtn">仍在此頁登入</a></div>'
+        : '<button type="button" class="btn-inline" id="g2LoginBtn" style="width:100%;">以 G2 帳號登入（編輯需要）</button>' +
+          '<div class="sync-note" style="margin-top:6px;">查看不需登入；新增或修改資料需以實踐大學 G2 帳號登入。</div>');
+    var b = document.getElementById('g2LoginBtn'); if(b) b.onclick = function(e){ if(e) e.preventDefault(); g2Login(); };
+    var nt = document.getElementById('g2NewTabBtn'); if(nt) nt.onclick = openToolTab;
     var l = document.getElementById('g2LogoutLink'); if(l) l.onclick = function(e){ e.preventDefault(); g2Logout(); };
   }
   // 未登入時的明顯提醒（不只 toast）：說明修改「還沒存到雲端」，並提供登入按鈕
@@ -1049,7 +1066,8 @@
       el.innerHTML = '<div style="font-weight:800;font-size:14.5px;margin-bottom:4px;">⚠ 請先登入才能編輯（尚未以 G2 帳號登入或登入已逾時）</div><div class="la-msg"></div>' +
         '<div class="la-btns"><button type="button" class="go">以 G2 帳號登入</button><button type="button" class="later">稍後再說</button></div>';
       document.body.appendChild(el);
-      el.querySelector('.go').onclick = function(){ g2Login(); };
+      el.querySelector('.go').onclick = function(){ if(IS_EMBED) openToolTab(); else g2Login(); };
+      if(IS_EMBED) el.querySelector('.go').textContent = '開新分頁登入編輯';
       el.querySelector('.later').onclick = function(){ el.classList.remove('show'); };
     }
     el.querySelector('.la-msg').innerHTML = LOGIN_MSG;
