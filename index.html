@@ -2403,9 +2403,21 @@
   function planYears(track){
     var y = {};
     PLAN_DATA.rows.forEach(function(r){ if(r['系所'] === track) y[r['入學學年度']] = 1; });
+    if(!y[DRAFT_YEAR] && draftRowsFor(track)) y[DRAFT_YEAR] = 1;
     return Object.keys(y).sort().reverse();
   }
+  // 116 草稿（尚無正式計畫表時）轉成計畫表列格式，供科目標註等功能使用
+  function draftRowsFor(track){
+    var d = DRAFTS[DRAFT_YEAR + '||' + track];
+    if(!d || !d.data || !d.data.courses) return null;
+    return d.data.courses.filter(function(c){ return !c.del; }).map(function(c){
+      return {'入學學年度':DRAFT_YEAR, '系所':track, '類別':c.cat, '年級':String(c.grade), '學期':c.sem, '科目名稱':c.name, '學科簡碼':c.abbr || '',
+        '學分':String(c.credits), '半全':c.half || '半', '學科代碼':c.code || '', '上下對開':c.dual ? 'Y' : '', '共同外系':'', '新增':c.orig ? '' : 'Y', '修改':'', _draft:true};
+    });
+  }
+  function isDraftYear(track, year){ return String(year) === DRAFT_YEAR && !PLAN_DATA.rows.some(function(r){ return r['系所'] === track && r['入學學年度'] === DRAFT_YEAR; }); }
   function planRows(track, year){
+    if(isDraftYear(track, year)) return draftRowsFor(track) || [];
     return PLAN_DATA.rows.filter(function(r){ return r['系所'] === track && r['入學學年度'] === year; });
   }
   // 學科代碼（6 碼）＝ 課號第 2–7 碼；建立「學科代碼 → 開課紀錄」索引
@@ -2439,6 +2451,25 @@
   /* ---------- 學系頁模式：四年課程計畫表（科目標註）／依開課課號盤點 ---------- */
   var deptMode = 'plan', currentSubject = null;
   var TAG_FW = 'AI圖像', TAGS = {}, tagsLoadState = 'idle';
+  // 科目標註依學年度保存：TAGS_BY_YEAR[學年度][學科代碼]；TAGS＝目前檢視學年度的標註（該年度沒有時，沿用最近的前一年度，標為「沿用待確認」）
+  var TAG_YEAR_DEFAULT = '115', TAGS_BY_YEAR = {}, tagViewYear = null, planYearPicked = false;
+  function tagYearNow(){ return (isPlanMode() && planSel.year) ? String(planSel.year) : TAG_YEAR_DEFAULT; }
+  function rebuildTagView(year){
+    year = String(year || tagYearNow());
+    var years = Object.keys(TAGS_BY_YEAR).filter(function(y){ return Number(y) <= Number(year); }).sort(function(a, b){ return Number(b) - Number(a); });
+    var V = {};
+    years.forEach(function(y){
+      var T = TAGS_BY_YEAR[y];
+      Object.keys(T).forEach(function(code){
+        if(V[code]) return;
+        if(y === year){ V[code] = T[code]; return; }
+        var t = T[code];
+        V[code] = Object.assign({}, t, {inherit:y, st:(t.st === '草稿' ? '草稿' : '沿用待確認'), src:'沿用 ' + y + ' 學年度標註', srcCode:'', srcTerm:y});
+      });
+    });
+    TAGS = V; tagViewYear = year;
+  }
+  function ensureTagView(){ if(tagViewYear !== tagYearNow()) rebuildTagView(); }
   function isPlanMode(){ return deptMode === 'plan' && planLoadState === 'ok' && planTracks().length > 0; }
   function applyDeptMode(){
     var box = document.getElementById('deptContent');
@@ -2469,6 +2500,7 @@
     if(t === 'comp' && typeof renderCompCard === 'function') renderCompCard();
     if(t === 'ind'){ renderIndustryJobs(); renderIndustryGap(); }
     if(t === 'draft') renderDraftCard();
+    if(t === 'main' && isPlanMode()){ renderPlanCard(); renderPlanRadar(); renderPlanProgress(); }
     var box = document.getElementById('deptTabs');
     if(box && box.getBoundingClientRect().top < 0 && box.scrollIntoView) box.scrollIntoView({block:'start'});
   }
@@ -2478,16 +2510,18 @@
     var ok = function(d){
       if(!d || !d.rows){ tagsLoadState = 'error'; return; }
       var h = d.headers, ix = function(n){ return h.indexOf(n); };
-      var T = {};
+      var T = {}, yi = ix('學年度');
       d.rows.forEach(function(r){
         if(r[ix('框架')] !== TAG_FW) return;
+        var yr = String((yi >= 0 && r[yi]) || TAG_YEAR_DEFAULT);
+        var TY = T[yr] = T[yr] || {};
         var ratings = {};
         INDICATORS.forEach(function(i){ var v = r[ix(i.code)]; if(v !== '' && v != null) ratings[i.code] = Number(v); });
         var ai = r[ix('是否涉及AI')];
-        T[r[ix('學科代碼')]] = {name:r[ix('科目名稱')], ai: ai === '是' ? true : (ai === '否' ? false : null), ratings:ratings,
+        TY[r[ix('學科代碼')]] = {year:yr, name:r[ix('科目名稱')], ai: ai === '是' ? true : (ai === '否' ? false : null), ratings:ratings,
           evidence:parseEvidence(r[ix('佐證說明')]), stmt:parseObj(r[ix('具體能力表述')]), st:r[ix('狀態')], src:r[ix('來源')], srcCode:r[ix('來源課號')], srcTerm:r[ix('來源學年期')], at:r[ix('更新時間')]};
       });
-      TAGS = T; tagsLoadState = 'ok';
+      TAGS_BY_YEAR = T; tagsLoadState = 'ok'; tagViewYear = null; rebuildTagView();
       if(currentDept) renderCurrentScope();
     };
     var fail = function(){ tagsLoadState = 'error'; };
@@ -2556,8 +2590,10 @@
     var tracks = planTracks();
     if(!tracks.length){ el.innerHTML = '<div class="hint">尚未匯入本系的課程計畫表。</div>'; return; }
     if(tracks.indexOf(planSel.track) < 0) planSel.track = tracks[0];
+    tracks.forEach(function(t){ loadDraft(t); });
     var years = planYears(planSel.track);
     if(years.indexOf(planSel.year) < 0) planSel.year = years[0];
+    ensureTagView();
     var rows = planRows(planSel.track, planSel.year);
     var nGrades = rows.reduce(function(m, r){ return Math.max(m, Number(r['年級']) || 0); }, 4);
     var cols = [];
@@ -2572,8 +2608,13 @@
       }).join('') + '</div>';
     }
     html += '<div class="chip-toggle" id="planYearSel">' + years.map(function(y){
-      return '<button data-val="' + y + '" class="' + (y === planSel.year ? 'active' : '') + '">' + y + ' 學年度入學</button>';
+      return '<button data-val="' + y + '" class="' + (y === planSel.year ? 'active' : '') + '">' + y + ' 學年度入學' + (isDraftYear(planSel.track, y) ? '（草稿）' : '') + '</button>';
     }).join('') + '</div></div>';
+    if(isDraftYear(planSel.track, planSel.year)){
+      var dr = (DRAFTS[DRAFT_YEAR + '||' + planSel.track] || {}).data || {};
+      if(!gradMin && dr.rules && dr.rules.total) gradMin = dr.rules.total;
+      html += '<div class="tag-note" style="margin:0 0 8px;">目前檢視 <b>' + DRAFT_YEAR + ' 學年度課程計畫表草稿</b>（尚未正式公告）。在此標註的科目存為 ' + DRAFT_YEAR + ' 學年度；若 ' + DRAFT_BASE + ' 學年度計畫表也有這門課且尚未標註，會同時回填 ' + DRAFT_BASE + '。標示「待確認」者為沿用 ' + DRAFT_BASE + ' 的標註，確認或修改後即存成 ' + DRAFT_YEAR + ' 的版本（' + DRAFT_BASE + ' 不變）。</div>';
+    }
     html += '<div class="pl-sum">' + escapeHtml(planSel.track) + (gradMin ? '・畢業最低 <b>' + gradMin + '</b> 學分' : '') +
       (tagsLoadState === 'ok' ? '' : '・<span style="color:var(--muted)">科目標註讀取中…</span>') + '</div>';
 
@@ -2618,7 +2659,7 @@
       b.addEventListener('click', function(){ planSel.track = b.dataset.val; renderPlanCard(); renderPlanRadar(); renderPlanProgress(); });
     });
     Array.prototype.forEach.call(el.querySelectorAll('#planYearSel button'), function(b){
-      b.addEventListener('click', function(){ planSel.year = b.dataset.val; renderPlanCard(); renderPlanRadar(); renderPlanProgress(); });
+      b.addEventListener('click', function(){ planSel.year = b.dataset.val; planYearPicked = true; rebuildTagView(); renderPlanCard(); renderPlanRadar(); renderPlanProgress(); });
     });
     Array.prototype.forEach.call(el.querySelectorAll('.pl-sub.click'), function(s){
       s.addEventListener('click', function(){ openSubject(s.dataset.code); });
@@ -2699,7 +2740,11 @@
     document.getElementById('dcSyllabus').textContent = off ? ('（取自 ' + off.academicYear + ' ' + off.term + ' 開課 ' + off.code + '）\n' + off.syllabus) : '（尚無開課紀錄可供參考的課程大綱）';
     var note = document.getElementById('dcTeacherChg');
     var k = tagKind(code);
-    if(k === 'pend' || k === 'conf'){
+    if(t && t.inherit){
+      note.className = 'tag-note';
+      note.innerHTML = '此科目在 ' + escapeHtml(tagViewYear) + ' 學年度尚未標註，以下先帶出 <b>' + escapeHtml(t.inherit) + ' 學年度</b>的標註。請確認或修改後按「確認標註」，會存成 ' + escapeHtml(tagViewYear) + ' 學年度的版本（' + escapeHtml(t.inherit) + ' 的標註不變）。';
+      note.style.display = 'block';
+    } else if(k === 'pend' || k === 'conf'){
       note.className = 'tag-note' + (k === 'conf' ? ' conf' : '');
       note.innerHTML = '此科目目前沿用 <b>' + escapeHtml(t.srcTerm) + '</b> 開課 ' + escapeHtml(t.srcCode) + ' 的盤點結果（' + escapeHtml(t.src) + '）。' +
         (k === 'conf' ? '<b>各次盤點結果不同</b>，' : '') + '請確認或修正後按「確認標註」。';
@@ -2741,13 +2786,18 @@
     var ratings = rec.aiInvolved ? rec.ratings : {};
     var stmt = {};
     if(rec.aiInvolved && rec.stmt) INDICATORS.forEach(function(i){ var v = String(rec.stmt[i.code] || '').trim(); if(v && (ratings[i.code] || 0) > 0) stmt[i.code] = v; });
-    TAGS[code] = {name:name, ai:rec.aiInvolved, ratings:Object.assign({}, ratings), evidence:Object.assign({}, rec.aiInvolved ? rec.evidence : {}), stmt:stmt,
+    var year = tagYearNow(), prev = String(Number(year) - 1), backfill = '';
+    if(TAGS_BY_YEAR[prev] && !TAGS_BY_YEAR[prev][code] && planRows(planSel.track, prev).some(function(r){ return r['學科代碼'] === code; })) backfill = prev;
+    else if(!TAGS_BY_YEAR[prev] && planYears(planSel.track).indexOf(prev) >= 0 && planRows(planSel.track, prev).some(function(r){ return r['學科代碼'] === code; })) backfill = prev;
+    TAGS[code] = {year:year, name:name, ai:rec.aiInvolved, ratings:Object.assign({}, ratings), evidence:Object.assign({}, rec.aiInvolved ? rec.evidence : {}), stmt:stmt,
       st:status, src:'學系填寫', srcCode:'', srcTerm:'', at:fmtTime(new Date())};
+    (TAGS_BY_YEAR[year] = TAGS_BY_YEAR[year] || {})[code] = TAGS[code];
+    if(backfill) (TAGS_BY_YEAR[backfill] = TAGS_BY_YEAR[backfill] || {})[code] = Object.assign({}, TAGS[code], {year:backfill, src:'由' + year + '回填'});
     if(WEBAPP_URL){
       fetch(WEBAPP_URL, {method:'POST', mode:'no-cors', headers:{'Content-Type':'text/plain;charset=utf-8'},
-        body: JSON.stringify({type:'tag', fw:TAG_FW, code:code, name:name, aiInvolved:rec.aiInvolved, ratings:ratings,
+        body: JSON.stringify({type:'tag', fw:TAG_FW, code:code, year:year, backfill:backfill, name:name, aiInvolved:rec.aiInvolved, ratings:ratings,
           evidence:serializeEvidence(rec.aiInvolved ? rec.evidence : {}), stmt:stmt, status:status, auth:authToken()})})
-        .then(function(){ toast(status === '已確認' ? '已確認並存到雲端' : '草稿已存到雲端'); })
+        .then(function(){ toast((status === '已確認' ? '已確認並存到雲端' : '草稿已存到雲端') + '（' + year + ' 學年度' + (backfill ? '，並回填 ' + backfill : '') + '）'); })
         .catch(function(){ toast('雲端儲存失敗，請稍後再試'); });
     }
     renderPlanCard(); renderPlanRadar(); renderPlanProgress(); renderIndustryJobs(); renderIndustryGap();
@@ -2795,7 +2845,12 @@
     if(!WEBAPP_URL || draftLoading[key] || DRAFTS[key]) return;
     draftLoading[key] = true;
     var q = 'type=draft&year=' + DRAFT_YEAR + '&dept=' + encodeURIComponent(track);
-    var ok = function(d){ draftLoading[key] = false; var x = d && d[key]; DRAFTS[key] = x && x.data ? {status:x.status, data:x.data, updatedAt:x.updatedAt, editor:x.editor} : {none:true}; renderDraftCard(); };
+    var ok = function(d){ draftLoading[key] = false; var x = d && d[key]; DRAFTS[key] = x && x.data ? {status:x.status, data:x.data, updatedAt:x.updatedAt, editor:x.editor} : {none:true};
+      renderDraftCard();
+      if(x && x.data && currentDept && isPlanMode()){
+        if(!planYearPicked && track === planSel.track && planSel.year === DRAFT_BASE) planSel.year = DRAFT_YEAR;  // 有 116 草稿時，預設在 116 標註
+        renderPlanCard(); renderPlanRadar(); renderPlanProgress();
+      } };
     var fail = function(){ draftLoading[key] = false; DRAFTS[key] = {error:true}; renderDraftCard(); };
     fetch(WEBAPP_URL + (WEBAPP_URL.indexOf('?') < 0 ? '?' : '&') + q, {credentials:'omit'})
       .then(function(r){ return r.text(); }).then(function(t){ ok(JSON.parse(t)); }).catch(function(){ jsonp(q, ok, fail, 30000); });
@@ -2901,7 +2956,9 @@
       var b = document.getElementById('drCreate');
       if(b) b.onclick = function(){
         if(!authToken()){ needLogin(); return; }
-        DRAFTS[key] = {status:'編輯中', data:draftFromBase(track)}; draftUndo = []; draftSave(); renderDraftCard();
+        DRAFTS[key] = {status:'編輯中', data:draftFromBase(track)}; draftUndo = []; draftSave();
+        if(!planYearPicked && track === planSel.track) planSel.year = DRAFT_YEAR;
+        renderDraftCard();
       };
       return;
     }
