@@ -140,6 +140,7 @@
   .dept-tabs button.active{background:var(--surface);color:var(--ink);border-color:var(--border);border-bottom:2px solid var(--surface);}
   #deptContent:not([data-tab="main"]) .tab-main, #deptContent:not([data-tab="comp"]) .tab-comp,
   #deptContent:not([data-tab="ind"]) .tab-ind, #deptContent:not([data-tab="draft"]) .tab-draft{display:none !important;}
+  .pl-ylab{font-size:12px;font-weight:700;color:var(--ink-2);align-self:center;margin-right:-2px;}
   .dr-bar{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:10px;}
   .dr-bar .sp{flex:1;}
   .dr-only{font-size:12.5px;display:inline-flex;gap:4px;align-items:center;cursor:pointer;}
@@ -514,8 +515,8 @@
 
     <div class="field-block">
       <div>
-        <label for="yearSelect">1．學年度</label>
-        <select id="yearSelect"><option value="">請選擇學年度…</option></select>
+        <label for="yearSelect">1．開課學年度</label>
+        <select id="yearSelect"><option value="">請選擇開課學年度…</option></select>
       </div>
       <div>
         <label for="campusSelect">2．校區</label>
@@ -557,7 +558,7 @@
     <div class="topbar">
       <div>
         <div class="eyebrow">系所課程盤點</div>
-        <h2 id="topbarDept">請選擇學年度 > 校區 > 學院 > 學系</h2>
+        <h2 id="topbarDept">請選擇開課學年度 > 校區 > 學院 > 學系</h2>
       </div>
       <span class="status-pill" id="topbarStatus"><span class="status-dot" style="background:var(--muted)"></span>—</span>
     </div>
@@ -1420,7 +1421,7 @@
     document.getElementById('courseDetailCard').style.display = 'none';
     document.getElementById('noDeptState').style.display = dept ? 'none' : 'block';
     document.getElementById('deptContent').style.display = dept ? 'block' : 'none';
-    document.getElementById('topbarDept').textContent = dept || '請選擇學年度 > 校區 > 學院 > 學系';
+    document.getElementById('topbarDept').textContent = dept || '請選擇開課學年度 > 校區 > 學院 > 學系';
     if(!dept){ if(dashboardScope === 'dept') clearTopbarStatus(); return; }
     setScope('dept'); // 選好系所後自動切到「學系儀表板」，直接進入填課程的工作區
     document.getElementById('courseSearch').value = '';
@@ -2607,7 +2608,7 @@
         return '<button data-val="' + escapeHtml(t) + '" class="' + (t === planSel.track ? 'active' : '') + '">' + escapeHtml(t.replace(currentDept, '') || t) + '</button>';
       }).join('') + '</div>';
     }
-    html += '<div class="chip-toggle" id="planYearSel">' + years.map(function(y){
+    html += '<span class="pl-ylab">入學學年度</span><div class="chip-toggle" id="planYearSel">' + years.map(function(y){
       return '<button data-val="' + y + '" class="' + (y === planSel.year ? 'active' : '') + '">' + y + ' 學年度入學' + (isDraftYear(planSel.track, y) ? '（草稿）' : '') + '</button>';
     }).join('') + '</div></div>';
     if(isDraftYear(planSel.track, planSel.year)){
@@ -2910,11 +2911,11 @@
     var parts = ['school','interest','college','dept','group','elective'].map(function(k){ return n(r[k]) || 0; });
     var sum = parts.reduce(function(a, b){ return a + b; }, 0);
     add('規範加總（＝ 畢業總學分）', sum, n(r.total));
-    // 本系專業選修最低＋院訂必修＋系訂必修 ≤ 畢業總學分 60%
+    // 院訂必修＋系訂必修＋本系專業選修最低 ≤ 畢業總學分 60%
     var pro = (n(r.profMin) || 0) + (n(r.college) || 0) + (n(r.dept) || 0);
-    var L60 = '專業選修最低＋院訂必修＋系訂必修 ≤ 畢業學分 60%';
+    var L60 = '院訂必修＋系訂必修＋專業選修最低 ≤ 畢業學分 60%';
     if(n(r.total) == null) out.push({label:L60, ok:null, text:L60 + '：' + pro + '（未填畢業總學分）'});
-    else { var cap = Math.floor(n(r.total) * 0.6); out.push({label:L60, ok:pro <= cap, text:L60 + '：' + n(r.profMin || 0) + '＋' + n(r.college || 0) + '＋' + n(r.dept || 0) + '＝' + pro + '（上限 ' + cap + '）'}); }
+    else { var cap = Math.floor(n(r.total) * 0.6); out.push({label:L60, ok:pro <= cap, text:L60 + '：' + n(r.college || 0) + '＋' + n(r.dept || 0) + '＋' + n(r.profMin || 0) + '＝' + pro + '（上限 ' + cap + '）'}); }
     return out;
   }
   function draftDiffs(data){
