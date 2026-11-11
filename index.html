@@ -1140,7 +1140,7 @@
   var EDIT_SEL = ['#addJobDir1', '#addJobDir2', '#industryJobs .ind-del', '#industryJobs .ind-chip', '#industryJobs .level-btn',
     '#industryJobs input', '#industryJobs textarea', '#industryJobs select',
     '#courseDetailCard .option-card', '#courseDetailCard .level-btn', '#courseDetailCard textarea', '#courseDetailCard input', '#courseDetailCard select',
-    '#saveDraftBtn', '#markDoneBtn', '#chefPasteToggle', '#chefApply', '#cpAdd', '#compCard [data-cp="edit"]', '#compCard [data-cp="confirm"]', '#compCard [data-cp="del"]',
+    '#saveDraftBtn', '#markDoneBtn', '#chefPasteToggle', '#chefApply', '#mdPasteToggle', '#mdApply', '#mdPasteTa', '#cpAdd', '#compCard [data-cp="edit"]', '#compCard [data-cp="confirm"]', '#compCard [data-cp="del"]',
     '#compCard .cp-ed input', '#compCard .cp-ed textarea', '#compCard .cp-ed select',
     '#draftCard .dr-card', '#draftCard .dr-add', '#draftCard button', '#draftCard input', '#draftCard select'].join(',');
   function editGate(e){
@@ -3597,6 +3597,106 @@
               escapeHtml(c.name) + ' <span class="cp-core">' + c.grade + '年級' + c.term + '・' + escapeHtml(c.reqType) + '</span></label>'; }).join('') + '</div></div>';
       }).join('') + '</div></div>';
   }
+  /* ---------- 各系學生核心能力（校務系統 SE0201，115 學年度入學，學制 A-大學部） ---------- */
+  var DEPT_CORE = {"國際企業英語學士學位學程": [["專業知識與應用能力", ""], ["專業倫理與敬業態度", ""], ["跨領域整合能力", ""], ["領導與溝通能力", ""], ["國際素養", ""]], "智慧服務管理英語學士學位學程": [["智慧科技應用 Smart Technology Orientation", "1-1具備智慧科技運用、資訊蒐集的能力。 1-2了解智慧科技及時代的趨勢，並運用科技解決問題。"], ["溝通力 Communication", "2-1 能理性發表自身想法，並進行有效溝通。"], ["領導力 Leadership", "3-1 具有主動積極、團隊合作的態度。 3-2 具有領導團隊，協調配合，整合意見的能力。"], ["跨領域整合能力 Interdisciplinary Interation Capabilities", "4-1具有不同領域之資訊及知識的應用整合能力。"], ["創造力與創新力 Interdisciplinary Interation Capabilities", "5-1具備創新應變、解決問題的能力。 5-2具備敏銳的觀察力，激發創意思考並勇於嘗試。"]], "家庭研究與兒童發展學系": [["具備專業知識基礎能力", "1-1能瞭解社會科學基礎知識1-2能瞭解家庭領域專業知識1-3能瞭解幼兒教保領域專業知識1-4 能整合專業知能"], ["具備專業知識應用(或執行)能力", "2-1能應用專業知識以設計、執行、評估家庭生活教育活動 2-2能應用專業知識以設計、執行、評估教保課程活動 2-3能應用專業知能以發現與探究問題 2-4能應用專業知識以解決問題"], ["具備溝通表達能力(個人)", "3-1能獨立思考及自我省思(含自我了解) 3-2能善用口語及書面方式進行表達與溝通 3-3能靈活運用媒介於表達與溝通"], ["具備職涯能力", "4-1能瞭解職業倫理與專業態度 4-2能在職涯發展上與他人分工合作 4-3能整合與運用專業知能於職涯發展"], ["具備社會關懷能力(團體)", "5-1能關懷他人 5-2能參與服務學習活動 5-3能理解並尊重多元文化"]], "社會工作學系": [["具備社會工作直接服務之知識與技巧", "1-1.能運用社會工作個案、團體、社區等直接服務之理論知識與操作技巧。 1-2.能開發、連結、整合、運用社會資源。 1-3.具備基礎社會政策認知、實踐與評估能力。 1-4.從事社工實務時能有效的以口語或文字溝通。"], ["具備社會政策分析與社會工作管理之知識與能力", "2-1.能瞭解當前社會政策法規及其發展。 2-2.能瞭解社會福利輸送體系。 2-3.具備社會福利機構管理的理論與知識。"], ["具備研究分析、方案設計執行及評估之知識與能力", "3-1.能針對社工實務之需求或問題蒐集資料，並在理論架構的引導下運用不同方法從事研究與分析。 3-2.能針對需求或問題分析結果設計相關方案。 3-3.能落實方案的實施、評估其成效。"], ["具備社會工作專業價值、倫理與多元文化之覺察及反思能力", "4-1.能秉持專業價值從事社工實務，並遵循社工倫理。 4-2.以案主最佳利益為考量，並依社工倫理之原則達成決策。 4-3.從事實務工作時能察覺自我價值，避免個人偏好影響專業服務。 4-4.能瞭解並尊重多元文化價值與差異。 4-5.具備關懷弱勢族群之人道精神與付諸實際行動之能力。"]], "音樂學系弦樂組": [["具備音樂演奏(唱)專業能力", "1-1 能有優良的演奏、演唱能力 1-2 增進個人人文及藝術修養的能力 1-3 能有籌辦音樂會的能力"], ["具備音樂事業應用能力", "2-1 能有專業教學之知識與能力 2-2 音樂相關產業就業或應用能力"], ["具備音樂風格辨識能力", "3-1 了解作曲家、演奏家風格及時代背景 3-2 能據以辨識音樂風格並應用於專業工作當中"], ["具備音樂分析與研究能力", "4-1 音樂分析與相關應用之能力 4-2 撰寫樂曲解說的能力"], ["具備溝通與團隊合作能力", "5-1 能獨立思考及自我省思(含自我了解) 5-2 能善用口語及書面方式進行表達與溝通 5-3 培養團隊合作的精神與技能 5-4 具備服務學習的熱誠及經驗"]], "食品營養與保健生技學系": [["食品保健生技應用能力", "1. 具備食品專業理論知識 2. 瞭解食品加工與製造過程 3. 提升食品的品質 4. 具備食品研發知識與技能"], ["營養保健生技應用能力", "1. 能具備營養專業知識 2. 能具備臨床營養與營養保健照護專業能力 3. 能具備營養保健諮詢能力與社區營養教育之推廣能力 4. 能具備營養專業知識應用於食品或保健相關產業之能力"], ["團體膳食供應能力", "1. 能具備菜單設計能力 2. 能了解食材採購、驗收、貯存的知識與技巧 3. 具備食物製備與供膳的知識技能 4. 具備團膳管理的知識與技能"], ["食品品質分析檢驗能力", "1. 能認識器具、試藥配製及一般實驗室器具之基本操作能力 2. 能了解一般分析知識及定性定量分析能力 3. 能使用各種分析儀器進行食品一般成分、食品微生物及食品添加等之分析檢能力 4. 能判定食品品質與衛生標準的能力"], ["跨域與溝通表達能力", "1. 具備基礎專業英文能力 2. 能清楚闡述事實或知識概念 3. 能設計特定主題之文宣及活動與跨領域學習"]], "餐飲管理學系": [["具備專業知識基礎能力", "具備餐飲專業知識。 具備管理專業知識。"], ["具備專業知識執行能力", "具備餐飲廚藝專業技能。 具備餐飲服務專業知識與技能。"], ["具備團隊合作能力", "具備團隊溝通能力。 具備合作協調能力。"], ["具備問題解決能力", "具備問題分析能力。 具備時間管理能力。"], ["具備領導統御能力", "具備理論與實務統整能力。 具備餐飲相關活動企劃能力。"]], "法律學系": [["具備法學專業知識。", "認知層面的核心能力。"], ["具備基礎外語能力。", "認知層面的核心能力。"], ["具備接納多元觀點之能力。", "認知層面的核心能力。"], ["具備評析文獻與資料之能力。", "認知層面的核心能力。"], ["具備獨立思考與流暢表達能力。", "技能層面的核心能力。"], ["具備熟練運用所學解決問題之能力。", "技能層面的核心能力。"], ["具備跨領域統整與創新能力。", "技能層面的核心能力。"], ["願意主動參與討論社會議題之能力。", "情意層面的核心能力。"], ["具備法律專業倫理與態度。", "情意層面的核心能力。"], ["涵養積極維持社會正義之態度。", "情意層面的核心能力。"]], "企業管理學系": [["具備專業知識與應用能力", "修畢院系之基礎課程， 並取得一張課程模組(行銷、財務、一般管理)之證明。"], ["具備專業倫理與敬業態度", "修畢企業領導與倫理課程且成績及格，參與專題講座3場， 且心得成績評量及格。"], ["具備企劃專業能力", "製作畢業專題，且參加成果發表會，並通過校內外專家審核且成績及格。"], ["具備領導及溝通能力", "製作畢業專題，且參加成果發表會，並通過校內外專家審核且成績及格。"], ["具備團隊合作能力", "製作畢業專題，且參加成果發表會，並通過校內外專家審核且成績及格。"], ["具備國際素養", "以外語能力予以檢核。修畢大學英文系列課程、英語聽力訓練、專業英文課程，並通過語文畢業門檻；參與至少一場境外企業高階人員或境外學者之講座。"]], "國際經營與貿易學系": [["外語與資訊科技運用能力", "1-1運用外語溝通的能力 1-2應用資訊工具執行規劃與分析的能力"], ["商管基礎知識應用能力", "2-1熟悉商業管理基礎知識的能力 2-2蒐集資料、分析數據與提出報告的能力"], ["國際貿易分析與操作能力", "3-1執行國際貿易業務所需技術的能力 3-2瞭解國際經貿議題及發展趨勢的能力"], ["國際經營管理執行能力", "4-1具備商務企劃的能力 4-2具備國際經營流程管理的能力 4-3發掘、分析及處理問題的能力"], ["社會與職場服務能力", "5-1溝通協調與團隊合作的能力 5-2具備自我學習能力與敬業態度 5-3培養專業倫理與社會責任的觀念"]], "應用外語學系": [["語言核心能力", ""], ["語言學與英語教學專業能力", ""], ["文學與翻譯專業能力", ""], ["商務應用溝通能力", ""], ["邏輯思考推理能力", ""], ["創意溝通表達能力", ""], ["電腦科技與資料研究能力", ""], ["人際關係與社群運作能力", ""], ["自我察覺與管理能力", ""]], "會計學系": [["會計處理能力", "應具備基本會計觀念、會計交易事項分析能力、會計事項處理之邏輯與思維能力、基本簿記能力、完成會計循環之能力、編製財務報表能力、基本財務報表分析及解釋能力、成本分析與管理決策能力、熟悉政府會計事項之處理等。"], ["審計處理能力", "應具備審計規劃能力、內部控制評估能力、執行審計能力、審計抽樣能力、熟悉證實測試交易循環會計科目之處理原則、熟悉稅務查核之相關稅務法規、資訊系統審計能力、熟悉政府審計法規等。"], ["會審資訊應用能力", "應具備熟悉企業交易循環能力、電腦化會計處理能力、商用套裝軟體應用能力、資料處理與分析能力、熟悉企業稅務申報作業、熟悉資訊系統發展過程、內部控制制度建置能力、資料庫設計、建置與管理能力等。"], ["財經專業能力", "應具備熟悉證券交易法內容及其應用、熟悉公司法內容及其應用、熟悉票據法內容及其應用、熟悉商業會計法內容及其應用、熟悉貨幣及金融市場相關理論及其運作、熟悉投資市場相關理論及其運作、熟悉財務管理及理財規劃相關理論及實務、熟悉租稅規劃相關理論及實務等。"]], "財務金融學系": [["具備財經專業知識與能力", "1.能瞭解金融保險專業知識；2.能瞭解證券投資專業知識；3.能瞭解財務管理專業知識；4.能瞭解金融體系運作原則。"], ["具備金融資訊應用能力", "1.能應用統計軟體進行分析；2.能應用虛擬交易驗證投資策略。"], ["具備專業證照與實務能力", "1.能具備金融專業證照；2.能熟悉金融機構實務運作；3.能具備財富管理能力。"], ["具備溝通協調與團隊合作能力", "1.具備財經及職場英文溝通能力；2.具備同儕合作與團隊分工能力；3.具備報告撰寫及簡報能力。"], ["具備職場倫理遵行態度", "1.能瞭解企業倫理與永續金融內涵；2. 能遵守金融相關法規與公平待客等規範。"]], "資訊科技與管理學系": [["具備數位科技應用能力", "如Unity, Adobe系列, 3Dmax, VR, AR, Linebot, Yolo, Google, Azure, AWS等機器學習模組套件均為數位科技的整合與應用能力"], ["具備資訊管理應用能力", "如資料庫管理, PowerBI, Tabular, UML, Github, Excel, ERP等均為資訊管理的應用能力"], ["具備程式設計應用能力", "如Javascript, C, Java, R, C#, Python, Matlab, SQL, HTML, CSS, Php等均是程式設計的應用能力"], ["具備經營管理智能能力", "如AI, Google Analytics, BI, MarTech, FinTech, ERP, 輿情分析等均為經營管理的應用能力"], ["具備自主學習、溝通協調與團隊合作能力", "如專題實作, 專案管理, 實習, 課程有安排磨課師自主學習, 學期專案Term Project, 或課程有分組合作的學習活動等均為自主學習、溝通協調與團隊合作的應用能力"], ["理解永續發展的社會責任、遵守資訊倫理與尊重多元觀點", "如企業倫理、資料隱私保護、永續資訊系統設計、環境社會治理(ESG)概念導入、永續發展目標(SDGs)、AI倫理、開放資料運用規範、多元文化溝通、數位平權、性別平等與社會包容等均為實踐社會責任、資訊倫理與多元觀點尊重的應用能力。"]], "風險管理與保險學系": [["職場倫理與團隊合作能力", "1.能了解企業倫理內涵與遵守相關規範。 2.能與他人共同合作完成任務。"], ["風險管理基本能力", "1.能辨認與分析個人風險與企業風險。 2.能衡量個人風險與企業風險。 3.能找出個人風險與企業風險的管理方法。"], ["永續保險社會責任規劃能力", "1.能發展核保理賠的基礎能力。 2.能發展永續保險的基礎能力。 3.能發展友善金融的基礎能力。"], ["永續保險跨域理財規劃能力", "1.能蒐集及分析保險理財商品。 2.能蒐集及分析跨領域金融理財商品。 3.能向他人表達與溝通跨領域保險理財商品訊息。"], ["永續保險跨域行銷服務能力", "1.能發展保險行銷規劃能力。 2.能發展跨域保險行銷能力。"]], "媒體傳達設計學系創意媒體設計組": [["美感鑑賞能力", "瞭解各種藝術源流，並能夠與當代社會現象結合。 能夠對生活美學有個人的見解及實踐。 能在創作作品中，融合各種美學觀點，並能推陳出新。"], ["實務執行能力", "瞭解各個學科專業的實務問題，並具有良好的實作經驗。 能夠在創作作品中，吸收專業師資的評論，具有實務執行上的視野。"], ["獨立研究思考", "能夠透過自身環境的瞭解、自我心靈的探索，提出獨特的想法與見解。 能夠透過設計作品，提出改善生活之思維能力。 能夠瞭解國際設計趨勢，提出具有國際觀的設計想法。"], ["研究企畫能力", "能夠收集各種問題的相關資料，具有整合撰寫的能力。 具有獨特的創意思維，能夠從一般現象中提出創意性的思考。 能夠深入文獻中的歷史人文典故，從文化脈絡提出創新思考。"], ["數位媒體應用", "熟悉各種類型的數位媒體，並能夠瞭解其脈絡與趨勢。 瞭解數位媒體在產業界的發展，並熟悉各種應用能力。 瞭解數位媒體的各種特性以及整合應用的實務經驗。"], ["跨領域整合", "具有跨領域溝通協調的口才及領導能力。 能夠熟悉各種創作領域，並有良好的組織能力，洞悉各領域之間的關係。 具有克服跨領域整合時，尋求並吸收各種資源的能力。"]], "工業產品設計學系": [["工業設計", "著重思考與操作的互動結合，能獨力完成產品設計，由構想表達、2D到3D呈現與設計發表之綜合實作能力。"], ["設計思維與能力", "基礎設計認識、觀念思維與獨立思考判斷力。"], ["設計技術與操作應用", "基礎設計操作能力，從2D繪圖到3D立體表達，以及各項有助於設計表達之技巧訓練。"], ["人文涵養與科技知識", "培養對設計與當代社會應有的認識、反省與批判的人文思考與科技應用能力。"], ["研究與企劃", "設計企劃、個案研究及相關跨領域知識獲取及整合能力。"], ["方法展演與溝通", "有助於設計執行、設計研究方法、設計表達與溝通之技巧，及其他相關跨領域之知識整合能力。"]], "建築職人學士學位學程": [["具有運用工程施工實務技術知識，能獨立施工暨發掘、定義與解決施作問題之能力", ""], ["具有專業工程施作，創新與美學之基本能力", ""], ["抱有發展建築工藝之職志", ""], ["具有工程專業整合觀，並樂於與人協調合作之能力", ""], ["具有口頭及書面報告的溝通技巧與團隊協作之能力", ""], ["具有理解專業倫理、人文及法律與社會責任感之認知與工作熱忱", ""], ["具有工程專業之國際觀", ""]], "建築設計學系": [["人文涵養與視野能力", "1-1具備建築歷史與文化基本知識 1-2具備環境、文化、社會、歷史等基本知識與綜合關照視野"], ["工藝與美學素養能力", "2-1具備木工、金工、灌注材料加工、數位加工、等基本工藝技術與知識能力 2-2具備繪畫、影像、模型等綜合媒材之表現技術與知識能力 2-3具備文學、電影、繪畫等美學基礎知識與綜合關照視野"], ["專業知識技術操作與應用能力", "3-1具備建築設計表達及圖說繪製基本能力 3-2具備建築材料、構造、結構知識、技術運用基本能力 3-3具備建築實務知識、技術綜合運用基本能力"], ["跨領域整合與創新思辨能力", "4-1具備跨領域合作協調能力 4-2具備跨領域議題思辨與研究基本能力"], ["設計發展與執行能力", "5-1具備設計議題研究、分析與思辨能力 5-2具備設計概念整合、創作發展能力 5-3具備設計綜合操作執行與表達能力"]], "服裝設計學系": [["具備人文藝術與美感之獨創性設計開發能力。", "1-1能瞭解藝術、設計與服裝的歷史與演進。 1-2暸解美感的判別與方法。 1-3能運用已學習之知識開發設計創意。 1-4能視覺化表現設計構想。"], ["具備轉化設計理念為實際成品之能力。", "2-1能暸解材料之特性並應用。 2-2能暸解色彩之原理並應用。 2-3能暸解線條、造型之特質並應用。 2-4能操控與組合各項設計元素。"], ["具備設計作品之構成與製作工藝之能力。", "3-1能暸解與操作各種服裝製作相關機具 3-2能繪製作品之版型。 3-3能適當運用製作技巧與方法。 3-4能製作作品之胚樣或模型。"], ["具備運用數位新媒體表現設計與視覺美感之能力。", "4-1能暸解與使用專業的繪圖與影像處理之套裝軟體。 4-2能編輯與設計作品之平面表現。"], ["具備策劃作品展演之能力。", "5-1備企劃與執行作品展演的能力。 5-2能獨立思考並解決問題。 5-3能與同儕溝通協調並團隊合作。"], ["具備認知流行服飾產業運作方式之能力。", "6-1能暸解流行服飾之產業架構。 6-2能暸解服裝產業之運轉流程。 6-3能暸解服裝成衣的生產製造結構與工程。 6-4能暸解服裝成本結構與控管。"], ["具備流行市場與趨勢之分析、商品企劃之能力。", "7-1能暸解流行市場的消費型態與銷售模式。 7-2能暸解流行資訊的搜集、分析、綜合與應用。 7-3能暸解品牌形象與服飾商品的結構。 7-4能企畫與組合符合品牌需求的服飾商品。 7-5能暸解產業所使用的英文字彙並明瞭其中文涵義。"]]};
+  function deptCore(dept){
+    if(DEPT_CORE[dept]) return DEPT_CORE[dept];
+    var tracks = (typeof planTracks === 'function') ? planTracks() : [];
+    for(var i = 0; i < tracks.length; i++) if(DEPT_CORE[tracks[i]]) return DEPT_CORE[tracks[i]];
+    var base = String(dept || '').replace(/(組|學程)$/, '').replace(/學系.*$/, '學系');
+    var k = Object.keys(DEPT_CORE).filter(function(x){ return x.indexOf(base) === 0; })[0];
+    return k ? DEPT_CORE[k] : [];
+  }
+  /* ---------- 菜單設計師：專業 AI 能力地圖草稿（複製給 Gemini、貼回建議；不勾承載課程） ---------- */
+  function menuPromptText(dept){
+    var core = deptCore(dept), subj = compSubjects();
+    var list = Object.keys(subj).map(function(k){ return subj[k]; }).sort(function(a, b){
+      return (Number(a.grade) * 2 + (a.term === '下' ? 1 : 0)) - (Number(b.grade) * 2 + (b.term === '下' ? 1 : 0)); });
+    var jobs = (typeof industryJobs === 'function' ? industryJobs() : []).filter(function(j){ return j.title; });
+    var have = (COMPS[dept] || []).map(function(it){ return it.name; }).filter(Boolean);
+    var L = [];
+    L.push('你是大學課程規劃助理。請為「' + dept + '」草擬「專業 AI 能力地圖」：本系畢業生在專業領域中，會如何運用 AI 工作。');
+    L.push('');
+    L.push('【規則】');
+    L.push('1. 建議 3～6 項專業 AI 能力，每項都要從下方「本系學生核心能力」出發，對應其中一項。');
+    L.push('2. 每項包含：專業 AI 能力名稱（15 字內）、能力說明（60 字內）、對應系核心能力（照抄下方名稱）、對應教育部 AI 能力指標 2～4 項（只用代碼 A-1～D-3）、對應八項學生核心能力 2～3 項（只能從下方清單照抄）。');
+    L.push('3. 每項寫三個發展層次，各一句、60 字內，以「能」開頭：');
+    L.push('   層次一（基礎）：會用 AI 工具、能說明其用途與限制');
+    L.push('   層次二（進階）：能以專業知識查證並修正 AI 產出');
+    L.push('   層次三（整合）：能設計 AI 協作流程、做專業判斷並承擔責任');
+    L.push('4. 內容要貼近本系專業與下方課程、職業，不要寫成通用的 AI 素養。不要指定承載課程（由學系自行勾選）。');
+    if(have.length) L.push('5. 本系已有以下能力，請勿重複：' + have.join('、'));
+    L.push((have.length ? '6' : '5') + '. 只回傳下列格式的 JSON，不要任何其他文字。');
+    L.push('');
+    L.push('【回傳格式】');
+    L.push('{"items":[{"name":"…","core":"…","desc":"…","moe":["A-1","C-1"],"eight":["問題定義與分析"],"levels":["能…","能…","能…"]}]}');
+    L.push('');
+    L.push('【本系學生核心能力】（校務系統 SE0201）');
+    if(core.length) core.forEach(function(c, i){ L.push((i + 1) + '. ' + c[0] + (c[1] ? '：' + c[1] : '')); });
+    else L.push('（系統中查無資料，請依本系專業推論）');
+    L.push('');
+    L.push('【八項學生核心能力】' + COMP_EIGHT.join('、'));
+    L.push('');
+    L.push('【教育部未來人才AI能力圖像 11 項指標】');
+    INDICATORS.forEach(function(i){ var v = CORE_IV[i.code]; L.push(i.code + ' ' + (v ? v.title : i.label)); });
+    L.push('');
+    L.push('【本系課程（' + planSrcText().replace(/^課程依 /, '') + '）】');
+    list.forEach(function(c){
+      var t = TAGS[c.code6], tag = '';
+      if(t && t.ai === true){
+        var hi = INDICATORS.filter(function(i){ return (t.ratings[i.code] || 0) >= 3; });
+        if(hi.length) tag = '；AI 標註：' + hi.map(function(i){ return i.code + '(' + t.ratings[i.code] + ')' + (t.stmt && t.stmt[i.code] ? ' ' + t.stmt[i.code] : ''); }).join('；');
+      }
+      L.push('- ' + c.name + '（' + c.grade + '年級' + c.term + '・' + (c.reqType || '') + '）' + tag);
+    });
+    if(jobs.length){
+      L.push('');
+      L.push('【產業對接：本系畢業生可能的職業】');
+      jobs.forEach(function(j){
+        var need = Object.keys(j.need || {}).filter(function(k){ return (j.need[k] || {}).lv >= 3; });
+        L.push('- ' + j.title + (need.length ? '（需求較高：' + need.map(function(k){ return k + (j.need[k].txt ? ' ' + j.need[k].txt : ''); }).join('；') + '）' : ''));
+      });
+    }
+    L.push('');
+    L.push('【寫法範例】（會計學系，僅供參考格式）');
+    L.push('{"name":"AI 輔助會計處理與成本分析","core":"會計處理能力","desc":"運用 AI 協助交易分析、分錄與財務報表編製及成本分析，並以會計原則查證、修正 AI 產出。","moe":["A-1","C-1","C-3","D-1"],"eight":["AI協作與提示設計","專業知識與AI產出的交叉驗證","問題定義與分析"],"levels":["能使用 AI 工具整理交易憑證與資料、產生分錄與報表草稿，並說明 AI 產出的依據與限制。","能以會計原則查核 AI 產生之分錄、財務報表與成本計算，辨識錯誤並修正，說明修正理由。","能設計 AI 協作的帳務與成本管理流程，設定人工覆核點，並依分析結果提出管理決策建議。"]}');
+    return L.join('\n');
+  }
+  function bindMenuDesigner(dept, list){
+    var msg = document.getElementById('mdMsg'), pr = document.getElementById('mdPrompt'), pb = document.getElementById('mdPasteBox');
+    if(!msg) return;
+    document.getElementById('mdCopy').onclick = function(){
+      pr.value = menuPromptText(dept); pr.style.display = 'block'; pr.focus(); pr.select();
+      var ok = false; try{ ok = document.execCommand('copy'); }catch(e){}
+      var done = function(){ msg.className = 'chef-msg ok'; msg.textContent = '已複製！請開啟 Gemini 貼上送出，再把回答貼回「③ 貼上菜單設計師建議」。'; };
+      var manual = function(){ msg.className = 'chef-msg'; msg.textContent = '無法自動複製，請在下方文字框按 Ctrl+A、Ctrl+C 複製。'; };
+      if(ok){ done(); return; }
+      if(navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(pr.value).then(done).catch(manual); else manual();
+    };
+    document.getElementById('mdPasteToggle').onclick = function(){ pb.style.display = pb.style.display === 'none' ? 'block' : 'none'; if(pb.style.display === 'block') document.getElementById('mdPasteTa').focus(); };
+    document.getElementById('mdApply').onclick = function(){
+      if(!authToken()){ needLogin('comp'); return; }
+      var o = chefParse(document.getElementById('mdPasteTa').value);
+      var items = o ? (Array.isArray(o.items) ? o.items : (Array.isArray(o) ? o : [])) : [];
+      if(!items.length){ msg.className = 'chef-msg'; msg.textContent = '看不懂貼上的內容，請確認有貼到 Gemini 回答中含 { } 的那一段。'; return; }
+      var codes = INDICATORS.map(function(i){ return i.code; }), names = list.map(function(it){ return String(it.name || '').trim(); }), n = 0, skip = 0;
+      items.forEach(function(x, k){
+        var name = String(x.name || '').trim();
+        if(!name || names.indexOf(name) >= 0){ skip++; return; }
+        var lv = Array.isArray(x.levels) ? x.levels : [];
+        list.push({id:'c' + Date.now().toString(36) + k, name:name, core:String(x.core || '').trim(), desc:String(x.desc || '').trim(),
+          levels:[0,1,2].map(function(i){ return String(lv[i] || '').trim(); }),
+          moe:(Array.isArray(x.moe) ? x.moe : []).map(String).filter(function(c){ return codes.indexOf(c) >= 0; }).sort(),
+          eight:(Array.isArray(x.eight) ? x.eight : []).map(String).filter(function(e){ return COMP_EIGHT.indexOf(e) >= 0; }),
+          courses:[], status:'AI建議草稿'});
+        names.push(name); n++;
+      });
+      if(n) saveComps(dept);
+      renderCompCard();
+      var m2 = document.getElementById('mdMsg');
+      if(m2){ m2.className = 'chef-msg ok'; m2.textContent = '已新增 ' + n + ' 項「AI建議草稿」' + (skip ? '（' + skip + ' 項名稱重複或空白，略過）' : '') + '。請逐項按「編輯」修改、勾選承載課程，再按「確認採用」。'; }
+    };
+  }
   function renderCompCard(){
     setPlanSrc();
     var el = document.getElementById('compBody');
@@ -3609,7 +3709,15 @@
       '<li><b>寫出三個發展層次</b>：層次一（基礎）會用、能說明；層次二（進階）能以專業知識查證並修正 AI 產出；層次三（整合）能設計流程、做專業判斷並承擔責任。</li>' +
       '<li><b>勾選承載課程</b>：每個層次勾選培養它的課程。系統會檢查哪個層次還沒有課程，以及層次與年級順序是否合理。</li></ol>' +
       '<div style="margin-top:4px;">不確定怎麼寫，可以先看「' + COMP_TEMPLATE_DEPT + '範本」（教務處依該系 SE0201 學生核心能力草擬，承載課程由學系勾選）。</div></details>';
-    var html = guide;
+    var nCore = deptCore(currentDept).length;
+    var html = guide + '<div class="chef-box" style="margin-top:10px;"><div class="chef-head">🧑‍🍳 菜單設計師（AI 建議草稿）</div>' +
+      '<div class="hint" style="margin:0;">把本系' + (nCore ? '學生核心能力（' + nCore + ' 項，取自 SE0201）、' : '') + '課程、AI 標註與產業對接職業複製給學校帳號的 Gemini，取得 3～6 項專業 AI 能力草稿。貼回後新增為「AI建議草稿」，<b>不覆蓋已有能力、不代勾承載課程</b>。</div>' +
+      '<div class="chef-btns"><button type="button" class="btn" id="mdCopy" data-view="1">① 複製給菜單設計師</button>' +
+      '<a class="btn" href="https://gemini.google.com/app" target="_blank" rel="noopener" data-view="1">② 開啟 Gemini ↗</a>' +
+      '<button type="button" class="btn" id="mdPasteToggle">③ 貼上菜單設計師建議</button></div>' +
+      '<textarea id="mdPrompt" readonly data-view="1" style="display:none;"></textarea>' +
+      '<div id="mdPasteBox" style="display:none;"><textarea id="mdPasteTa" placeholder="把 Gemini 的回答整段貼在這裡（含 { } 的那一段）"></textarea>' +
+      '<div class="chef-btns"><button type="button" class="btn primary" id="mdApply">帶入建議</button></div></div><div class="chef-msg" id="mdMsg"></div></div>';
     if(list.length){
       var mx = compMatrixHtml(list, true);
       var conf = list.filter(function(it){ return it.status === '學系確認'; }).length;
@@ -3627,6 +3735,7 @@
     }
     el.innerHTML = html;
     var dept = currentDept;
+    bindMenuDesigner(dept, list);
     var touch = function(it){ if(String(it.status || '').indexOf('範本') === 0 || it.status === '學系確認') it.status = '學系填寫'; saveComps(dept); };
     document.getElementById('cpAdd').onclick = function(){
       if(!authToken()){ needLogin('comp'); return; }
