@@ -29,9 +29,9 @@
   .spot.soon .art{opacity:.78}
   .label{font-size:15px;font-weight:700;fill:var(--ink)}
   .sub{font-size:11.5px;fill:var(--quiet)}
-  .hint{position:absolute;left:24px;bottom:22px;background:rgba(255,255,255,.88);padding:6px 12px;border-radius:999px;font-size:12.5px;color:var(--quiet)}
+  .hint{margin:8px 4px 0;font-size:12.5px;color:var(--quiet)}
   aside{border-left:1px solid var(--line);background:var(--card);padding:20px;display:flex;flex-direction:column;gap:12px}
-  aside .tag{display:inline-block;font-size:12px;padding:2px 10px;border-radius:999px;background:#e9f4ec;color:var(--ok);font-weight:600}
+  aside .tag{display:inline-block;align-self:flex-start;font-size:12px;padding:2px 10px;border-radius:999px;background:#e9f4ec;color:var(--ok);font-weight:600}
   aside .tag.soon{background:#eee;color:var(--soon)}
   aside h2{margin:4px 0 0;font-size:21px}
   aside .role{font-size:13.5px;color:var(--quiet);margin:0}
@@ -47,7 +47,7 @@
   #avatar{transition:transform .9s cubic-bezier(.5,.05,.3,1)}
   .route{fill:none;stroke:var(--accent);stroke-width:3;stroke-dasharray:2 9;stroke-linecap:round;opacity:.75}
   @media (max-width:860px){
-    main{grid-template-columns:1fr}
+    main{grid-template-columns:1fr;min-height:0}
     aside{border-left:0;border-top:1px solid var(--line)}
     .mapwrap{padding:8px}
     .label{font-size:17px}
@@ -118,7 +118,7 @@
 
   var SPOTS = [
     {id:'kitchen', name:'中央廚房', who:'教務處', emoji:'🏭', x:500, y:150, kind:'kitchen', open:true,
-     points:['統一供應食材：四年課程計畫表（115 已複製成 116 草稿）','訂衛生標準：畢業學分、60% 規則等規定','看每間餐廳出菜出到哪裡'],
+     points:['食材庫：四年課程計畫表，每一門課程都是食材（115 已複製成 116 草稿）','訂衛生標準：畢業學分、60% 規則等規定','看每間餐廳出菜出到哪裡'],
      link:{label:'前往：進度總覽', url:PAGE('進度總覽')}},
     {id:'street', name:'餐廳街', who:'學系＝行政主廚・老師＝廚師', emoji:'🍳', x:270, y:340, kind:'shops', open:true,
      points:['每個學系是一間餐廳，學院是同一區的餐廳群','行政主廚（系課程委員會）設計整套菜單','廚師（老師）控火候、試味道，把菜煮出來','① 調整 116 必修、選修與學分 → 確認存檔 → 匯出'],
@@ -132,6 +132,9 @@
     {id:'menu', name:'菜單看板', who:'專業AI能力地圖', emoji:'🗺️', x:820, y:200, kind:'board', open:true,
      points:['④ 把前三步彙整成本系菜單','學生看得懂：吃了能做什麼工作、學到哪些能力'],
      link:{label:'前往：④ 專業AI能力地圖', url:PAGE('專業ai能力地圖')}},
+    {id:'festival', name:'祭典舞台', who:'政策祭典：目前檔期「AI 祭」', emoji:'🎪', x:660, y:178, kind:'stage', open:true,
+     points:['政策像祭典：AI 祭、永續祭……每隔一陣子一個主題','祭典規則＝一張政策框架卡：面向、指標、量尺、適用學年度','不用重蓋廚房：同一份食材庫，多標一輪','祭典結束，好菜留下變常態菜單；舊祭典成果都存著'],
+     link:{label:'看各系參展進度：進度總覽', url:PAGE('進度總覽')}},
     {id:'lighthouse', name:'政策燈塔', who:'政策框架', emoji:'🗼', x:165, y:180, kind:'lighthouse', open:true,
      points:['衛生法規：必須遵守的規定，例如畢業學分結構','新菜系：引導方向，例如 AI 跨域、未來人才AI能力圖像','新政策＝新框架，同一份計畫表再標一次，不用重做']},
     {id:'seats', name:'客人座位區', who:'學生', emoji:'🪑', x:830, y:475, kind:'seats', open:true,
@@ -149,8 +152,8 @@
 
   var TOURS = {
     chef:{face:'👨‍🍳', title:'跟著主廚走', steps:[
-      ['kitchen','中央廚房送來食材：115 學年度的四年課程計畫表，已經複製成 116 草稿。'],
-      ['street','① 行政主廚先調菜單：必修、選修、學分怎麼調，系統會檢查 60% 規則。確認後存檔，匯出給系課程委員會。'],
+      ['kitchen','中央廚房打開食材庫：115 學年度四年課程計畫表裡的每一門課，已經複製成 116 草稿。'],
+      ['street','① 行政主廚先調菜單：必修、選修、學分怎麼調，系統會檢查 60% 規則。確認後存檔，匯出給系院校課程委員會。'],
       ['season','② 替每道菜加上 AI 調味：點一門課，標註 11 項 AI 能力。去年標過的會先帶入，看過按確認就好。'],
       ['order','③ 看職場客人想吃什麼：列出職業和需要的能力，系統標出課程缺口。'],
       ['menu','④ 菜單看板自動彙整：本系的專業 AI 能力地圖就完成了。'],
@@ -172,7 +175,7 @@
 
   // 樹
   var trees = document.getElementById('trees');
-  [[230,150],[330,125],[640,120],[730,130],[905,300],[880,410],[600,560],[420,575],[250,575],[150,400],[380,420],[610,385],[760,370],[350,230],[640,215]].forEach(function(p){
+  [[230,150],[330,125],[600,110],[740,125],[905,300],[880,410],[600,560],[420,575],[250,575],[150,400],[380,420],[610,385],[760,370],[350,230]].forEach(function(p){
     el('ellipse',{cx:p[0],cy:p[1]+12,rx:13,ry:4,fill:'#000',opacity:.08},trees);
     el('rect',{x:p[0]-2,y:p[1],width:4,height:12,fill:'#9c7b55'},trees);
     el('circle',{cx:p[0],cy:p[1]-4,r:12,fill:'#8fc06a'},trees);
@@ -188,7 +191,6 @@
       el('rect',{x:-58,y:-26,width:116,height:52,rx:6,fill:'#fff6e8',stroke:'#c9a77a','stroke-width':1.5},a);
       el('path',{d:'M-66 -24 L0 -58 L66 -24 Z',fill:'#d9653b'},a);
       el('rect',{x:30,y:-62,width:12,height:24,fill:'#9b8f84'},a);
-      el('circle',{cx:40,cy:-70,r:6,fill:'#fff',opacity:.8});
       el('rect',{x:-12,y:2,width:24,height:24,rx:3,fill:'#c97e4f'},a);
       el('rect',{x:-46,y:-12,width:22,height:16,rx:2,fill:'#cfe8f2'},a);
       el('rect',{x:24,y:-12,width:22,height:16,rx:2,fill:'#cfe8f2'},a);
@@ -214,6 +216,15 @@
       el('line',{x1:-32,y1:-34,x2:20,y2:-34,stroke:'#f6efe0','stroke-width':2},a);
       el('line',{x1:-32,y1:-24,x2:30,y2:-24,stroke:'#f6efe0','stroke-width':2},a);
       el('line',{x1:-32,y1:-14,x2:10,y2:-14,stroke:'#f6efe0','stroke-width':2},a);
+    } else if(k === 'stage'){
+      el('rect',{x:-46,y:4,width:92,height:20,rx:3,fill:'#c97e4f'},a);
+      el('rect',{x:-46,y:0,width:92,height:6,fill:'#e8b07a'},a);
+      el('line',{x1:-40,y1:2,x2:-40,y2:-44,stroke:'#8a6a48','stroke-width':3},a);
+      el('line',{x1:40,y1:2,x2:40,y2:-44,stroke:'#8a6a48','stroke-width':3},a);
+      el('rect',{x:-34,y:-40,width:68,height:22,rx:3,fill:'#d9653b'},a);
+      var bt = el('text',{x:0,y:-24,'text-anchor':'middle','font-size':13,'font-weight':700,fill:'#fff'},a); bt.textContent = 'AI 祭';
+      el('path',{d:'M-40 -44 Q0 -30 40 -44',fill:'none',stroke:'#8a6a48','stroke-width':1.2},a);
+      [['#f2b84b',-28],['#7bb3a8',-14],['#e8845a',0],['#9aa7d6',14],['#f2b84b',28]].forEach(function(f){ el('path',{d:'M'+(f[1]-5)+' '+(-41+Math.abs(f[1])*0.12)+' l5 9 l5 -9 z',fill:f[0]},a); });
     } else if(k === 'lighthouse'){
       el('path',{d:'M-14 24 L-9 -40 L9 -40 L14 24 Z',fill:'#fff'},a);
       el('path',{d:'M-12 0 L-11 -12 L11 -12 L12 0 Z',fill:'#d9653b'},a);
@@ -237,8 +248,6 @@
       el('path',{d:'M-78 18 h40 l-6 12 h-28 z',fill:'#fff',stroke:'#7a8fa0'},a);
       el('rect',{x:-64,y:4,width:14,height:14,fill:'#d9653b'},a);
     }
-    // 圖示徽章
-    el('circle',{cx:0,cy:-20,r:0},a);
     return a;
   }
 
@@ -281,7 +290,7 @@
   function intro(){
     setActive(null);
     panel.innerHTML = '<div class="intro"><h2 style="margin:0 0 10px;font-size:21px;">歡迎來到學味食光島</h2>' +
-      '<p>這座島是課程中央廚房：<b>四年課程計畫表</b>是食材，<b>學系</b>是行政主廚，<b>老師</b>是廚師，<b>AI 代理人</b>是幫手，<b>學生</b>是客人。</p>' +
+      '<p>這座島是課程中央廚房：<b>每一門課程</b>是食材，<b>四年課程計畫表</b>是食材庫，<b>課程大綱</b>是食譜，<b>學系</b>是行政主廚，<b>老師</b>是廚師，<b>AI 代理人</b>是幫手，<b>學生</b>是客人。</p>' +
       '<p>學系照 ① → ④ 做就好，每一步的資料都會自動帶到下一步。</p>' +
       '<p style="color:var(--quiet);font-size:13.5px;">點島上的地點看說明，或按上方「跟著主廚走」「跟著客人走」逛一圈。</p></div>';
   }
