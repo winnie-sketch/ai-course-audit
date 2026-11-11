@@ -1,0 +1,322 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>學味食光島｜課程中央廚房 Course Kitchen</title>
+<style>
+  :root{
+    --sea:#bfe3ee; --sea2:#a7d6e5; --sand:#f3dfb3; --grass:#cfe6a8; --grass2:#b9d98c;
+    --road:#f7ecd3; --ink:#2b2a28; --quiet:#6b675f; --line:#e4dccb; --card:#fffdf8;
+    --accent:#d9653b; --accent2:#f2a65a; --soon:#8a8a8a; --ok:#3f8f5a;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;background:#fbf7ee;color:var(--ink);font-family:"Noto Sans TC","PingFang TC","Microsoft JhengHei",system-ui,sans-serif}
+  header{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;padding:14px 20px;border-bottom:1px solid var(--line);background:#fffaf0}
+  .brand h1{margin:0;font-size:22px;letter-spacing:1px}
+  .brand p{margin:2px 0 0;font-size:12.5px;color:var(--quiet)}
+  .tours{display:flex;gap:8px;flex-wrap:wrap}
+  .tours button{font:inherit;font-size:14px;border:1.5px solid var(--accent);background:#fff;color:var(--accent);padding:8px 14px;border-radius:999px;cursor:pointer;font-weight:600}
+  .tours button.on,.tours button:hover{background:var(--accent);color:#fff}
+  main{display:grid;grid-template-columns:minmax(0,1fr) 340px;gap:0;min-height:calc(100vh - 66px)}
+  .mapwrap{position:relative;padding:12px}
+  svg#map{width:100%;height:auto;display:block;border-radius:18px;background:var(--sea)}
+  .spot{cursor:pointer;outline:none}
+  .spot .art{transition:transform .18s ease}
+  .spot:hover .art,.spot:focus .art,.spot.active .art{transform:translateY(-5px)}
+  .spot .plate{fill:#fff;stroke:#d8ccb4;stroke-width:1.2}
+  .spot.active .plate{fill:#fff3e6;stroke:var(--accent);stroke-width:2}
+  .spot.soon .art{opacity:.78}
+  .label{font-size:15px;font-weight:700;fill:var(--ink)}
+  .sub{font-size:11.5px;fill:var(--quiet)}
+  .hint{position:absolute;left:24px;bottom:22px;background:rgba(255,255,255,.88);padding:6px 12px;border-radius:999px;font-size:12.5px;color:var(--quiet)}
+  aside{border-left:1px solid var(--line);background:var(--card);padding:20px;display:flex;flex-direction:column;gap:12px}
+  aside .tag{display:inline-block;font-size:12px;padding:2px 10px;border-radius:999px;background:#e9f4ec;color:var(--ok);font-weight:600}
+  aside .tag.soon{background:#eee;color:var(--soon)}
+  aside h2{margin:4px 0 0;font-size:21px}
+  aside .role{font-size:13.5px;color:var(--quiet);margin:0}
+  aside ul{margin:0;padding-left:20px;line-height:1.75;font-size:14.5px}
+  aside .go{display:inline-block;text-decoration:none;background:var(--accent);color:#fff;padding:9px 16px;border-radius:10px;font-weight:600;font-size:14.5px;align-self:flex-start}
+  aside .go:hover{background:#c2532b}
+  .step{font-size:12.5px;color:var(--accent);font-weight:700;letter-spacing:.5px}
+  .nav{display:flex;gap:8px;margin-top:auto;padding-top:8px}
+  .nav button{font:inherit;font-size:14px;flex:1;padding:9px;border-radius:10px;border:1.5px solid var(--line);background:#fff;cursor:pointer}
+  .nav button.primary{border-color:var(--accent);background:var(--accent);color:#fff;font-weight:600}
+  .nav button:disabled{opacity:.4;cursor:default}
+  .intro p{font-size:14.5px;line-height:1.8;margin:0 0 8px}
+  #avatar{transition:transform .9s cubic-bezier(.5,.05,.3,1)}
+  .route{fill:none;stroke:var(--accent);stroke-width:3;stroke-dasharray:2 9;stroke-linecap:round;opacity:.75}
+  @media (max-width:860px){
+    main{grid-template-columns:1fr}
+    aside{border-left:0;border-top:1px solid var(--line)}
+    .mapwrap{padding:8px}
+    .label{font-size:17px}
+  }
+</style>
+</head>
+<body>
+<header>
+  <div class="brand">
+    <h1>🏝️ 學味食光島</h1>
+    <p>課程中央廚房 Course Kitchen：一份四年課程計畫表，變出各種規劃</p>
+  </div>
+  <div class="tours">
+    <button type="button" data-tour="chef">👨‍🍳 跟著主廚走</button>
+    <button type="button" data-tour="guest">🧑‍🎓 跟著客人走</button>
+  </div>
+</header>
+<main>
+  <div class="mapwrap">
+    <svg id="map" viewBox="0 0 1000 640" role="img" aria-label="學味食光島地圖">
+      <defs>
+        <filter id="soft" x="-20%" y="-20%" width="140%" height="140%"><feDropShadow dx="0" dy="3" stdDeviation="3" flood-opacity=".18"/></filter>
+      </defs>
+      <!-- 海浪 -->
+      <g stroke="#e8f6fa" stroke-width="2.5" fill="none" stroke-linecap="round" opacity=".9">
+        <path d="M40 60 q15 -10 30 0 t30 0"/><path d="M880 40 q15 -10 30 0 t30 0"/>
+        <path d="M60 600 q15 -10 30 0 t30 0"/><path d="M900 590 q15 -10 30 0 t30 0"/>
+        <path d="M940 300 q12 -8 24 0 t24 0"/><path d="M20 360 q12 -8 24 0 t24 0"/>
+      </g>
+      <!-- 遠方的其他島（跨校） -->
+      <g opacity=".85">
+        <ellipse cx="62" cy="560" rx="46" ry="20" fill="var(--sand)"/>
+        <ellipse cx="62" cy="556" rx="34" ry="13" fill="var(--grass2)"/>
+        <text x="62" y="598" text-anchor="middle" class="sub">其他學校</text>
+      </g>
+      <!-- 主島 -->
+      <path d="M120 300 C110 170 260 80 420 92 C560 62 760 72 862 150 C962 230 944 384 884 472 C822 562 640 604 480 592 C320 604 168 562 126 472 C96 410 126 360 120 300 Z" fill="var(--grass)" stroke="var(--sand)" stroke-width="30" stroke-linejoin="round"/>
+      <!-- 道路 -->
+      <g fill="none" stroke="var(--road)" stroke-width="18" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M500 190 C500 240 480 280 480 330 C480 400 520 430 520 470"/>
+        <path d="M270 340 C360 330 400 330 480 330 C560 330 620 310 680 300 C740 290 780 240 820 210"/>
+        <path d="M480 330 C600 380 660 420 720 440 C770 455 800 465 830 475"/>
+        <path d="M270 340 C270 420 300 470 330 500 C400 520 460 480 520 470"/>
+        <path d="M330 500 C260 520 220 520 180 520"/>
+        <path d="M270 340 C230 280 190 220 165 180"/>
+      </g>
+      <!-- 樹 -->
+      <g id="trees"></g>
+      <!-- 導覽路線 -->
+      <path id="route" class="route" d=""/>
+      <!-- 地點 -->
+      <g id="spots"></g>
+      <!-- 導覽角色 -->
+      <g id="avatar" style="display:none">
+        <circle r="22" fill="#fff" stroke="var(--accent)" stroke-width="3" filter="url(#soft)"/>
+        <text id="avatarFace" text-anchor="middle" y="9" font-size="24">👨‍🍳</text>
+      </g>
+    </svg>
+    <div class="hint">點島上任一個地點看說明</div>
+  </div>
+  <aside id="panel" aria-live="polite"></aside>
+</main>
+
+<script>
+(function(){
+  var BASE = 'https://sites.google.com/g2.usc.edu.tw/aicourse/';
+  var PAGE = function(slug){ return BASE + encodeURIComponent(slug); };
+
+  var SPOTS = [
+    {id:'kitchen', name:'中央廚房', who:'教務處', emoji:'🏭', x:500, y:150, kind:'kitchen', open:true,
+     points:['統一供應食材：四年課程計畫表（115 已複製成 116 草稿）','訂衛生標準：畢業學分、60% 規則等規定','看每間餐廳出菜出到哪裡'],
+     link:{label:'前往：進度總覽', url:PAGE('進度總覽')}},
+    {id:'street', name:'餐廳街', who:'學系＝行政主廚・老師＝廚師', emoji:'🍳', x:270, y:340, kind:'shops', open:true,
+     points:['每個學系是一間餐廳，學院是同一區的餐廳群','行政主廚（系課程委員會）設計整套菜單','廚師（老師）控火候、試味道，把菜煮出來','① 調整 116 必修、選修與學分 → 確認存檔 → 匯出'],
+     link:{label:'前往：① 四年課程計畫表', url:PAGE('四年課程計畫表')}},
+    {id:'season', name:'調味台', who:'未來人才AI能力圖像', emoji:'🧂', x:480, y:330, kind:'stall', open:true,
+     points:['② 替每道菜加上 AI 的調味','標註 A～D 四大面向、11 項 AI 能力','校必修由中央廚房供應，學系不用標'],
+     link:{label:'前往：② 未來人才AI能力圖像', url:PAGE('未來人才ai能力圖像')}},
+    {id:'order', name:'點菜櫃台', who:'產業對接', emoji:'🧾', x:680, y:300, kind:'counter', open:true,
+     points:['③ 依職場客人的口味點菜','列出職業與需要的能力等級','系統對照課程，標出還缺哪道菜'],
+     link:{label:'前往：③ 產業對接', url:PAGE('產業對接')}},
+    {id:'menu', name:'菜單看板', who:'專業AI能力地圖', emoji:'🗺️', x:820, y:200, kind:'board', open:true,
+     points:['④ 把前三步彙整成本系菜單','學生看得懂：吃了能做什麼工作、學到哪些能力'],
+     link:{label:'前往：④ 專業AI能力地圖', url:PAGE('專業ai能力地圖')}},
+    {id:'lighthouse', name:'政策燈塔', who:'政策框架', emoji:'🗼', x:165, y:180, kind:'lighthouse', open:true,
+     points:['衛生法規：必須遵守的規定，例如畢業學分結構','新菜系：引導方向，例如 AI 跨域、未來人才AI能力圖像','新政策＝新框架，同一份計畫表再標一次，不用重做']},
+    {id:'seats', name:'客人座位區', who:'學生', emoji:'🪑', x:830, y:475, kind:'seats', open:true,
+     points:['客人就是學生，吃到的是四年的學習經驗','每個人體質不同，可以換適合自己的菜']},
+    {id:'combo', name:'套餐吧', who:'招牌套餐・自組套餐', emoji:'🍱', x:690, y:445, kind:'stall2', open:false,
+     points:['招牌套餐：學系配好的職業、AI 能力、跨域套餐','自組套餐：學生自己挑，營養師看搭配']},
+    {id:'nutri', name:'營養師站', who:'AI 代理人', emoji:'🥗', x:520, y:475, kind:'station', open:false,
+     points:['看整套菜單均不均衡：A～D 能力有沒有偏重','找出缺乏症：職業需要、課程沒教到的能力','只給建議，不替主廚和客人決定']},
+    {id:'checkout', name:'結帳櫃台', who:'AI 代理人「結帳員」', emoji:'💳', x:330, y:500, kind:'counter2', open:false,
+     points:['學生單點時幫忙對帳','「你已經吃成○○學程了，可以申請證明」','「再修 1 門就湊成套餐」']},
+    {id:'dock', name:'渡船碼頭', who:'跨店・跨校吃', emoji:'⛴️', x:180, y:520, kind:'dock', open:false,
+     points:['跨系選修＝跨店單點；輔系、雙主修＝第二家常去餐廳','跨系學程＝聯名套餐；跨校選課＝搭船去別的島','外系學分怎麼採計，依學校規定']}
+  ];
+  var byId = {}; SPOTS.forEach(function(s){ byId[s.id] = s; });
+
+  var TOURS = {
+    chef:{face:'👨‍🍳', title:'跟著主廚走', steps:[
+      ['kitchen','中央廚房送來食材：115 學年度的四年課程計畫表，已經複製成 116 草稿。'],
+      ['street','① 行政主廚先調菜單：必修、選修、學分怎麼調，系統會檢查 60% 規則。確認後存檔，匯出給系課程委員會。'],
+      ['season','② 替每道菜加上 AI 調味：點一門課，標註 11 項 AI 能力。去年標過的會先帶入，看過按確認就好。'],
+      ['order','③ 看職場客人想吃什麼：列出職業和需要的能力，系統標出課程缺口。'],
+      ['menu','④ 菜單看板自動彙整：本系的專業 AI 能力地圖就完成了。'],
+      ['seats','端上桌！學生吃到的，就是四年的學習經驗。']
+    ]},
+    guest:{face:'🧑‍🎓', title:'跟著客人走', steps:[
+      ['seats','我是學生，也是這座島的客人。'],
+      ['menu','先看菜單：這個系的課吃完，能做什麼工作、學到哪些 AI 能力。'],
+      ['combo','點招牌套餐，或自己組一份套餐。（即將開幕）'],
+      ['dock','想吃別家的菜？跨系選修、輔系、學程，還能搭船跨校。'],
+      ['nutri','營養師幫我看：我修的課，AI 能力均不均衡？（即將開幕）'],
+      ['checkout','結帳員提醒：「你已經吃成一個學程了！」（即將開幕）'],
+      ['street','大家怎麼吃，會回饋給行政主廚，調整下一學年度的菜單。']
+    ]}
+  };
+
+  var NS = 'http://www.w3.org/2000/svg';
+  function el(tag, attrs, parent){ var e = document.createElementNS(NS, tag); for(var k in attrs) e.setAttribute(k, attrs[k]); if(parent) parent.appendChild(e); return e; }
+
+  // 樹
+  var trees = document.getElementById('trees');
+  [[230,150],[330,125],[640,120],[730,130],[905,300],[880,410],[600,560],[420,575],[250,575],[150,400],[380,420],[610,385],[760,370],[350,230],[640,215]].forEach(function(p){
+    el('ellipse',{cx:p[0],cy:p[1]+12,rx:13,ry:4,fill:'#000',opacity:.08},trees);
+    el('rect',{x:p[0]-2,y:p[1],width:4,height:12,fill:'#9c7b55'},trees);
+    el('circle',{cx:p[0],cy:p[1]-4,r:12,fill:'#8fc06a'},trees);
+    el('circle',{cx:p[0]+6,cy:p[1]-9,r:7,fill:'#a3cf7c'},trees);
+  });
+
+  // 建築
+  function art(g, s){
+    var a = el('g',{class:'art'}, g);
+    el('ellipse',{cx:0,cy:26,rx:50,ry:9,fill:'#000',opacity:.1},a);
+    var k = s.kind;
+    if(k === 'kitchen'){
+      el('rect',{x:-58,y:-26,width:116,height:52,rx:6,fill:'#fff6e8',stroke:'#c9a77a','stroke-width':1.5},a);
+      el('path',{d:'M-66 -24 L0 -58 L66 -24 Z',fill:'#d9653b'},a);
+      el('rect',{x:30,y:-62,width:12,height:24,fill:'#9b8f84'},a);
+      el('circle',{cx:40,cy:-70,r:6,fill:'#fff',opacity:.8});
+      el('rect',{x:-12,y:2,width:24,height:24,rx:3,fill:'#c97e4f'},a);
+      el('rect',{x:-46,y:-12,width:22,height:16,rx:2,fill:'#cfe8f2'},a);
+      el('rect',{x:24,y:-12,width:22,height:16,rx:2,fill:'#cfe8f2'},a);
+    } else if(k === 'shops'){
+      [['#e8845a',-48],['#f2b84b',0],['#7bb3a8',48]].forEach(function(c){
+        el('rect',{x:c[1]-20,y:-16,width:40,height:40,rx:4,fill:'#fff8ec',stroke:'#cdb592'},a);
+        el('path',{d:'M'+(c[1]-24)+' -16 h48 l-4 -14 h-40 z',fill:c[0]},a);
+        el('rect',{x:c[1]-7,y:6,width:14,height:18,rx:2,fill:'#b98a5c'},a);
+      });
+    } else if(k === 'stall' || k === 'stall2'){
+      var col = k === 'stall' ? '#e8845a' : '#7bb3a8';
+      el('rect',{x:-38,y:-6,width:76,height:30,rx:4,fill:'#fff8ec',stroke:'#cdb592'},a);
+      for(var i=0;i<5;i++) el('path',{d:'M'+(-42+i*17)+' -10 h17 l0 -16 h-17 z',fill:i%2?'#fff':col,stroke:col},a);
+      el('line',{x1:-38,y1:-26,x2:-38,y2:24,stroke:'#a07b55','stroke-width':3},a);
+      el('line',{x1:38,y1:-26,x2:38,y2:24,stroke:'#a07b55','stroke-width':3},a);
+    } else if(k === 'counter' || k === 'counter2'){
+      el('rect',{x:-40,y:-30,width:80,height:54,rx:6,fill:'#fff8ec',stroke:'#cdb592'},a);
+      el('rect',{x:-46,y:-38,width:92,height:12,rx:4,fill:k==='counter'?'#f2b84b':'#9aa7d6'},a);
+      el('rect',{x:-30,y:2,width:60,height:22,rx:3,fill:'#e7d5b8'},a);
+    } else if(k === 'board'){
+      el('rect',{x:-4,y:-6,width:8,height:32,fill:'#a07b55'},a);
+      el('rect',{x:-44,y:-46,width:88,height:44,rx:6,fill:'#3d4a3f',stroke:'#a07b55','stroke-width':3},a);
+      el('line',{x1:-32,y1:-34,x2:20,y2:-34,stroke:'#f6efe0','stroke-width':2},a);
+      el('line',{x1:-32,y1:-24,x2:30,y2:-24,stroke:'#f6efe0','stroke-width':2},a);
+      el('line',{x1:-32,y1:-14,x2:10,y2:-14,stroke:'#f6efe0','stroke-width':2},a);
+    } else if(k === 'lighthouse'){
+      el('path',{d:'M-14 24 L-9 -40 L9 -40 L14 24 Z',fill:'#fff'},a);
+      el('path',{d:'M-12 0 L-11 -12 L11 -12 L12 0 Z',fill:'#d9653b'},a);
+      el('path',{d:'M-10 -24 L-9.5 -32 L9.5 -32 L10 -24 Z',fill:'#d9653b'},a);
+      el('rect',{x:-11,y:-52,width:22,height:12,rx:3,fill:'#ffe08a'},a);
+      el('path',{d:'M-14 -52 L0 -62 L14 -52 Z',fill:'#5a6b7a'},a);
+      el('path',{d:'M11 -46 L70 -64 L70 -28 Z',fill:'#ffe08a',opacity:.45},a);
+    } else if(k === 'seats'){
+      [[-30,4],[30,4]].forEach(function(p){
+        el('ellipse',{cx:p[0],cy:p[1]+10,rx:18,ry:7,fill:'#fff8ec',stroke:'#cdb592'},a);
+        el('line',{x1:p[0],y1:p[1]+8,x2:p[0],y2:p[1]-24,stroke:'#a07b55','stroke-width':2.5},a);
+        el('path',{d:'M'+(p[0]-24)+' '+(p[1]-20)+' Q'+p[0]+' '+(p[1]-44)+' '+(p[0]+24)+' '+(p[1]-20)+' Z',fill:p[0]<0?'#e8845a':'#7bb3a8'},a);
+      });
+    } else if(k === 'station'){
+      el('rect',{x:-34,y:-22,width:68,height:46,rx:8,fill:'#f4fbef',stroke:'#8fc06a','stroke-width':1.5},a);
+      el('path',{d:'M-38 -22 Q0 -48 38 -22 Z',fill:'#8fc06a'},a);
+      el('rect',{x:-8,y:4,width:16,height:20,rx:2,fill:'#b98a5c'},a);
+    } else if(k === 'dock'){
+      el('rect',{x:-46,y:4,width:70,height:10,fill:'#b98a5c'},a);
+      for(var j=0;j<4;j++) el('rect',{x:-42+j*20,y:14,width:4,height:12,fill:'#8a6a48'},a);
+      el('path',{d:'M-78 18 h40 l-6 12 h-28 z',fill:'#fff',stroke:'#7a8fa0'},a);
+      el('rect',{x:-64,y:4,width:14,height:14,fill:'#d9653b'},a);
+    }
+    // 圖示徽章
+    el('circle',{cx:0,cy:-20,r:0},a);
+    return a;
+  }
+
+  var spotsG = document.getElementById('spots');
+  SPOTS.forEach(function(s){
+    var g = el('g',{class:'spot' + (s.open ? '' : ' soon'), transform:'translate('+s.x+' '+s.y+')', tabindex:'0', role:'button', 'aria-label':s.name, 'data-id':s.id}, spotsG);
+    art(g, s);
+    var w = Math.max(84, s.name.length * 16 + 50);
+    el('rect',{class:'plate', x:-w/2, y:36, width:w, height:28, rx:14, filter:'url(#soft)'}, g);
+    var t = el('text',{class:'label', x:0, y:55, 'text-anchor':'middle'}, g);
+    t.textContent = s.emoji + ' ' + s.name;
+    if(!s.open){
+      el('rect',{x:-30, y:66, width:60, height:18, rx:9, fill:'#8a8a8a'}, g);
+      var st = el('text',{x:0, y:79, 'text-anchor':'middle', 'font-size':11, fill:'#fff'}, g);
+      st.textContent = '即將開幕';
+    }
+    g.addEventListener('click', function(){ stopTour(); show(s.id); });
+    g.addEventListener('keydown', function(e){ if(e.key === 'Enter' || e.key === ' '){ e.preventDefault(); stopTour(); show(s.id); } });
+  });
+
+  var panel = document.getElementById('panel');
+  var avatar = document.getElementById('avatar');
+  var route = document.getElementById('route');
+  var tour = null, stepIx = 0;
+
+  function esc(s){ return String(s).replace(/[&<>"]/g, function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]; }); }
+  function setActive(id){
+    Array.prototype.forEach.call(document.querySelectorAll('.spot'), function(g){ g.classList.toggle('active', g.getAttribute('data-id') === id); });
+  }
+  function spotHtml(s){
+    return '<span class="tag' + (s.open ? '' : ' soon') + '">' + (s.open ? '營業中' : '即將開幕') + '</span>' +
+      '<h2>' + s.emoji + ' ' + esc(s.name) + '</h2><p class="role">' + esc(s.who) + '</p>' +
+      '<ul>' + s.points.map(function(p){ return '<li>' + esc(p) + '</li>'; }).join('') + '</ul>' +
+      (s.link ? '<a class="go" href="' + s.link.url + '" target="_blank" rel="noopener">' + esc(s.link.label) + ' ↗</a>' : '');
+  }
+  function show(id){
+    setActive(id);
+    panel.innerHTML = spotHtml(byId[id]);
+  }
+  function intro(){
+    setActive(null);
+    panel.innerHTML = '<div class="intro"><h2 style="margin:0 0 10px;font-size:21px;">歡迎來到學味食光島</h2>' +
+      '<p>這座島是課程中央廚房：<b>四年課程計畫表</b>是食材，<b>學系</b>是行政主廚，<b>老師</b>是廚師，<b>AI 代理人</b>是幫手，<b>學生</b>是客人。</p>' +
+      '<p>學系照 ① → ④ 做就好，每一步的資料都會自動帶到下一步。</p>' +
+      '<p style="color:var(--quiet);font-size:13.5px;">點島上的地點看說明，或按上方「跟著主廚走」「跟著客人走」逛一圈。</p></div>';
+  }
+
+  function moveAvatar(s){ avatar.style.display = ''; avatar.style.transform = 'translate(' + (s.x + 46) + 'px,' + (s.y - 50) + 'px)'; }
+  function drawRoute(t){
+    var pts = t.steps.map(function(st){ return byId[st[0]]; });
+    route.setAttribute('d', pts.map(function(p, i){ return (i ? 'L' : 'M') + p.x + ' ' + p.y; }).join(' '));
+  }
+  function renderStep(){
+    var t = TOURS[tour], st = t.steps[stepIx], s = byId[st[0]];
+    setActive(s.id); moveAvatar(s);
+    panel.innerHTML = '<div class="step">' + t.face + ' ' + t.title + '・第 ' + (stepIx + 1) + ' / ' + t.steps.length + ' 站</div>' +
+      '<h2>' + s.emoji + ' ' + esc(s.name) + '</h2><p style="font-size:15px;line-height:1.8;margin:0;">' + esc(st[1]) + '</p>' +
+      (s.link ? '<a class="go" href="' + s.link.url + '" target="_blank" rel="noopener">' + esc(s.link.label) + ' ↗</a>' : '') +
+      '<div class="nav"><button type="button" id="prevB"' + (stepIx ? '' : ' disabled') + '>上一站</button>' +
+      '<button type="button" class="primary" id="nextB">' + (stepIx === t.steps.length - 1 ? '逛完了' : '下一站') + '</button></div>';
+    document.getElementById('prevB').onclick = function(){ if(stepIx){ stepIx--; renderStep(); } };
+    document.getElementById('nextB').onclick = function(){ if(stepIx < t.steps.length - 1){ stepIx++; renderStep(); } else { stopTour(); intro(); } };
+  }
+  function startTour(name){
+    tour = name; stepIx = 0;
+    document.getElementById('avatarFace').textContent = TOURS[name].face;
+    Array.prototype.forEach.call(document.querySelectorAll('.tours button'), function(b){ b.classList.toggle('on', b.getAttribute('data-tour') === name); });
+    drawRoute(TOURS[name]); renderStep();
+  }
+  function stopTour(){
+    tour = null; avatar.style.display = 'none'; route.setAttribute('d', '');
+    Array.prototype.forEach.call(document.querySelectorAll('.tours button'), function(b){ b.classList.remove('on'); });
+  }
+  Array.prototype.forEach.call(document.querySelectorAll('.tours button'), function(b){
+    b.addEventListener('click', function(){ startTour(b.getAttribute('data-tour')); });
+  });
+  intro();
+})();
+</script>
+</body>
+</html>
