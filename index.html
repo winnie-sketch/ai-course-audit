@@ -324,6 +324,15 @@
   .gap-stmt{font-size:11px;color:var(--ink-2);margin-top:2px;}
 
   .evidence-item{padding:11px 0;border-top:1px solid var(--border);}
+  .chef-box{margin:0 0 16px;padding:12px 14px;border:1px dashed var(--border);border-radius:10px;background:var(--surface);}
+  .chef-box .chef-head{font-size:13.5px;font-weight:700;margin-bottom:4px;}
+  .chef-box .chef-btns{display:flex;gap:8px;flex-wrap:wrap;margin:8px 0 0;}
+  .chef-box .chef-btns .btn{width:auto;padding:7px 12px;font-size:13px;text-decoration:none;}
+  .chef-box textarea{width:100%;min-height:90px;margin-top:8px;padding:8px 10px;border:1px solid var(--border);border-radius:8px;font:inherit;font-size:12px;box-sizing:border-box;background:var(--surface);color:var(--ink);}
+  .chef-msg{font-size:12.5px;margin-top:8px;color:var(--muted);}
+  .chef-msg.ok{color:var(--good);font-weight:700;}
+  .stmt-warn{margin-top:12px;}
+  .stmt-warn .chef-btns{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px;}
   .evidence-item:first-child{border-top:none;}
   .evidence-item .ehead{display:flex;align-items:center;gap:8px;font-size:12.5px;font-weight:700;margin-bottom:7px;}
   .evidence-item .elevel{font-size:11px;font-weight:700;padding:2px 8px;border-radius:99px;color:#fff;}
@@ -671,6 +680,22 @@
                 <p id="dcSyllabus" style="white-space:pre-wrap;">—</p>
               </details>
 
+              <div class="chef-box" id="chefBox" style="display:none;">
+                <div class="chef-head">🧂 調味師（AI 建議草稿）</div>
+                <div class="hint" style="margin:0;">把本課資料複製給學校帳號的 Gemini，取得等級、具體能力表述與教學評量方式的建議；貼回後<b>已填的內容不會被覆蓋</b>，請逐項確認再存檔。</div>
+                <div class="chef-btns">
+                  <button type="button" class="btn" id="chefCopy" data-view="1">① 複製給調味師</button>
+                  <a class="btn" href="https://gemini.google.com/app" target="_blank" rel="noopener" data-view="1">② 開啟 Gemini ↗</a>
+                  <button type="button" class="btn" id="chefPasteToggle">③ 貼上調味師建議</button>
+                </div>
+                <textarea id="chefPrompt" readonly data-view="1" style="display:none;"></textarea>
+                <div id="chefPasteBox" style="display:none;">
+                  <textarea id="chefPasteTa" placeholder="把 Gemini 的回答整段貼在這裡（含 { } 的那一段）"></textarea>
+                  <div class="chef-btns"><button type="button" class="btn primary" id="chefApply">帶入建議</button></div>
+                </div>
+                <div class="chef-msg" id="chefMsg"></div>
+              </div>
+
               <div class="card-head"><h3 style="font-size:13.5px;">課程是否涉及 AI</h3><span class="req must">必填</span></div>
               <div class="option-cards" id="aiInvolved" style="margin-bottom:16px;">
                 <div class="option-card" data-choice="no">
@@ -718,12 +743,13 @@
                 <button class="btn" id="saveDraftBtn" style="width:auto;flex:1;">儲存草稿</button>
                 <button class="btn primary" id="markDoneBtn" style="width:auto;flex:1;">標記完成</button>
               </div>
+              <div class="alert-warn stmt-warn" id="stmtWarn" style="display:none;"></div>
               <div id="noAiDoneNote" style="display:none;margin-top:16px;padding:12px 15px;border-radius:10px;background:var(--good-bg);color:var(--good);font-weight:700;font-size:13px;">✓ 已完成盤點（本課程不涉及AI）。點選當下即自動存檔，不需要再按其他按鈕。</div>
             </div>
 
             <div class="card tab-draft" id="draftCard">
               <div class="card-head"><h3>116 學年度課程計畫表調整（草稿）</h3><span class="req opt">試作版</span></div>
-              <div class="hint">從 115 學年度四年課程計畫表複製一份作為 116 草稿，學系只需調整要變動的地方：拖拉調整必選修與開課學期、刪除或新增科目、修改學分規範。系統即時檢核學分，並自動列出所有異動，請逐筆填寫異動理由。完成後按「確認存檔」，再按「匯出課程計畫表」產生四年課程計畫表格式的 Excel（含學分規範與異動對照表），可直接列印送系課程委員會。115 學年度正式資料不受影響。編輯需以 G2 帳號登入。</div>
+              <div class="hint">從 115 學年度四年課程計畫表複製一份作為 116 草稿，學系只需調整要變動的地方：拖拉調整必選修與開課學期、刪除或新增科目、修改學分規範。系統即時檢核學分，並自動列出所有異動，請逐筆填寫異動理由。完成後按「確認存檔」，再按「匯出課程計畫表」產生四年課程計畫表格式的 Excel（含學分規範與異動對照表），可直接列印送系院校課程委員會。115 學年度正式資料不受影響。編輯需以 G2 帳號登入。</div>
               <div id="draftBody"></div>
             </div>
             <div class="card tab-ind" id="industryCard">
@@ -1114,7 +1140,7 @@
   var EDIT_SEL = ['#addJobDir1', '#addJobDir2', '#industryJobs .ind-del', '#industryJobs .ind-chip', '#industryJobs .level-btn',
     '#industryJobs input', '#industryJobs textarea', '#industryJobs select',
     '#courseDetailCard .option-card', '#courseDetailCard .level-btn', '#courseDetailCard textarea', '#courseDetailCard input', '#courseDetailCard select',
-    '#saveDraftBtn', '#markDoneBtn', '#cpAdd', '#compCard [data-cp="edit"]', '#compCard [data-cp="confirm"]', '#compCard [data-cp="del"]',
+    '#saveDraftBtn', '#markDoneBtn', '#chefPasteToggle', '#chefApply', '#cpAdd', '#compCard [data-cp="edit"]', '#compCard [data-cp="confirm"]', '#compCard [data-cp="del"]',
     '#compCard .cp-ed input', '#compCard .cp-ed textarea', '#compCard .cp-ed select',
     '#draftCard .dr-card', '#draftCard .dr-add', '#draftCard button', '#draftCard input', '#draftCard select'].join(',');
   function editGate(e){
@@ -1607,6 +1633,8 @@
 
     document.getElementById('saveDraftBtn').onclick = function(){ persistCourse(rec, 'draft'); };
     document.getElementById('markDoneBtn').onclick = function(){ finalizeCourse(c, rec); };
+    var cb0 = document.getElementById('chefBox'); if(cb0) cb0.style.display = 'none';
+    var sw0 = document.getElementById('stmtWarn'); if(sw0) sw0.style.display = 'none';
   }
 
   function renderTeacherChgNote(c, rec){
@@ -2688,7 +2716,7 @@
     if(isDraftYear(planSel.track, planSel.year)){
       var dr = (DRAFTS[DRAFT_YEAR + '||' + planSel.track] || {}).data || {};
       if(!gradMin && dr.rules && dr.rules.total) gradMin = dr.rules.total;
-      html += '<div class="tag-note" style="margin:0 0 8px;"><b>點任一科目即可標註。</b>標示「待確認」的科目已先帶入去年的標註，看過沒問題按「確認標註」即可；課程如要調整，請到「① ' + DRAFT_YEAR + ' 課程架構調整」分頁。</div>';
+      html += '<div class="tag-note" style="margin:0 0 8px;"><b>點任一科目即可標註。</b>標示「待確認」的科目已先帶入去年的標註，看過沒問題按「確認標註」即可；課程如要調整，請到' + (VIEW ? '「四年課程計畫表」頁' : '「① ' + DRAFT_YEAR + ' 課程架構調整」分頁') + '。</div>';
     }
     html += '<div class="pl-sum">' + escapeHtml(planSel.track) + (gradMin ? '・畢業最低 <b>' + gradMin + '</b> 學分' : '') +
       (tagsLoadState === 'ok' ? '' : '・<span style="color:var(--muted)">科目標註讀取中…</span>') + '</div>';
@@ -2833,11 +2861,25 @@
     renderEvidence(rec);
     renderRadar(rec);
     document.getElementById('saveDraftBtn').onclick = function(){ saveSubject(code, rec, '草稿'); };
+    var warn = document.getElementById('stmtWarn'); warn.style.display = 'none';
     document.getElementById('markDoneBtn').onclick = function(){
       if(rec.aiInvolved === null){ toast('請先選擇本科目是否涉及 AI'); return; }
       if(rec.aiInvolved && INDICATORS.some(function(i){ return rec.ratings[i.code] === undefined; })){ toast('請完成全部 11 項指標的等級勾選'); return; }
+      var miss = rec.aiInvolved ? INDICATORS.filter(function(i){ return (rec.ratings[i.code] || 0) >= 3 && !String((rec.stmt || {})[i.code] || '').trim(); }) : [];
+      if(miss.length){
+        warn.innerHTML = '提醒：以下 ' + miss.length + ' 項等級 3 以上，還沒寫「具體能力表述」：' + miss.map(function(i){ return i.code; }).join('、') +
+          '<div style="font-weight:400;margin-top:4px;">建議補上，課程委員會與產業對接才看得到學生「能做到什麼」；可用上方「調味師」產生草稿。</div>' +
+          '<div class="chef-btns"><button type="button" class="btn" id="stmtBack" data-view="1" style="width:auto;">回去補寫</button><button type="button" class="btn primary" id="stmtGo" style="width:auto;">仍要確認標註</button></div>';
+        warn.style.display = 'block';
+        document.getElementById('stmtBack').onclick = function(){ warn.style.display = 'none'; var ta = document.querySelector('#dimGroups textarea[data-stmt="' + miss[0].code + '"]'); if(ta){ ta.focus(); if(ta.scrollIntoView) ta.scrollIntoView({behavior:'smooth', block:'center'}); } };
+        document.getElementById('stmtGo').onclick = function(){ warn.style.display = 'none'; saveSubject(code, rec, '已確認'); };
+        if(warn.scrollIntoView) warn.scrollIntoView({behavior:'smooth', block:'center'});
+        return;
+      }
+      warn.style.display = 'none';
       saveSubject(code, rec, '已確認');
     };
+    bindChef(code, rec, off);
     renderPlanCard();
     if(card.scrollIntoView) card.scrollIntoView({behavior:'smooth', block:'start'});
   }
@@ -2855,6 +2897,81 @@
     document.getElementById('ratingSections').style.display = rec.aiInvolved ? 'block' : 'none';
     document.getElementById('actionButtonsRow').style.display = 'flex';
     document.getElementById('noAiDoneNote').style.display = 'none';
+  }
+  /* ---------- 調味師：複製課程資料給 Gemini、貼回建議（不需 API 金鑰） ---------- */
+  var CHEF_RUBRIC = ['0 無關聯：教學內容、活動與評量完全未涉及此項能力', '1 極低：僅偶爾提及或簡短介紹，未安排練習、作業或評量', '2 低度：小部分單元或作業觸及，屬輔助性質、非教學重點',
+    '3 中度：明確安排至少一項教學活動、作業或評量對應此能力，但非主要學習目標', '4 高度：重要學習目標之一，有專門單元、實作與對應評量', '5 核心：本課程核心目標，貫穿教學設計、主要活動與評量'];
+  function chefPromptText(code, rec, off){
+    var name = document.getElementById('dcName').textContent, meta = document.getElementById('dcMeta').textContent.replace(/ ・ [^・]*$/, '');
+    var done = INDICATORS.filter(function(i){ return rec.ratings[i.code] !== undefined; });
+    var L = [];
+    L.push('你是大學課程的「AI 能力標註」助理。請只依下方課程大綱，判斷本課程與教育部「未來人才AI能力圖像」11 項指標的關聯程度，並撰寫具體能力表述。');
+    L.push('');
+    L.push('【規則】');
+    L.push('1. 只能依課程大綱內容判斷；大綱找不到依據的指標一律給 0，不要猜測。');
+    L.push('2. 關聯程度 0–5 級：');
+    CHEF_RUBRIC.forEach(function(r){ L.push('   ' + r); });
+    L.push('3. 等級 1 以上的指標寫「具體能力表述」：學生修完本課程，在這項能力上能做到什麼。句型：能＋運用 AI＋做什麼＋依據什麼查核。一句話，60 字以內。');
+    L.push('4. 等級 3 以上的指標寫「教學與評量方式」：摘要大綱中對應的教學活動、學生產出或評量方式，60 字以內。');
+    L.push('5. 若本課程完全不涉及 AI，aiInvolved 填 false，其餘留空物件。');
+    if(done.length) L.push('6. 學系已勾選以下等級，請以此為準、不要更改，只補寫表述與教學評量方式：' + done.map(function(i){ return i.code + '=' + rec.ratings[i.code]; }).join('、'));
+    L.push((done.length ? '7' : '6') + '. 只回傳下列格式的 JSON，不要任何其他文字。');
+    L.push('');
+    L.push('【回傳格式】');
+    L.push('{"aiInvolved":true,"ratings":{"A-1":0,"A-2":0,"B-1":0,"B-2":0,"B-3":0,"C-1":0,"C-2":0,"C-3":0,"D-1":0,"D-2":0,"D-3":0},"stmt":{"A-1":"能…"},"evidence":{"A-1":"…"}}');
+    L.push('');
+    L.push('【11 項指標（大專校院階段）】');
+    INDICATORS.forEach(function(i){ var v = CORE_IV[i.code]; L.push(i.code + ' ' + (v ? v.title + '：' + v.desc : i.label)); });
+    L.push('');
+    L.push('【課程】' + name + '（' + meta + '）');
+    L.push('【課程大綱】');
+    L.push(String(off.syllabus || '').trim());
+    return L.join('\n');
+  }
+  function chefParse(txt){
+    var s = String(txt || '').replace(/```(?:json)?/gi, '');
+    var a = s.indexOf('{'), b = s.lastIndexOf('}');
+    if(a < 0 || b <= a) return null;
+    try{ var o = JSON.parse(s.slice(a, b + 1)); return (o && typeof o === 'object') ? o : null; }catch(e){ return null; }
+  }
+  function bindChef(code, rec, off){
+    var box = document.getElementById('chefBox'), msg = document.getElementById('chefMsg'), pr = document.getElementById('chefPrompt'), pb = document.getElementById('chefPasteBox');
+    box.style.display = 'block'; msg.textContent = ''; msg.className = 'chef-msg'; pr.style.display = 'none'; pb.style.display = 'none'; document.getElementById('chefPasteTa').value = '';
+    document.getElementById('chefCopy').onclick = function(){
+      if(!off || !String(off.syllabus || '').trim()){ msg.className = 'chef-msg'; msg.textContent = '本科目沒有課程大綱可參考，調味師無法提供建議，請學系自行標註。'; return; }
+      pr.value = chefPromptText(code, rec, off); pr.style.display = 'block';
+      pr.focus(); pr.select();
+      var copied = false;
+      try{ copied = document.execCommand('copy'); }catch(e){}
+      if(copied){ msg.className = 'chef-msg ok'; msg.textContent = '已複製！請開啟 Gemini 貼上送出，再把回答貼回「③ 貼上調味師建議」。'; return; }
+      if(navigator.clipboard && navigator.clipboard.writeText){
+        navigator.clipboard.writeText(pr.value).then(function(){ msg.className = 'chef-msg ok'; msg.textContent = '已複製！請開啟 Gemini 貼上送出，再把回答貼回「③ 貼上調味師建議」。'; })
+          .catch(function(){ msg.className = 'chef-msg'; msg.textContent = '無法自動複製，請在下方文字框按 Ctrl+A、Ctrl+C 複製。'; });
+      } else { msg.className = 'chef-msg'; msg.textContent = '無法自動複製，請在下方文字框按 Ctrl+A、Ctrl+C 複製。'; }
+    };
+    document.getElementById('chefPasteToggle').onclick = function(){ pb.style.display = pb.style.display === 'none' ? 'block' : 'none'; if(pb.style.display === 'block') document.getElementById('chefPasteTa').focus(); };
+    document.getElementById('chefApply').onclick = function(){
+      var o = chefParse(document.getElementById('chefPasteTa').value);
+      if(!o){ msg.className = 'chef-msg'; msg.textContent = '看不懂貼上的內容，請確認有貼到 Gemini 回答中含 { } 的那一段。'; return; }
+      var nR = 0, nS = 0, nE = 0;
+      if(rec.aiInvolved === null && typeof o.aiInvolved === 'boolean'){ rec.aiInvolved = o.aiInvolved; }
+      if(rec.aiInvolved === false){ rec.ratings = {}; rec.evidence = {}; rec.stmt = {}; }
+      else {
+        var R = o.ratings || {}, S = o.stmt || {}, E = o.evidence || {};
+        INDICATORS.forEach(function(i){
+          var v = Number(R[i.code]);
+          if(rec.ratings[i.code] === undefined && R[i.code] !== undefined && R[i.code] !== '' && v >= 0 && v <= 5 && Math.round(v) === v){ rec.ratings[i.code] = v; nR++; }
+          var lv = rec.ratings[i.code] || 0;
+          if(lv > 0 && S[i.code] && !String(rec.stmt[i.code] || '').trim()){ rec.stmt[i.code] = String(S[i.code]).trim(); nS++; }
+          if(lv >= 3 && E[i.code] && !String(rec.evidence[i.code] || '').trim()){ rec.evidence[i.code] = String(E[i.code]).trim(); nE++; }
+        });
+      }
+      renderSubjectAi(rec); renderDimGroups(rec); renderEvidence(rec); renderRadar(rec); if(typeof updateRatingProgress === 'function') updateRatingProgress(rec);
+      msg.className = 'chef-msg ok';
+      msg.textContent = rec.aiInvolved === false ? '調味師判斷本課程不涉及 AI。請確認後存檔。' :
+        '已帶入：等級 ' + nR + ' 項、具體能力表述 ' + nS + ' 則、教學與評量方式 ' + nE + ' 則（已填的內容未覆蓋）。請逐項確認再按「確認標註」。';
+      pb.style.display = 'none';
+    };
   }
   function saveSubject(code, rec, status){
     if(!authToken()){ needLogin('tag'); return; }
@@ -3058,7 +3175,7 @@
       '<span class="sp"></span><span class="hint" id="drSync" style="margin:0;font-size:11.5px;">' + (d.updatedAt ? '雲端版本：' + escapeHtml(d.updatedAt) + (d.editor ? '（' + escapeHtml(d.editor) + '）' : '') : '') + '</span>' +
       '<button type="button" class="btn" id="drExport" data-view="1" style="width:auto;">⬇ 匯出課程計畫表（Excel，可列印）</button>' +
       '<button type="button" class="btn ' + (locked ? '' : 'primary') + '" id="drSubmit" style="width:auto;">' + (locked ? '解除確認（繼續編輯）' : '✓ 確認存檔') + '</button></div>';
-    if(locked) html += '<div class="tag-note">已確認存檔並鎖定，可匯出 Excel 列印送系課程委員會審議；如需修改請按「解除確認」。</div>';
+    if(locked) html += '<div class="tag-note">已確認存檔並鎖定，可匯出 Excel 列印送系院校課程委員會審議；如需修改請按「解除確認」。</div>';
     // 學分規範與檢核
     html += '<div class="dr-rules"><div class="dr-rh">' + DRAFT_YEAR + ' 學年度學分規範（可修改；預設沿用 ' + DRAFT_BASE + '）</div><div class="dr-rgrid">' +
       DR_RULES.map(function(x){ var bv = (data.baseRules || {})[x[0]], v = data.rules[x[0]];
@@ -3119,7 +3236,7 @@
       if(d.status === '已送出'){ d.status = '編輯中'; draftSave(); renderDraftCard(); return; }
       var miss = draftDiffs(d.data).filter(function(x){ return !String(x.c.reason || '').trim(); }).length;
       var bad = draftChecks(d.data).filter(function(k){ return k.ok === false; }).length;
-      if(!window.confirm('確認存檔 ' + DRAFT_YEAR + ' 學年度課程計畫表？' + (miss ? '\n・尚有 ' + miss + ' 筆異動未填理由' : '') + (bad ? '\n・學分檢核有 ' + bad + ' 項不符' : '') + '\n確認後將鎖定，可匯出列印送系課程委員會；需要修改時按「解除確認」。')) return;
+      if(!window.confirm('確認存檔 ' + DRAFT_YEAR + ' 學年度課程計畫表？' + (miss ? '\n・尚有 ' + miss + ' 筆異動未填理由' : '') + (bad ? '\n・學分檢核有 ' + bad + ' 項不符' : '') + '\n確認後將鎖定，可匯出列印送系院校課程委員會；需要修改時按「解除確認」。')) return;
       d.status = '已送出'; draftSave(); renderDraftCard();
     };
     if(locked) return;
@@ -3231,7 +3348,7 @@
     }
     box.innerHTML = '';
   }
-  /* ---------- 116 草稿匯出：仿 CE0901 四年課程計畫表格式（可列印送系課程委員會） ---------- */
+  /* ---------- 116 草稿匯出：仿 CE0901 四年課程計畫表格式（可列印送系院校課程委員會） ---------- */
   function exportDraftXlsx(){
     var track = draftTrack(), d = draftOf(track);
     if(!d || !d.data){ toast('尚無草稿可匯出'); return; }
@@ -3336,7 +3453,7 @@
     var nr = 4 + items.length + 1;
     ws2.mergeCells(nr, 1, nr, 2);
     var nt = ws2.getCell(nr, 1);
-    nt.value = '註：學分數規範依 ' + DRAFT_YEAR + ' 學年度草稿；其餘說明文字沿用 ' + DRAFT_BASE + ' 學年度課程計畫表，如有修訂請於系課程委員會中提出。';
+    nt.value = '註：學分數規範依 ' + DRAFT_YEAR + ' 學年度草稿；其餘說明文字沿用 ' + DRAFT_BASE + ' 學年度課程計畫表，如有修訂請於系院校課程委員會中提出。';
     nt.font = F(8); nt.alignment = {wrapText:true};
 
     // 第 3 頁：異動對照表
