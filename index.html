@@ -678,6 +678,14 @@
               <details class="rubric-details" open style="margin-bottom:16px;">
                 <summary>課程大綱（判斷 AI 涉入程度的參考依據，點一下可收合）</summary>
                 <p id="dcSyllabus" style="white-space:pre-wrap;">—</p>
+                <div id="dcSylTools" style="display:none;margin:4px 0 6px;">
+                  <button type="button" class="btn" id="dcSylEditBtn" style="width:auto;padding:6px 12px;font-size:12.5px;">✏️ 填寫／修改課程大綱</button>
+                  <div id="dcSylBox" style="display:none;margin-top:8px;">
+                    <textarea id="dcSylTa" style="width:100%;min-height:140px;padding:8px 10px;border:1px solid var(--border);border-radius:8px;font:inherit;font-size:12.5px;box-sizing:border-box;background:var(--surface);color:var(--ink);" placeholder="貼上或撰寫本課程的課程大綱：課程目標、每週主題、教學活動、作業與評量方式（有用到 AI 的地方請寫清楚）"></textarea>
+                    <div style="display:flex;gap:8px;margin-top:6px;"><button type="button" class="btn primary" id="dcSylSave" style="width:auto;">儲存課程大綱</button><button type="button" class="btn" id="dcSylCancel" data-view="1" style="width:auto;">取消</button></div>
+                  </div>
+                  <div class="hint" id="dcSylNote" style="margin:4px 0 0;"></div>
+                </div>
               </details>
 
               <div class="chef-box" id="chefBox" style="display:none;">
@@ -1140,7 +1148,7 @@
   var EDIT_SEL = ['#addJobDir1', '#addJobDir2', '#industryJobs .ind-del', '#industryJobs .ind-chip', '#industryJobs .level-btn',
     '#industryJobs input', '#industryJobs textarea', '#industryJobs select',
     '#courseDetailCard .option-card', '#courseDetailCard .level-btn', '#courseDetailCard textarea', '#courseDetailCard input', '#courseDetailCard select',
-    '#saveDraftBtn', '#markDoneBtn', '#chefPasteToggle', '#chefApply', '#mdPasteToggle', '#mdApply', '#mdPasteTa', '#cpAdd', '#compCard [data-cp="edit"]', '#compCard [data-cp="confirm"]', '#compCard [data-cp="del"]',
+    '#saveDraftBtn', '#markDoneBtn', '#dcSylEditBtn', '#dcSylSave', '#chefPasteToggle', '#chefApply', '#mdPasteToggle', '#mdApply', '#mdPasteTa', '#cpAdd', '#compCard [data-cp="edit"]', '#compCard [data-cp="confirm"]', '#compCard [data-cp="del"]',
     '#compCard .cp-ed input', '#compCard .cp-ed textarea', '#compCard .cp-ed select',
     '#draftCard .dr-card', '#draftCard .dr-add', '#draftCard button', '#draftCard input', '#draftCard select'].join(',');
   function editGate(e){
@@ -1634,6 +1642,7 @@
     document.getElementById('saveDraftBtn').onclick = function(){ persistCourse(rec, 'draft'); };
     document.getElementById('markDoneBtn').onclick = function(){ finalizeCourse(c, rec); };
     var cb0 = document.getElementById('chefBox'); if(cb0) cb0.style.display = 'none';
+    var st0 = document.getElementById('dcSylTools'); if(st0) st0.style.display = 'none';
     var sw0 = document.getElementById('stmtWarn'); if(sw0) sw0.style.display = 'none';
   }
 
@@ -2840,8 +2849,10 @@
     document.getElementById('dcName').textContent = r0['科目名稱'] || (t && t.name) || code;
     document.getElementById('dcMeta').textContent = code + ' ・ ' + rows.map(function(r){ return (PLAN_CAT_LABEL[r['類別']] || r['類別']) + ' ' + r['年級'] + '年級' + r['學期']; }).join('、') +
       ' ・ ' + (r0['學分'] || '') + ' 學分 ・ ' + tagStatusLabel(code);
-    var off = latestOfferingOf(code);
-    document.getElementById('dcSyllabus').textContent = off ? ('（取自 ' + off.academicYear + ' ' + off.term + ' 開課 ' + off.code + '）\n' + off.syllabus) : '（尚無開課紀錄可供參考的課程大綱）';
+    var dcx = draftCourseByCode(code), own = dcx && String(dcx.c.syllabus || '').trim();
+    var off = own ? {academicYear:DRAFT_YEAR, term:'', code:'', syllabus:dcx.c.syllabus, own:true} : latestOfferingOf(code);
+    document.getElementById('dcSyllabus').textContent = own ? ('（' + DRAFT_YEAR + ' 學年度學系填寫的課程大綱）\n' + dcx.c.syllabus) :
+      (off ? ('（取自 ' + off.academicYear + ' ' + off.term + ' 開課 ' + off.code + '）\n' + off.syllabus) : '（尚無開課紀錄可供參考的課程大綱。新課請按下方「填寫／修改課程大綱」，填好後調味師就能幫忙。）');
     var note = document.getElementById('dcTeacherChg');
     var k = tagKind(code);
     if(t && t.inherit){
@@ -2880,6 +2891,7 @@
       saveSubject(code, rec, '已確認');
     };
     bindChef(code, rec, off);
+    bindSyllabusEditor(code, dcx, off, rec);
     renderPlanCard();
     if(card.scrollIntoView) card.scrollIntoView({behavior:'smooth', block:'start'});
   }
@@ -2897,6 +2909,52 @@
     document.getElementById('ratingSections').style.display = rec.aiInvolved ? 'block' : 'none';
     document.getElementById('actionButtonsRow').style.display = 'flex';
     document.getElementById('noAiDoneNote').style.display = 'none';
+  }
+  /* ---------- 學系自填課程大綱（新課沒有開課紀錄時使用；存在 116 草稿的科目上） ---------- */
+  function draftCourseByCode(code){
+    if(!code) return null;
+    var tracks = [planSel.track].concat(planTracks());
+    for(var i = 0; i < tracks.length; i++){
+      var d = DRAFTS[DRAFT_YEAR + '||' + tracks[i]];
+      if(!d || !d.data || !d.data.courses) continue;
+      var c = d.data.courses.filter(function(x){ return !x.del && x.code === code; })[0];
+      if(c) return {track:tracks[i], d:d, c:c};
+    }
+    return null;
+  }
+  function postDraftNow(track, d, done){
+    fetch(WEBAPP_URL, {method:'POST', mode:'no-cors', headers:{'Content-Type':'text/plain;charset=utf-8'},
+      body: JSON.stringify({type:'draft', year:DRAFT_YEAR, dept:track, status:d.status || '編輯中', data:d.data, auth:authToken()})})
+      .then(function(){ d.updatedAt = fmtTime(new Date()); done(true); }).catch(function(){ done(false); });
+  }
+  function bindSyllabusEditor(code, dcx, off, rec){
+    var tools = document.getElementById('dcSylTools'), box = document.getElementById('dcSylBox'), ta = document.getElementById('dcSylTa'), note = document.getElementById('dcSylNote');
+    box.style.display = 'none'; note.textContent = '';
+    if(!dcx){ tools.style.display = 'none'; return; }
+    tools.style.display = 'block';
+    document.getElementById('dcSylEditBtn').onclick = function(){
+      if(!authToken()){ needLogin('tag'); return; }
+      ta.value = (off && off.syllabus) ? String(off.syllabus) : '';
+      box.style.display = 'block'; ta.focus();
+      note.textContent = off && !off.own ? '已先帶入舊的開課大綱，可直接修改成 ' + DRAFT_YEAR + ' 學年度的版本。' : '';
+    };
+    document.getElementById('dcSylCancel').onclick = function(){ box.style.display = 'none'; note.textContent = ''; };
+    document.getElementById('dcSylSave').onclick = function(){
+      if(!authToken()){ needLogin('tag'); return; }
+      var v = ta.value.trim();
+      if(v.length < 20){ note.textContent = '課程大綱太短，請至少寫出課程目標、主要教學活動與評量方式。'; return; }
+      dcx.c.syllabus = v;
+      note.textContent = '雲端儲存中…';
+      postDraftNow(dcx.track, dcx.d, function(ok){
+        if(!ok){ note.textContent = '雲端儲存失敗，請稍後再試。'; return; }
+        toast('課程大綱已存檔');
+        var nOff = {academicYear:DRAFT_YEAR, term:'', code:'', syllabus:v, own:true};
+        document.getElementById('dcSyllabus').textContent = '（' + DRAFT_YEAR + ' 學年度學系填寫的課程大綱）\n' + v;
+        bindChef(code, rec, nOff);
+        bindSyllabusEditor(code, dcx, nOff, rec);
+        document.getElementById('dcSylNote').textContent = '已存檔（' + dcx.d.updatedAt + '）。現在可以請調味師幫忙了。';
+      });
+    };
   }
   /* ---------- 調味師：複製課程資料給 Gemini、貼回建議（不需 API 金鑰） ---------- */
   var CHEF_RUBRIC = ['0 無關聯：教學內容、活動與評量完全未涉及此項能力', '1 極低：僅偶爾提及或簡短介紹，未安排練習、作業或評量', '2 低度：小部分單元或作業觸及，屬輔助性質、非教學重點',
@@ -2924,7 +2982,7 @@
     INDICATORS.forEach(function(i){ var v = CORE_IV[i.code]; L.push(i.code + ' ' + (v ? v.title + '：' + v.desc : i.label)); });
     L.push('');
     L.push('【課程】' + name + '（' + meta + '）');
-    L.push('【課程大綱】');
+    L.push('【課程大綱】' + (off.own ? '（' + DRAFT_YEAR + ' 學年度學系填寫）' : ''));
     L.push(String(off.syllabus || '').trim());
     return L.join('\n');
   }
@@ -2938,7 +2996,7 @@
     var box = document.getElementById('chefBox'), msg = document.getElementById('chefMsg'), pr = document.getElementById('chefPrompt'), pb = document.getElementById('chefPasteBox');
     box.style.display = 'block'; msg.textContent = ''; msg.className = 'chef-msg'; pr.style.display = 'none'; pb.style.display = 'none'; document.getElementById('chefPasteTa').value = '';
     document.getElementById('chefCopy').onclick = function(){
-      if(!off || !String(off.syllabus || '').trim()){ msg.className = 'chef-msg'; msg.textContent = '本科目沒有課程大綱可參考，調味師無法提供建議，請學系自行標註。'; return; }
+      if(!off || !String(off.syllabus || '').trim()){ msg.className = 'chef-msg'; msg.textContent = '本科目還沒有課程大綱，調味師無法提供建議。請先在上方「課程大綱」按「填寫／修改課程大綱」，存檔後再請調味師。'; return; }
       pr.value = chefPromptText(code, rec, off); pr.style.display = 'block';
       pr.focus(); pr.select();
       var copied = false;
