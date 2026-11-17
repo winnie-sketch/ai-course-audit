@@ -156,7 +156,20 @@
   .dept-tabs button:hover{background:var(--grid);}
   .dept-tabs button.active{background:var(--surface);color:var(--ink);border-color:var(--border);border-bottom:2px solid var(--surface);}
   #deptContent:not([data-tab="main"]) .tab-main, #deptContent:not([data-tab="comp"]) .tab-comp,
-  #deptContent:not([data-tab="ind"]) .tab-ind, #deptContent:not([data-tab="draft"]) .tab-draft{display:none !important;}
+  #deptContent:not([data-tab="ind"]) .tab-ind, #deptContent:not([data-tab="draft"]) .tab-draft, #deptContent:not([data-tab="coach"]) .tab-coach{display:none !important;}
+  .coach-step{border:1px solid var(--line,#e3e3e3);border-radius:10px;padding:10px 12px;margin-top:10px;}
+  .coach-ro{background:var(--soft,#f6f7f9);border-radius:8px;padding:8px 10px;margin-top:6px;font-size:13px;line-height:1.6;}
+  .coach-dim{margin-top:6px;} .coach-dimh{font-weight:700;font-size:13px;margin:6px 0 2px;}
+  .coach-pr{font-size:13px;margin:2px 0;} .coach-pr label{cursor:pointer;}
+  .coach-pin{display:flex;flex-wrap:wrap;gap:6px;margin:4px 0 6px 22px;} .coach-pin input{flex:1 1 140px;min-width:0;font-size:12px;padding:4px 6px;}
+  .coach-lab{display:block;font-weight:700;font-size:13px;margin:8px 0 2px;}
+  .coach-grade{display:flex;flex-direction:column;gap:4px;font-size:13px;} .coach-grade > div{display:flex;flex-wrap:wrap;gap:6px;align-items:center;}
+  .coach-grade span{min-width:64px;} .coach-grade input[data-cf^="m"]{flex:1 1 220px;min-width:0;} .coach-grade input[data-cf="aiTools"]{flex:1 1 180px;min-width:0;}
+  .coach-checks{margin-top:10px;font-size:13px;line-height:1.7;} .cc-ok{color:var(--good,#1a7f37);} .cc-warn{color:#9a6700;} .cc-bad{color:#cf222e;font-weight:700;}
+  #coachBody .chef-btns .btn, #notifyBody .chef-btns .btn{width:auto;flex:0 0 auto;}
+  .nu-tbl td.nu-on{background:#e9f6ec;} .nu-tbl td.nu-off{background:#fdf1f1;color:#a40e26;text-align:center;}
+  .ts-del{display:inline-block;font-size:11px;padding:1px 6px;border-radius:6px;background:#fde7e9;color:#a40e26;font-weight:700;margin-left:4px;}
+  html.view-teacher #authBox, html.view-teacher #refreshCloudBtn{display:none !important;}
   .pl-src{font-size:12.5px;font-weight:700;color:var(--accent);margin:0 0 8px;}
   .pl-src:empty{display:none;}
   .pl-ylab{font-size:12px;font-weight:700;color:var(--ink-2);align-self:center;margin-right:-2px;}
@@ -332,6 +345,11 @@
   .chef-msg{font-size:12.5px;margin-top:8px;color:var(--muted);}
   .chef-msg.ok{color:var(--good);font-weight:700;}
   .stmt-warn{margin-top:12px;}
+  .ts-tbl td,.ts-tbl th{white-space:normal;font-size:12px;vertical-align:top;}
+  .ts-sc{display:inline-block;min-width:22px;text-align:center;border-radius:6px;padding:1px 5px;margin-right:3px;background:var(--surface-raised);font-weight:700;font-size:12px;}
+  .ts-flag{color:var(--critical);font-weight:700;}
+  .ts-flag.low{color:#a06600;}
+  .dc-taste{margin:0 0 16px;padding:10px 13px;border-radius:10px;border:1px solid var(--border);background:var(--surface);font-size:12.5px;line-height:1.7;}
   .stmt-warn .chef-btns{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px;}
   .evidence-item:first-child{border-top:none;}
   .evidence-item .ehead{display:flex;align-items:center;gap:8px;font-size:12.5px;font-weight:700;margin-bottom:7px;}
@@ -611,6 +629,7 @@
           <button type="button" data-tab="main" class="active">② 課程標註</button>
           <button type="button" data-tab="ind">③ 產業對接</button>
           <button type="button" data-tab="comp">④ 專業 AI 能力地圖</button>
+          <button type="button" data-tab="coach">⑤ 食譜教練（授課教師）</button>
         </div>
         <div class="chip-toggle tab-main" id="deptModeSel" style="display:none;">
           <button type="button" data-mode="plan" class="active">四年課程計畫表（科目標註）</button>
@@ -704,6 +723,8 @@
                 <div class="chef-msg" id="chefMsg"></div>
               </div>
 
+              <div class="dc-taste" id="dcTaste" style="display:none;"></div>
+
               <div class="card-head"><h3 style="font-size:13.5px;">課程是否涉及 AI</h3><span class="req must">必填</span></div>
               <div class="option-cards" id="aiInvolved" style="margin-bottom:16px;">
                 <div class="option-card" data-choice="no">
@@ -755,10 +776,33 @@
               <div id="noAiDoneNote" style="display:none;margin-top:16px;padding:12px 15px;border-radius:10px;background:var(--good-bg);color:var(--good);font-weight:700;font-size:13px;">✓ 已完成盤點（本課程不涉及AI）。點選當下即自動存檔，不需要再按其他按鈕。</div>
             </div>
 
+            <div class="card mode-plan tab-main" id="notifyCard">
+              <div class="card-head"><h3>📣 請老師寫大綱（115-2）</h3><span class="req opt">通知與進度</span></div>
+              <div class="hint">列出學系標註「涉及 AI」的 115-2 課程，一鍵產生給授課教師的通知文字（附食譜教練連結）；115-2 開課資料匯入後，自動顯示每門課的大綱進度。</div>
+              <div id="notifyBody"><div class="hint">請先選擇系所。</div></div>
+            </div>
+
+            <div class="card mode-plan tab-main" id="tasteCard">
+              <div class="card-head"><h3>🔎 試菜員：輔導團評分規準模擬初評</h3><span class="req opt">AI 代理人</span></div>
+              <div class="hint">以「AI人才培育協作輔導團」課程評分提示詞（原文不修改），把本系有課程大綱的科目分批複製給學校帳號的 Gemini，貼回 CSV 後存檔。結果<b>只供參考，不會改動學系的標註</b>；系統會列出學系標註與試菜員差距較大的科目，以及大綱的「證據不足處」，方便補寫大綱或調整標註。</div>
+              <div id="tasteBody"><div class="hint">請先選擇系所。</div></div>
+            </div>
+
+            <div class="card tab-coach" id="coachCard">
+              <div class="card-head"><h3>🧑‍🍳 食譜教練：教學計畫表 AI 寫作助手</h3><span class="req opt">AI 代理人・授課教師用</span></div>
+              <div class="hint">科目名稱與課程概要由學系訂定；授課教師負責<b>教學目標、授課方式、成績評定</b>。食譜教練幫老師把「實際會做」的 AI 活動寫清楚，讓課程通過輔導團的關鍵詞初篩，並符合 3 分「明確納入教學活動、作業或評量」的規準。<b>免登入、不存檔</b>，兼任老師也能用。</div>
+              <div id="coachBody"><div class="hint">請先選擇系所。</div></div>
+            </div>
+
             <div class="card tab-draft" id="draftCard">
               <div class="card-head"><h3>116 學年度課程計畫表調整（草稿）</h3><span class="req opt">試作版</span></div>
               <div class="hint">從 115 學年度四年課程計畫表複製一份作為 116 草稿，學系只需調整要變動的地方：拖拉調整必選修與開課學期、刪除或新增科目、修改學分規範。系統即時檢核學分，並自動列出所有異動，請逐筆填寫異動理由。完成後按「確認存檔」，再按「匯出課程計畫表」產生四年課程計畫表格式的 Excel（含學分規範與異動對照表），可直接列印送系院校課程委員會。115 學年度正式資料不受影響。編輯需以 G2 帳號登入。</div>
               <div id="draftBody"></div>
+            </div>
+
+            <div class="card tab-draft" id="nutriCard">
+              <div class="card-head"><h3>🥗 營養師：116 四年 AI 能力分布</h3><span class="req opt">AI 代理人</span></div>
+              <div id="nutriBody"><div class="hint">請先選擇系所。</div></div>
             </div>
             <div class="card tab-ind" id="industryCard">
           <div class="card-head"><h3>產業對接：職缺能力需求與課程支撐</h3><span class="req opt">試作版</span></div>
@@ -1148,7 +1192,7 @@
   var EDIT_SEL = ['#addJobDir1', '#addJobDir2', '#industryJobs .ind-del', '#industryJobs .ind-chip', '#industryJobs .level-btn',
     '#industryJobs input', '#industryJobs textarea', '#industryJobs select',
     '#courseDetailCard .option-card', '#courseDetailCard .level-btn', '#courseDetailCard textarea', '#courseDetailCard input', '#courseDetailCard select',
-    '#saveDraftBtn', '#markDoneBtn', '#dcSylEditBtn', '#dcSylSave', '#chefPasteToggle', '#chefApply', '#mdPasteToggle', '#mdApply', '#mdPasteTa', '#cpAdd', '#compCard [data-cp="edit"]', '#compCard [data-cp="confirm"]', '#compCard [data-cp="del"]',
+    '#saveDraftBtn', '#markDoneBtn', '#tsPasteToggle', '#tsApply', '#tsZero', '#nuSave', '#nuNew', '#nuWhy', '#tsPasteTa', '#dcSylEditBtn', '#dcSylSave', '#chefPasteToggle', '#chefApply', '#mdPasteToggle', '#mdApply', '#mdPasteTa', '#cpAdd', '#compCard [data-cp="edit"]', '#compCard [data-cp="confirm"]', '#compCard [data-cp="del"]',
     '#compCard .cp-ed input', '#compCard .cp-ed textarea', '#compCard .cp-ed select',
     '#draftCard .dr-card', '#draftCard .dr-add', '#draftCard button', '#draftCard input', '#draftCard select'].join(',');
   function editGate(e){
@@ -1250,9 +1294,9 @@
   var state = loadState();
   var currentYear = '115';
   var currentDept = '';
-  var VIEW = (function(){ try{ var v = new URLSearchParams(location.search).get('view'); return ['plan','tag','ind','comp','dash'].indexOf(v) >= 0 ? v : ''; }catch(e){ return ''; } })();
+  var VIEW = (function(){ try{ var v = new URLSearchParams(location.search).get('view'); return ['plan','tag','ind','comp','dash','teacher'].indexOf(v) >= 0 ? v : ''; }catch(e){ return ''; } })();
   if(VIEW){ document.documentElement.classList.add('view-mode', 'view-' + VIEW); }
-  var VIEW_TAB = {plan:'draft', tag:'main', ind:'ind', comp:'comp'};
+  var VIEW_TAB = {plan:'draft', tag:'main', ind:'ind', comp:'comp', teacher:'coach'};
   var LAST_DEPT_KEY = 'aiCourseAudit_lastDept_v1';  // 各頁共用：記住上次選的系所（只是方便，不存任何填寫資料）
   var currentCourseId = null;
   var reqFilterVal = 'all';
@@ -1643,6 +1687,7 @@
     document.getElementById('markDoneBtn').onclick = function(){ finalizeCourse(c, rec); };
     var cb0 = document.getElementById('chefBox'); if(cb0) cb0.style.display = 'none';
     var st0 = document.getElementById('dcSylTools'); if(st0) st0.style.display = 'none';
+    var tt0 = document.getElementById('dcTaste'); if(tt0) tt0.style.display = 'none';
     var sw0 = document.getElementById('stmtWarn'); if(sw0) sw0.style.display = 'none';
   }
 
@@ -2346,6 +2391,7 @@
     renderAggregateRadar('deptRadarWrap', list);
     applyDeptMode();
     if(isPlanMode()){ renderPlanRadar(); renderPlanProgress(); renderCompCard(); if(deptTab === 'draft') renderDraftCard(); }
+    if(deptTab === 'coach') renderCoach();
     renderIndustryGap();
     renderPlanCard();
   }
@@ -2600,6 +2646,7 @@
     var compOk = isPlanMode(), prev = deptTab;
     deptTab = ((deptTabWant === 'comp' || deptTabWant === 'draft') && !compOk) ? 'main' : deptTabWant;
     if(prev !== deptTab && deptTab === 'draft') setTimeout(renderDraftCard, 0);
+    if(prev !== deptTab && deptTab === 'coach') setTimeout(renderCoach, 0);
     box.setAttribute('data-tab', deptTab);
     Array.prototype.forEach.call(document.querySelectorAll('#deptTabs button'), function(b){
       b.style.display = ((b.dataset.tab === 'comp' || b.dataset.tab === 'draft') && !compOk) ? 'none' : '';
@@ -2611,6 +2658,7 @@
     if(t === 'comp' && typeof renderCompCard === 'function') renderCompCard();
     if(t === 'ind'){ renderIndustryJobs(); renderIndustryGap(); }
     if(t === 'draft') renderDraftCard();
+    if(t === 'coach') renderCoach();
     if(t === 'main' && isPlanMode()){ renderPlanCard(); renderPlanRadar(); renderPlanProgress(); }
     var box = document.getElementById('deptTabs');
     if(box && box.getBoundingClientRect().top < 0 && box.scrollIntoView) box.scrollIntoView({block:'start'});
@@ -2691,6 +2739,7 @@
   function indCourses(){ return isPlanMode() ? planPseudoCourses(false) : deptCourses(); }
 
   function renderPlanCard(){
+    try{ renderTasteCard(); }catch(e){}
     var el = document.getElementById('planBody');
     if(!el) return;
     if(!currentDept){ el.innerHTML = ''; return; }
@@ -2892,6 +2941,7 @@
     };
     bindChef(code, rec, off);
     bindSyllabusEditor(code, dcx, off, rec);
+    renderSubjectTaste(code);
     renderPlanCard();
     if(card.scrollIntoView) card.scrollIntoView({behavior:'smooth', block:'start'});
   }
@@ -2910,6 +2960,761 @@
     document.getElementById('actionButtonsRow').style.display = 'flex';
     document.getElementById('noAiDoneNote').style.display = 'none';
   }
+
+  /* ---------- 輔導團 62 個 AI 關鍵詞（初篩用）與課程大綱合併格式 ---------- */
+  var AI_KEYTERMS = ['AI','人工智慧','生成式AI','生成式人工智慧','ChatGPT','Gemini','Claude','Copilot','大型語言模型','LLM','機器學習','深度學習','神經網路','AI模型','生成模型','文字生成','圖像生成','語音生成','智慧代理','Agentic AI','AI代理人','Artificial Intelligence','Generative AI','GenAI','Large Language Model','Large Language Models','LLMs','Foundation Model','Foundation Models','Machine Learning','ML','Deep Learning','DL','Neural Network','Neural Networks','Artificial Neural Network','Artificial Neural Networks','AI Model','AI Models','Generative Model','Generative Models','Text Generation','Natural Language Generation','NLG','Image Generation','AI-Generated Image','AI-Generated Images','Speech Generation','Voice Generation','Speech Synthesis','Intelligent Agent','Intelligent Agents','AI Agent','AI Agents','Autonomous Agent','Autonomous Agents','Multimodal AI','Generative Adversarial Network','GAN','GANs','Transformer','Transformers'];
+  // 中文詞直接比對；英文詞須為獨立單字（避免 HTML 命中 ML、Taiwan 命中 AI），不分大小寫，全形字先轉半形
+  var KT_RE = AI_KEYTERMS.map(function(t){
+    var esc = t.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    return {t:t, re:new RegExp((/^[A-Za-z0-9]/.test(t) ? '(?:^|[^A-Za-z0-9])' : '') + esc + (/[A-Za-z0-9]$/.test(t) ? '(?![A-Za-z0-9])' : ''), 'i')};
+  });
+  function keytermHits(text){
+    var s = String(text || ''); try{ s = s.normalize('NFKC'); }catch(e){}
+    return KT_RE.filter(function(k){ return k.re.test(s); }).map(function(k){ return k.t; });
+  }
+  // 給輔導團、試菜員、食譜教練共用的「課程大綱」合併格式
+  function mergeSyllabus(p){
+    var L = [];
+    [['課程概要', p.summary], ['教學目標', p.obj], ['授課方式', p.appr], ['成績評定', p.grade]].forEach(function(x){
+      var v = String(x[1] == null ? '' : x[1]).replace(/<br\s*\/?>/gi, '\n').trim();
+      if(v) L.push('【' + x[0] + '】' + v);
+    });
+    return L.join('\n');
+  }
+  var GRADE_PARTS = [['平時','平時評量'], ['期中','期中評量'], ['期末','期末評量'], ['其他','其他評量']];
+  function blankish(v){ v = String(v == null ? '' : v).trim(); return !v || v === '無' || v === '--' || v === '－－'; }
+  function gradingText(g){
+    return GRADE_PARTS.map(function(x){
+      var m = (g[x[0]] || {}).method, pc = String((g[x[0]] || {}).pct == null ? '' : g[x[0]].pct).replace(/[%％\s]/g, '');
+      if(blankish(m) && (blankish(pc) || Number(pc) === 0)) return '';
+      return x[1] + '：' + (blankish(m) ? '（未填評分方式）' : String(m).replace(/<br\s*\/?>/gi, ' ').trim()) + (blankish(pc) ? '' : '（' + pc + '%）');
+    }).filter(Boolean).join('；');
+  }
+
+  /* ---------- 115-2 評分對象：由 115 學年度四年課程計畫表的下學期科目推得（115-2 開課資料匯入前） ---------- */
+  var EVAL = {label:'115-2', ay:'115', term:'下學期', planYear:'115', sem:'下'};
+  function evalCourses(track){
+    var seen = {}, out = [];
+    if(!PLAN_DATA || !track) return out;
+    PLAN_DATA.rows.forEach(function(r){
+      if(r['系所'] !== track || r['入學學年度'] !== EVAL.planYear) return;
+      if(r['學期'] !== EVAL.sem && !(r['上下對開'] === 'Y' && r['學期'] === '上')) return;
+      var code = r['學科代碼'];
+      if(!code || r['類別'] === '校必' || seen[code]) return;
+      seen[code] = 1;
+      out.push({code:code, name:String(r['科目名稱']).replace(/^[A-Z0-9]{5}-/, ''), grade:r['年級'], cat:r['類別']});
+    });
+    return out;
+  }
+  // 115-2 大綱：已匯入就用 115-2；尚未匯入時暫用最近一次開課的大綱（標示來源）
+  function evalSyllabus(code){
+    var cur = COURSES.filter(function(c){ return String(c.code || '').slice(1, 7) === code && c.academicYear === EVAL.ay && c.term === EVAL.term && String(c.syllabus || '').trim(); })[0];
+    if(cur) return {text:cur.syllabus, summary:cur.summary || cur.syllabus, src:EVAL.label, cur:true, teacher:cur.teacher};
+    var off = latestOfferingOf(code);
+    return off ? {text:off.syllabus, summary:off.summary || off.syllabus, src:off.academicYear + (off.term === '上學期' ? '-1' : off.term === '下學期' ? '-2' : off.term), cur:false, teacher:off.teacher} : null;
+  }
+  function evalImported(){ return COURSES.some(function(c){ return c.academicYear === EVAL.ay && c.term === EVAL.term; }); }
+  function status116(code, track){
+    var d = DRAFTS[DRAFT_YEAR + '||' + track];
+    if(!d || !d.data || !d.data.courses) return '';
+    var cs = d.data.courses.filter(function(x){ return x.code === code; });
+    return (!cs.length || cs.every(function(x){ return x.del; })) ? 'del' : '';
+  }
+  var DEL116_TAG = '<span class="ts-del">116 刪除，只評 115-2</span>';
+
+  /* ---------- 試菜員：AI人才培育協作輔導團課程評分提示詞（原文）批次初評 ---------- */
+  var TASTER_VER = '輔導團課程評分提示詞（2026/11 取得版）';
+  var TASTER_PROMPT = "你是一位大專校院課程審查與AI 素養評估專家。你的任務是根據「課程名稱」與「課程大綱」，評估該課程對下列四項能力的符合度：\n\nA. 運用 AI 學習的能力\nB. 負責任使用 AI 的能力\nC. 運用 AI 解決問題的能力\nD. AI 無法取代的能力\n\n請嚴格根據課程名稱與課程大綱中的明確文字證據評分，不得自行想像課程可能包含但未寫出的內容。\n符合能力定義其中一項就可以給分，例如: 課程中包含AI工具介紹，符合A1，但不符合A2與A3，仍可給予至少1分。\n\n一、四項能力的定義\n\n【能力 A：運用 AI 學習的能力】\n\n能力 A 關注學生是否能將 AI 作為學習與專業成長工具，而不是只學習 AI 技術本身。\n\nA1. 理解與選用 AI 工具\n- 了解 AI 工具的基本原理、功能、優勢與限制。\n- 能依專業需求選擇合適的 AI 工具。\n- 知道何時、如何及為何使用 AI。\n\nA2. 運用 AI 提升學習成效\n- 使用 AI 搜尋、整理、摘要、分類、翻譯或管理資訊。\n- 使用 AI 協助理解概念、產生範例、提供回饋、練習或除錯。\n- 運用提示詞、提問策略或反覆修正提升學習成果。\n\nA3. AI 賦能的自主學習與終身學習\n- 主動利用 AI 與其他資源解決學習問題。\n- 使用 AI 規劃、記錄、評估及調整學習歷程。\n- 培養持續學習與終身學習能力。\n\n注意：\n- 講授人工智慧相關技術或原理的課程都算是能力A，至少給1分。\n- 課程中超過一半以上在講授，請至少給3分。例如課名為: 人工智慧導論、類神經網路\n\n【能力 B：負責任使用 AI 的能力】\n\n能力 B 關注學生是否具備 AI 倫理、法律、資安、風險、價值判斷與責任意識。\n\nB1. AI 倫理與法規素養\n- AI 倫理、科技倫理、負責任 AI。\n- 智慧財產權、著作權、個資保護及隱私。\n- AI 使用方式與範圍的揭露。\n- 不同專業領域的 AI 使用規範。\n\nB2. AI 資安與風險意識\n- 個資或機密資料外洩。\n- AI 偏見、偏誤、歧視、誤判與幻覺。\n- 假訊息、深偽、錯誤資訊與查證。\n- AI 系統安全、風險管理與防護措施。\n\nB3. 價值判斷與當責\n- 不盲目相信 AI。\n- 理解 AI 對個人、專業、產業與社會的影響。\n- 人類應對最終決策及後果負責。\n- AI 應用須符合人類價值與社會規範。\n- 涉及公平、正義、人權、治理、責任歸屬或人類監督。\n\n注意：\n- 僅提到AI 可能造成影響，不代表高度符合 B。\n- 明確探討倫理、法律、風險、責任或治理可給予較高分數。\n- 一般資訊安全、一般法律或一般媒體識讀，若未與 AI 連結，不得計入 B。\n\n【能力 C：運用 AI 解決問題的能力】\n\n能力 C 關注學生是否能將 AI 納入完整、可驗證且符合專業要求的問題解決流程。\n\nC1. 運用 AI 分析與解決問題\n- 釐清問題背景、需求、限制條件與關鍵因素。\n- 使用 AI 整理資訊、分析資料、建立模型或提出方案。\n- 使用 AI 進行預測、分類、推薦、辨識、生成、診斷或最佳化。\n- 結合專業知識形成解決方案。\n\nC2. 驗證、修正與品質控制\n- 驗證 AI 分析或生成結果。\n- 比較不同方案。\n- 修正 AI 的錯誤、不足或偏誤。\n- 評估成果的正確性、可靠性、專業品質與風險。\n\nC3. 跨領域整合與系統性思考\n- 整合不同領域的知識與方法。\n- 從整體系統觀點分析問題。\n- 不只是套用 AI 工具，而是形成可行的專業方案。\n\nC4. 人機協作與流程優化\n- 判斷哪些工作適合 AI，哪些應由人完成。\n- 規劃人機分工。\n- 評估 AI 對效率、品質與風險的影響。\n- 優化工作流程。\n- 持續監控 AI 表現。\n\n注意：\n- 學生必須使用 AI 完成任務、專題、作品、原型或系統，可視為 C 的證據。\n- 若未提及驗證、修正、人機分工或品質評估，不給 5 分。\n\n【能力 D：AI 無法取代的能力】\n\n能力 D 關注學生在與 AI 協作時，是否仍保有人類的主體性、價值判斷、同理心、真實世界洞察與創造力。\n\n主要判定面向包括：\n\nD1. 善用 AI 提升判斷與決策力\n- 比較、檢核、驗證或批判 AI 結果。\n- 不盲從 AI 建議。\n- 提出自己的判斷與決策理由。\n- 保有人類主體性。\n- 承擔最後決策與結果責任。\n\nD2. AI 協作中的同理心與人際互動\n- 團隊合作、溝通、協調與衝突處理。\n- 理解並尊重不同觀點與需求。\n- 考量不同族群、文化、背景與社會情境。\n- AI 作為協作工具，而非取代人際互動。\n\nD3. 真實世界洞察與創意整合\n- 從真實情境或場域發現問題。\n- 田野調查、服務學習、專題、設計思考或實務觀察。\n- 結合生活經驗、文化理解與多元觀點。\n- 創意、原創性、敘事、美感與創新方案。\n- AI 協助分析或創作，但不能取代學生的觀察與判斷。\n\n注意：\n- 一般創意、批判思考、同理心或團隊合作課程，若完全沒有 AI 元素，不得因此給 D 分數。\n- 能力D展現在 AI 協作情境中，可得到更高分數。\n- 「AI 無法取代」不是指排斥 AI，而是在使用 AI 時仍保有人類的主體性與核心價值。\n\n二、嚴格的 0 分原則\n\n如果課程名稱與課程大綱中完全沒有提及任何AI元素(如 AI 工具、AI 運作原理、AI 模型、AI 應用、AI 倫理、AI 科技衝擊或人機協作)，則四項能力必須全部給 0 分。\n\n本評分是判斷課程是否在 AI 情境下培養 A、B、C、D 能力，而不是評估一般核心能力，即使課程本身可能培養其它重要能力(如:創造力、批判思考、資料分析、程式設計、問題解決、法律素養)也一律不得給分。\n課名和課程大綱要合在一起評估，例如: 課名包含AI元素，但課程大綱資料不明確或沒有AI，則仍可依課名推測去綜合評估。\n\n三、評分尺規\n\n每項能力使用 0–5 分。\n\n0 分：\n- 課程名稱與大綱完全沒有 AI 元素。\n- 資料錯誤: 例如: 「課程網要內容為空白亂碼」或「課名加上課程綱要少於3個字」\n- 或依前述 0 分原則，整門課直接判定為 0。\n\n1 分：\n- 課程包含零星該能力相關內容。\n- AI 只是背景、趨勢、案例、科技衝擊或補充內容。\n- 只有潛在關聯，於課堂中簡單提及，未安排學習活動。\n\n2 分：\n- 課程有一些符合該能力相關的內容。\n- 少數單元或活動涉及，但非主要教學內容。\n- 但內容籠統、比重有限，或缺乏完整實作、驗證、反思與評量。\n\n3 分：\n- 明確納入部分教學活動、作業或評量。\n- 可合理判定學生會實際接觸、操作或練習該能力。\n- 但尚未形成完整且系統性的培養流程。\n\n4 分：\n- 該能力是課程的重要組成，融入多數教學活動或評量。\n- 有明確學習活動、實作、專題、作品或任務。\n- 並包含查證、驗證、反思、專業判斷、跨域整合或人機協作中的若干要素。\n- 但課程目標、活動與評量尚未全部明確對應。\n\n5 分：\n- 該能力是課程的核心目標，且有系統性教學與評量。\n- 大綱明確呈現完整培養流程。\n- 同時具備：明確的教學活動或學生實作；可觀察或可評量的學習成果\n- 不能只因課名高度相關就給 5 分。\n\n四、重要判定原則\n\n1. 只依文字證據評分\n不得補充課名或課綱未明寫的內容。因為資料錯誤或缺少造成的0分請加註在理由中。\n\n2. 課名只是輔助證據\n課程名稱可支持判斷，但大綱內容的權重應高於課名。\n\n3. 探討 AI 問題不等於用 AI 解決問題\n例如「AI 倫理」可能 B 高、D 高，但 C 不一定高。\n\n4. 使用 AI 不等於負責任使用 AI\n若未提及倫理、法規、資安、風險、偏誤、查證、揭露或責任，B 不宜高分。\n\n5. 創意活動不等於 D\n只有在 AI 或人機協作脈絡中，創意、主體性、同理心與真實世界洞察才可計入 D。\n\n6. 程式設計不等於 AI\nJavaScript、Python、資料庫、演算法或資料分析等內容，若未明確與 AI 連結，不得視為 AI 元素。\n\n7. 不因課程可能性加分\n不得使用「可能會」、「應該會」、「通常會」作為高分依據。\n\n8. 同一段內容可支持多項能力\n但每項能力必須分別說明其證據，不得因整體為 AI 課程就平均給高分。\n\n9. 若有多門課程其課名和課程大綱的描述近似(內容90%以上相同)，只評定第一個課程的分數，其它近似課程不評分，直接採用和第一個課程相同的分數。\n\n五、評分流程\n\n請依下列順序進行：\n\n步驟 1：檢查是否有 AI 元素\n- 若完全沒有，A、B、C、D 全部為 0，停止進一步推論。\n- 若有，繼續評估。\n\n步驟 2：找出能力 A 的直接證據\n- 是否使用 AI 輔助學習？\n- 是否涉及自主學習、學習規劃、資訊整理或學習反思？\n\n步驟 3：找出能力 B 的直接證據\n- 是否涉及 AI 倫理、法規、著作權、個資、資安、偏誤、查證、治理或責任？\n\n步驟 4：找出能力 C 的直接證據\n- 是否使用 AI 分析、生成、建模、預測、解決問題或完成專業任務？\n- 是否有驗證、修正、跨域整合、人機分工或流程優化？\n\n步驟 5：找出能力 D 的直接證據\n- 是否要求學生批判或驗證 AI？\n- 是否強調人類判斷、創意、同理心、溝通或真實場域？\n- 這些能力是否明確置於 AI 協作情境？\n\n步驟 6：依證據完整程度給 0–5 分\n看關鍵詞是否形成有意義的教學描述給分。\n\n六、輸出格式\n\n請只輸出 CSV，不要加入 Markdown 表格、標題、說明文字、程式碼區塊或其他前後文。CSV 必須包含以下欄位，並固定使用此欄位順序：\n\n課程名稱,A分數,A判定理由,B分數,B判定理由,C分數,C判定理由,D分數,D判定理由,整體判定,主要依據,證據不足處\n\n輸出範例：\n\n課程名稱,A分數,A判定理由,B分數,B判定理由,C分數,C判定理由,D分數,D判定理由,整體判定,主要依據,證據不足處\n\"劇本寫作與AI協作\",4,\"課程明確要求學生使用ChatGPT、提示策略與AI工具協助劇本發想、角色建構及情節發展，符合運用AI提升學習成效；但未明確提及學習歷程規劃與自主學習策略調整。\",2,\"課程提到理解AI的原理與極限，但未明確涵蓋著作權、AI使用揭露、個資、偏誤、風險管理或責任歸屬。\",4,\"學生需運用AI完成角色、情節與完整劇本創作，具明確實作任務；但未說明如何系統性驗證AI結果、規劃人機分工或評估流程品質。\",4,\"課程強調讓技術服務於創意，並反思書寫與創作本質，明確涉及人類主體性、創意與價值判斷；但未明確要求提出決策證據或處理人際協作。\",\"A=4;B=2;C=4;D=4\",\"主要符合A、C與D，因課程有明確AI協作寫作實作，且強調創意與人類創作主體性。\",\"B所需的倫理、法律、著作權、風險與使用揭露內容不足；C與D也缺乏明確的驗證、責任及評量機制。\"\n\nCSV 輸出規則：\n\n1. 每門課程輸出一列。\n2. 第一列必須是欄位名稱。\n3. 分數只能是 0、1、2、3、4、5。\n4. 所有文字欄位都必須使用雙引號包住。\n5. 若文字內容包含雙引號，必須以兩個雙引號表示。\n6. 欄位內容不得換行，以避免破壞 CSV 結構。\n7. 「整體判定」固定使用：\n   A=X;B=X;C=X;D=X\n8. 不得在 CSV 前後加入任何解釋或提示。\n9. 若整門課符合 0 分原則，仍須輸出完整一列，A、B、C、D 均填 0，並在理由與整體說明中指出課名與大綱未出現任何 AI 元素。\n10. 若一次輸入多門課程，所有課程共用同一列欄位名稱，後續每門課各輸出一列。\n\n七、回答風格\n\n- 使用繁體中文、臺灣常用術語，語氣客觀、嚴謹。\n- 理由要具體引用或轉述大綱中的關鍵內容。\n- 若證據不足，應直接說明「大綱未提及，因此不能推定」。\n- 對同類課程維持一致標準。";
+  var TASTER_BATCH = 15;
+  var TASTES = {}, tasteLoading = {}, tasteBatch = 0;
+  function tasteKey(){ return EVAL.label + '||' + planSel.track; }
+  function loadTastes(track){
+    var key = EVAL.label + '||' + track;
+    if(!WEBAPP_URL || !track || tasteLoading[key] || TASTES[key]) return;
+    tasteLoading[key] = true;
+    var q = 'type=taste&dept=' + encodeURIComponent(track);
+    var ok = function(d){ tasteLoading[key] = false; Object.keys(d || {}).forEach(function(k){ TASTES[k] = d[k]; }); if(!TASTES[key]) TASTES[key] = {}; renderTasteCard(); if(currentSubject) renderSubjectTaste(currentSubject); };
+    var fail = function(){ tasteLoading[key] = false; TASTES[key] = {}; renderTasteCard(); };
+    fetch(WEBAPP_URL + (WEBAPP_URL.indexOf('?') < 0 ? '?' : '&') + q, {credentials:'omit'})
+      .then(function(r){ return r.text(); }).then(function(t){ ok(JSON.parse(t)); }).catch(function(){ jsonp(q, ok, fail, 30000); });
+  }
+  function syllabusOf(code){
+    var dcx = draftCourseByCode(code);
+    if(dcx && String(dcx.c.syllabus || '').trim()) return {text:dcx.c.syllabus, own:true, summary:dcx.c.syllabus};
+    var off = latestOfferingOf(code);
+    return off && String(off.syllabus || '').trim() ? {text:off.syllabus, own:false, summary:off.summary || off.syllabus} : null;
+  }
+  function tastePool(){
+    var withS = [], noS = [];
+    evalCourses(planSel.track).forEach(function(c){
+      var sy = evalSyllabus(c.code);
+      (sy ? withS : noS).push({code:c.code, name:c.name, grade:c.grade, syl:sy, d116:status116(c.code, planSel.track), hits:keytermHits(c.name + '\n' + (sy ? sy.text : ''))});
+    });
+    return {withS:withS, noS:noS, hit:withS.filter(function(c){ return c.hits.length; }), miss:withS.filter(function(c){ return !c.hits.length; })};
+  }
+  function deptDims(code){
+    var t = TAGS[code];
+    if(!t || t.ai === null || t.ai === undefined) return null;
+    var o = {};
+    ['A','B','C','D'].forEach(function(dm){
+      o[dm] = t.ai === false ? 0 : INDICATORS.filter(function(i){ return i.dim === dm; }).reduce(function(m, i){ return Math.max(m, t.ratings[i.code] || 0); }, 0);
+    });
+    return o;
+  }
+  function tasteFlags(code, ts){
+    var dd = deptDims(code), out = [];
+    if(!dd || !ts) return out;
+    ['A','B','C','D'].forEach(function(dm){
+      var a = dd[dm], b = Number(ts[dm]);
+      if(ts[dm] === '' || isNaN(b)) return;
+      if(a >= 3 && b <= 1) out.push({dim:dm, kind:'high', text:dm + '：學系標 ' + a + '、試菜員 ' + b + (/^關鍵詞初篩/.test(ts.basis || '') ? '（初篩未命中 AI 關鍵詞）' : '（可能缺大綱證據）')});
+      else if(a <= 1 && b >= 3) out.push({dim:dm, kind:'low', text:dm + '：學系標 ' + a + '、試菜員 ' + b + '（學系可能低估）'});
+    });
+    return out;
+  }
+  function tastePromptBatch(list){
+    var L = [TASTER_PROMPT, '', '以下為本批課程（共 ' + list.length + ' 門）：'];
+    list.forEach(function(c, i){
+      L.push(''); L.push('【課程' + (i + 1) + '】');
+      L.push('課程名稱：' + c.name + '〔' + c.code + '〕');
+      L.push('課程大綱：' + String(c.syl.text).replace(/\s*\n\s*/g, ' ').trim());
+    });
+    return L.join('\n');
+  }
+  function parseCsv(text){
+    var rows = [], row = [], f = '', q = false, s = String(text || '').replace(/```(?:csv)?/gi, '');
+    for(var i = 0; i < s.length; i++){
+      var ch = s[i];
+      if(q){ if(ch === '"'){ if(s[i + 1] === '"'){ f += '"'; i++; } else q = false; } else f += ch; }
+      else if(ch === '"') q = true;
+      else if(ch === ','){ row.push(f); f = ''; }
+      else if(ch === '\n' || ch === '\r'){ if(ch === '\r' && s[i + 1] === '\n') i++; row.push(f); f = ''; if(row.join('').trim()) rows.push(row); row = []; }
+      else f += ch;
+    }
+    row.push(f); if(row.join('').trim()) rows.push(row);
+    return rows;
+  }
+  function renderTasteCard(){
+    renderNotifyCard();
+    var el = document.getElementById('tasteBody');
+    if(!el) return;
+    if(!currentDept || !isPlanMode() || !planSel.track){ el.innerHTML = '<div class="hint">請先選擇系所。</div>'; return; }
+    var key = tasteKey();
+    if(!TASTES[key]){ el.innerHTML = '<div class="hint">試菜員結果讀取中…</div>'; loadTastes(planSel.track); return; }
+    var pool = tastePool(), T = TASTES[key], nBatch = Math.max(1, Math.ceil(pool.hit.length / TASTER_BATCH));
+    if(tasteBatch >= nBatch) tasteBatch = 0;
+    var done = pool.hit.filter(function(c){ return T[c.code]; }).length;
+    var zeroTodo = pool.miss.filter(function(c){ return !T[c.code] || /^關鍵詞初篩/.test(T[c.code].basis || ''); });
+    var zeroNew = pool.miss.filter(function(c){ return !T[c.code]; });
+    loadDraft(planSel.track);
+    var proxy = pool.withS.filter(function(c){ return !c.syl.cur; }).length;
+    var html = '<div class="hint" style="margin:0 0 6px;"><b>評分對象：115-2 預計開課</b>（由 115 學年度四年課程計畫表的下學期科目推得，共 ' + (pool.withS.length + pool.noS.length) + ' 門）。' +
+      (proxy ? '其中 <b>' + proxy + '</b> 門的 115-2 大綱尚未匯入，<b>暫以最近一次開課的大綱預評</b>；115-2 資料匯入後會自動改用。' : '大綱皆為 115-2 資料。') + '</div>' +
+      '<div class="pl-sum">有課程大綱的科目 <b>' + pool.withS.length + '</b> 門：<b>① 初篩</b>（課名＋大綱比對輔導團 62 個 AI 關鍵詞）命中 <b>' + pool.hit.length + '</b> 門、未命中 <b>' + pool.miss.length + '</b> 門' +
+      (pool.noS.length ? '・<span title="' + escapeHtml(pool.noS.map(function(c){ return c.name; }).join('、')) + '">尚無任何大綱 ' + pool.noS.length + ' 門（' + EVAL.label + ' 由授課教師撰寫，匯入後即可評）</span>' : '') + '</div>';
+    if(pool.miss.length){
+      html += '<div class="hint" style="margin:6px 0 0;">未命中的科目依提示詞「0 分原則」A～D 皆為 0 分，<b>不必送 Gemini</b>。' +
+        (zeroNew.length ? '' : '（已全部存檔）') + '</div>' +
+        (zeroNew.length ? '<div class="chef-btns"><button type="button" class="btn" id="tsZero">把未命中的 ' + zeroNew.length + ' 門記為 0 分並存檔</button></div>' : '') +
+        '<details style="margin-top:4px;"><summary class="hint" style="margin:0;cursor:pointer;">看未命中的科目</summary><div class="hint" style="margin:4px 0 0;">' +
+        pool.miss.map(function(c){ return '<a href="#" data-tscode="' + escapeHtml(c.code) + '" data-view="1">' + escapeHtml(c.name) + '</a>'; }).join('、') + '</div></details>';
+    }
+    var aiNoKt = pool.withS.concat(pool.noS).filter(function(c){ var t = TAGS[c.code]; return t && t.ai === true && !keytermHits(c.name + '\n' + (c.syl ? c.syl.summary : '')).length; });
+    if(aiNoKt.length){
+      html += '<div class="ts-flag" style="margin-top:8px;">學系標註「涉及 AI」，但課名與課程概要都沒有 AI 關鍵詞：<b>' + aiNoKt.length + '</b> 門。' +
+        '這些課要通過初篩，得靠授課教師在教學目標、授課方式或成績評定寫出 AI（可用「⑤ 食譜教練」）；學系也可評估是否於系院校課程委員會修訂概要。</div>' +
+        '<div class="hint" style="margin:4px 0 0;">' + aiNoKt.map(function(c){ return '<a href="#" data-tscode="' + escapeHtml(c.code) + '" data-view="1">' + escapeHtml(c.name) + '</a>'; }).join('、') + '</div>';
+    }
+    if(pool.hit.length){
+      html += '<div class="hint" style="margin:10px 0 0;"><b>② 判定</b>：命中的 ' + pool.hit.length + ' 門分批送試菜員（已初評 ' + done + ' 門）。</div>';
+      html += '<div class="chef-btns"><label class="hint" style="margin:0;align-self:center;">批次</label><select id="tsBatch" data-view="1">' +
+        Array.from({length:nBatch}, function(_, i){ var a = i * TASTER_BATCH + 1, b = Math.min(pool.hit.length, (i + 1) * TASTER_BATCH);
+          return '<option value="' + i + '"' + (i === tasteBatch ? ' selected' : '') + '>第 ' + (i + 1) + ' 批（第 ' + a + '–' + b + ' 門）</option>'; }).join('') + '</select>' +
+        '<button type="button" class="btn" id="tsCopy" data-view="1">① 複製本批給試菜員</button>' +
+        '<a class="btn" href="https://gemini.google.com/app" target="_blank" rel="noopener" data-view="1">② 開啟 Gemini ↗</a>' +
+        '<button type="button" class="btn" id="tsPasteToggle">③ 貼上試菜員 CSV</button></div>' +
+        '<textarea id="tsPrompt" readonly data-view="1" style="display:none;width:100%;min-height:90px;margin-top:8px;font-size:12px;"></textarea>' +
+        '<div id="tsPasteBox" style="display:none;"><textarea id="tsPasteTa" style="width:100%;min-height:110px;margin-top:8px;font-size:12px;" placeholder="把 Gemini 回傳的 CSV（含第一列欄位名稱）整段貼在這裡"></textarea>' +
+        '<div class="chef-btns"><button type="button" class="btn primary" id="tsApply">帶入並存檔</button></div></div>' +
+        '<div class="chef-msg" id="tsMsg"></div>';
+    }
+    var rows = pool.withS.concat(pool.noS).filter(function(c){ return T[c.code]; });
+    if(rows.length){
+      var flagged = rows.filter(function(c){ return tasteFlags(c.code, T[c.code]).length; });
+      html += '<div class="hint" style="margin:10px 0 4px;">學系標註（各面向取最高等級）與試菜員分數差距較大的科目：<b>' + flagged.length + '</b> 門' + (flagged.length ? '' : '，目前沒有明顯落差。') + '</div>';
+      var show = flagged.length ? flagged : [];
+      if(show.length){
+        html += '<div class="table-wrap" style="max-height:none;"><table class="ts-tbl"><thead><tr><th>科目</th><th>學系（A/B/C/D）</th><th>試菜員（A/B/C/D）</th><th>提醒</th><th style="min-width:200px;">證據不足處</th></tr></thead><tbody>' +
+          show.map(function(c){ var ts = T[c.code], dd = deptDims(c.code) || {};
+            return '<tr><td><a href="#" data-tscode="' + escapeHtml(c.code) + '" data-view="1">' + escapeHtml(c.name) + '</a>' + (c.d116 ? '<br>' + DEL116_TAG : '') + (c.syl && !c.syl.cur ? '<div class="hint" style="margin:0;">大綱：' + escapeHtml(c.syl.src) + '（暫代）</div>' : '') + '</td>' +
+              '<td>' + ['A','B','C','D'].map(function(dm){ return '<span class="ts-sc">' + (dd[dm] === undefined ? '—' : dd[dm]) + '</span>'; }).join('') + '</td>' +
+              '<td>' + ['A','B','C','D'].map(function(dm){ return '<span class="ts-sc">' + (ts[dm] === '' ? '—' : ts[dm]) + '</span>'; }).join('') + '</td>' +
+              '<td>' + tasteFlags(c.code, ts).map(function(f){ return '<div class="ts-flag' + (f.kind === 'low' ? ' low' : '') + '">' + escapeHtml(f.text) + '</div>'; }).join('') + '</td>' +
+              '<td>' + escapeHtml(ts.gaps || '') + '</td></tr>'; }).join('') + '</tbody></table></div>';
+      }
+    }
+    el.innerHTML = html;
+    Array.prototype.forEach.call(el.querySelectorAll('[data-tscode]'), function(a){ a.onclick = function(ev){ ev.preventDefault(); openSubject(a.dataset.tscode); }; });
+    var zb = document.getElementById('tsZero');
+    if(zb) zb.onclick = function(){
+      if(!authToken()){ needLogin('tag'); return; }
+      var why = '初篩未命中：課名與課程大綱未出現輔導團 62 個 AI 關鍵詞，依 0 分原則判定。';
+      var items = zeroNew.map(function(c){ return {code:c.code, name:c.name, A:0, Ar:why, B:0, Br:why, C:0, Cr:why, D:0, Dr:why, overall:'A=0;B=0;C=0;D=0',
+        basis:'關鍵詞初篩（系統比對，未送 Gemini）', gaps:'若課程實際有 AI 學習活動，請授課教師在教學目標、授課方式或成績評定具體寫出。', hits:''}; });
+      var ver = TASTER_VER + '（關鍵詞初篩）', now = fmtTime(new Date()), TT = TASTES[tasteKey()] = TASTES[tasteKey()] || {};
+      items.forEach(function(it){ TT[it.code] = {name:it.name, A:'0', Ar:it.Ar, B:'0', Br:it.Br, C:'0', Cr:it.Cr, D:'0', Dr:it.Dr, overall:it.overall, basis:it.basis, gaps:it.gaps, hits:'', ver:ver, at:now}; });
+      fetch(WEBAPP_URL, {method:'POST', mode:'no-cors', headers:{'Content-Type':'text/plain;charset=utf-8'},
+        body: JSON.stringify({type:'taste', year:EVAL.label, dept:planSel.track, ver:ver, items:items, auth:authToken()})})
+        .then(function(){ toast('已把 ' + items.length + ' 門記為 0 分並存檔'); }).catch(function(){ toast('雲端儲存失敗，請稍後再試'); });
+      renderTasteCard();
+      if(currentSubject) renderSubjectTaste(currentSubject);
+    };
+    if(!pool.hit.length) return;
+    var msg = document.getElementById('tsMsg'), pr = document.getElementById('tsPrompt'), pb = document.getElementById('tsPasteBox');
+    document.getElementById('tsBatch').onchange = function(){ tasteBatch = Number(this.value); pr.style.display = 'none'; msg.textContent = ''; };
+    document.getElementById('tsCopy').onclick = function(){
+      var list = pool.hit.slice(tasteBatch * TASTER_BATCH, (tasteBatch + 1) * TASTER_BATCH);
+      pr.value = tastePromptBatch(list); pr.style.display = 'block'; pr.focus(); pr.select();
+      var ok = false; try{ ok = document.execCommand('copy'); }catch(e){}
+      var good = function(){ msg.className = 'chef-msg ok'; msg.textContent = '已複製第 ' + (tasteBatch + 1) + ' 批（' + list.length + ' 門）！請到 Gemini 貼上送出，再把回傳的 CSV 貼回「③」。'; };
+      var manual = function(){ msg.className = 'chef-msg'; msg.textContent = '無法自動複製，請在下方文字框按 Ctrl+A、Ctrl+C 複製。'; };
+      if(ok){ good(); return; }
+      if(navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(pr.value).then(good).catch(manual); else manual();
+    };
+    document.getElementById('tsPasteToggle').onclick = function(){ pb.style.display = pb.style.display === 'none' ? 'block' : 'none'; };
+    document.getElementById('tsApply').onclick = function(){
+      if(!authToken()){ needLogin('tag'); return; }
+      var rs = parseCsv(document.getElementById('tsPasteTa').value);
+      if(rs.length && /課程名稱/.test(rs[0][0])) rs.shift();
+      var byName = {}; pool.withS.concat(pool.noS).forEach(function(c){ (byName[c.name] = byName[c.name] || []).push(c); });
+      var items = [], miss = [];
+      rs.forEach(function(r){
+        if(r.length < 9) return;
+        var nm = String(r[0]).trim(), m = nm.match(/〔([^〕]+)〕\s*$/), codes = [];
+        if(m) codes = [m[1]]; else (byName[nm.replace(/〔[^〕]*〕/g, '').trim()] || []).forEach(function(c){ codes.push(c.code); });
+        if(!codes.length){ miss.push(nm); return; }
+        codes.forEach(function(code){
+          var c = pool.withS.concat(pool.noS).filter(function(x){ return x.code === code; })[0];
+          items.push({code:code, name:c ? c.name : nm.replace(/〔[^〕]*〕/g, ''), hits:c ? c.hits.join('、') : '', A:r[1], Ar:r[2], B:r[3], Br:r[4], C:r[5], Cr:r[6], D:r[7], Dr:r[8], overall:r[9] || '', basis:r[10] || '', gaps:r[11] || ''});
+        });
+      });
+      if(!items.length){ msg.className = 'chef-msg'; msg.textContent = '看不懂貼上的內容，請確認貼的是 Gemini 回傳的 CSV（第一列為「課程名稱,A分數,…」）。'; return; }
+      var key = tasteKey(), T = TASTES[key] = TASTES[key] || {};
+      var now = fmtTime(new Date());
+      items.forEach(function(it){ T[it.code] = {name:it.name, hits:it.hits, A:String(it.A).trim(), Ar:it.Ar, B:String(it.B).trim(), Br:it.Br, C:String(it.C).trim(), Cr:it.Cr, D:String(it.D).trim(), Dr:it.Dr, overall:it.overall, basis:it.basis, gaps:it.gaps, ver:TASTER_VER, at:now}; });
+      fetch(WEBAPP_URL, {method:'POST', mode:'no-cors', headers:{'Content-Type':'text/plain;charset=utf-8'},
+        body: JSON.stringify({type:'taste', year:EVAL.label, dept:planSel.track, ver:TASTER_VER, items:items, auth:authToken()})})
+        .then(function(){ toast('試菜員結果已存檔'); }).catch(function(){ toast('雲端儲存失敗，請稍後再試'); });
+      renderTasteCard();
+      var m2 = document.getElementById('tsMsg');
+      if(m2){ m2.className = 'chef-msg ok'; m2.textContent = '已帶入 ' + items.length + ' 門' + (miss.length ? '；' + miss.length + ' 列對不到科目，已略過：' + miss.slice(0, 3).join('、') + (miss.length > 3 ? '…' : '') : '') + '。'; }
+      if(currentSubject) renderSubjectTaste(currentSubject);
+    };
+  }
+  function renderSubjectTaste(code){
+    var el = document.getElementById('dcTaste');
+    if(!el) return;
+    var ts = (TASTES[tasteKey()] || {})[code];
+    if(!ts){ el.style.display = 'none'; return; }
+    var fl = tasteFlags(code, ts);
+    el.style.display = 'block';
+    el.innerHTML = '<b>🔎 試菜員初評・' + EVAL.label + '</b>' + (status116(code, planSel.track) ? ' ' + DEL116_TAG : '') + '（' + escapeHtml(ts.ver || TASTER_VER) + (ts.at ? '・' + escapeHtml(ts.at) : '') + '；僅供參考）：' +
+      ['A','B','C','D'].map(function(dm){ return dm + ' <span class="ts-sc">' + (ts[dm] === '' ? '—' : escapeHtml(ts[dm])) + '</span>'; }).join(' ') +
+      (ts.hits ? '<div><b>初篩命中詞：</b>' + escapeHtml(ts.hits) + '</div>' : (/^關鍵詞初篩/.test(ts.basis || '') ? '<div><b>初篩：</b>課名與課程大綱未命中 AI 關鍵詞，依 0 分原則判定。</div>' : '')) +
+      (fl.length ? fl.map(function(f){ return '<div class="ts-flag' + (f.kind === 'low' ? ' low' : '') + '">⚠ ' + escapeHtml(f.text) + '</div>'; }).join('') : '') +
+      (ts.gaps ? '<div><b>證據不足處：</b>' + escapeHtml(ts.gaps) + '</div>' : '') +
+      '<details><summary>各面向判定理由</summary>' + ['A','B','C','D'].map(function(dm){ return '<div><b>' + dm + '：</b>' + escapeHtml(ts[dm + 'r'] || '') + '</div>'; }).join('') +
+      (ts.basis ? '<div><b>主要依據：</b>' + escapeHtml(ts.basis) + '</div>' : '') + '</details>';
+  }
+
+  /* ---------- 食譜教練：協助授課教師寫教學計畫表（教學目標、授課方式、成績評定）；免登入、不存檔 ---------- */
+  var WNS = 'http://schemas.microsoft.com/office/word/2003/wordml';
+  var COACH_FIELDS = [
+    {k:'obj', label:'教學目標'}, {k:'appr', label:'授課方式'}, {k:'aiYN', label:'課程是否融入AI'}, {k:'aiTools', label:'使用的AI工具'},
+    {k:'m平時', label:'平時評量評分方式'}, {k:'p平時', label:'平時評量百分比'}, {k:'m期中', label:'期中評量評分方式'}, {k:'p期中', label:'期中評量百分比'},
+    {k:'m期末', label:'期末評量評分方式'}, {k:'p期末', label:'期末評量百分比'}, {k:'m其他', label:'其他評量評分方式'}, {k:'p其他', label:'其他評量百分比'}
+  ];
+  var COACH_PRACTICES = {
+    A:['A1 介紹 AI 工具的原理、功能與限制，學生依專業需求選用工具', 'A2 學生用 AI 搜尋、整理、摘要、翻譯或管理資訊',
+       'A2 學生用 AI 協助理解概念、產生範例、練習或除錯，並修正提示詞', 'A3 學生用 AI 規劃、記錄或反思自己的學習歷程', 'A 課程講授 AI 相關技術或原理'],
+    B:['B1 討論 AI 倫理、著作權、個資或隱私', 'B1 要求學生揭露 AI 使用方式（例如作業附 AI 使用聲明）',
+       'B2 辨識 AI 偏誤、幻覺、假訊息或深偽，並查證', 'B3 討論 AI 對專業、產業或社會的影響，以及人類的最終責任'],
+    C:['C1 學生用 AI 分析資料、生成內容或提出解決方案', 'C2 學生驗證、比較或修正 AI 的產出',
+       'C3 結合專業知識或跨領域整合，形成可行方案', 'C4 規劃人機分工，或用 AI 優化工作流程'],
+    D:['D1 學生檢核、批判 AI 結果，並提出自己的判斷與理由', 'D2 在 AI 協作中進行團隊合作、溝通或考量不同觀點',
+       'D3 結合真實場域（訪談、田野、服務學習、專題）與 AI，由學生提出自己的觀察與創意']
+  };
+  var DIM_NAME = {A:'運用 AI 學習', B:'負責任使用 AI', C:'運用 AI 解決問題', D:'AI 無法取代'};
+  var VAGUE_WORDS = ['可能會', '應該會', '通常會', '視情況', '酌情', '或許'];
+  var coach = {code:'', file:null, doc:null, cells:{}, f:{}, prac:{}, other:'', out:null, taste:null};
+
+  function wText(el){ return Array.prototype.map.call(el.getElementsByTagNameNS(WNS, 't'), function(t){ return t.textContent; }).join(''); }
+  function cellText(tc){
+    return Array.prototype.map.call(tc.getElementsByTagNameNS(WNS, 'p'), wText).join('\n').replace(/<br\s*\/?>/gi, '\n').replace(/\n{3,}/g, '\n\n').trim();
+  }
+  function parseSyllabusXml(text){
+    var doc = new DOMParser().parseFromString(text, 'application/xml');
+    if(doc.getElementsByTagName('parsererror').length || !doc.getElementsByTagNameNS(WNS, 'tbl').length) return null;
+    var cells = {};
+    Array.prototype.forEach.call(doc.getElementsByTagNameNS(WNS, 'tr'), function(tr){
+      var tcs = Array.prototype.filter.call(tr.childNodes, function(n){ return n.localName === 'tc'; });
+      if(tcs.length !== 2) return;
+      var lab = wText(tcs[0]).replace(/\s/g, '');
+      COACH_FIELDS.forEach(function(f){ if(lab.indexOf(f.label) === 0 && !cells[f.k]) cells[f.k] = tcs[1]; });
+    });
+    if(!cells.obj || !cells.appr) return null;
+    return {doc:doc, cells:cells};
+  }
+  function setCellText(tc, val){
+    var doc = tc.ownerDocument, ps = Array.prototype.filter.call(tc.childNodes, function(n){ return n.localName === 'p'; });
+    var p = ps[0];
+    if(!p){ p = doc.createElementNS(WNS, 'w:p'); tc.appendChild(p); }
+    ps.slice(1).forEach(function(x){ tc.removeChild(x); });
+    var rPr = null, r0 = p.getElementsByTagNameNS(WNS, 'r')[0];
+    if(r0){ var rp = Array.prototype.filter.call(r0.childNodes, function(n){ return n.localName === 'rPr'; })[0]; if(rp) rPr = rp.cloneNode(true); }
+    if(!rPr){ var pPr = Array.prototype.filter.call(p.childNodes, function(n){ return n.localName === 'pPr'; })[0];
+      var prp = pPr && Array.prototype.filter.call(pPr.childNodes, function(n){ return n.localName === 'rPr'; })[0]; if(prp) rPr = prp.cloneNode(true); }
+    Array.prototype.slice.call(p.childNodes).forEach(function(n){ if(n.localName !== 'pPr') p.removeChild(n); });
+    if(rPr) Array.prototype.slice.call(rPr.childNodes).forEach(function(n){ if(n.localName === 'highlight') rPr.removeChild(n); });  // 範本標示用的黃底不帶進內文
+    var r = doc.createElementNS(WNS, 'w:r'); if(rPr) r.appendChild(rPr);
+    var t = doc.createElementNS(WNS, 'w:t'); t.textContent = String(val).replace(/\r?\n/g, '<br>'); r.appendChild(t); p.appendChild(r);
+  }
+  function coachCourses(){
+    var out = [], seen = {};
+    if(isPlanMode() && planSel.track){
+      out = evalCourses(planSel.track);
+    } else {
+      COURSES.filter(function(c){ return c.dept === currentDept; }).forEach(function(c){
+        var code = String(c.code || '').slice(1, 7); if(!code || seen[code]) return; seen[code] = 1;
+        out.push({code:code, name:c.name});
+      });
+    }
+    return out.sort(function(a, b){ return a.name.localeCompare(b.name, 'zh-Hant'); });
+  }
+  function coachInfo(){
+    var c = coachCourses().filter(function(x){ return x.code === coach.code; })[0];
+    if(!c) return null;
+    var sy = evalSyllabus(c.code), t = TAGS[c.code];
+    return {code:c.code, name:c.name, summary:sy ? String(sy.summary || '') : '', src:sy ? sy.src : '', dims:deptDims(c.code), tag:t, d116:status116(c.code, planSel.track)};
+  }
+  function coachGrade(){ var g = {}; GRADE_PARTS.forEach(function(x){ g[x[0]] = {method:coach.f['m' + x[0]], pct:coach.f['p' + x[0]]}; }); return g; }
+  function coachMerged(info){ return mergeSyllabus({summary:info.summary, obj:coach.f.obj, appr:coach.f.appr, grade:gradingText(coachGrade())}); }
+  function coachCopy(ta, msg, okText){
+    ta.style.display = 'block'; ta.focus(); ta.select();
+    var ok = false; try{ ok = document.execCommand('copy'); }catch(e){}
+    var good = function(){ msg.className = 'chef-msg ok'; msg.textContent = okText; };
+    var manual = function(){ msg.className = 'chef-msg'; msg.textContent = '無法自動複製，請在下方文字框按 Ctrl+A、Ctrl+C 複製。'; };
+    if(ok){ good(); return; }
+    if(navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(ta.value).then(good).catch(manual); else manual();
+  }
+  function coachPracList(){
+    var L = [];
+    ['A','B','C','D'].forEach(function(dm){ COACH_PRACTICES[dm].forEach(function(txt, i){
+      var p = coach.prac[dm + i]; if(!p || !p.on) return;
+      L.push({dim:dm, text:txt, wk:p.wk || '', task:p.task || '', pct:p.pct || ''});
+    }); });
+    return L;
+  }
+  function coachPrompt(info){
+    var L = ['你是大學教學計畫表的寫作助手。請協助授課教師增修教學計畫表的「教學目標」「授課方式」「成績評定」，讓課程中「實際存在」的 AI 學習活動被清楚、具體地寫出來。', '',
+      '【嚴格規則】',
+      '1. 只能寫入「教師勾選的實際做法」與教師原文已有的內容；不得新增教師沒有勾選的 AI 活動、工具、週次或作業。',
+      '2. 盡量保留教師原文，只做增補與改寫；不要刪除教師原本的教學目標、授課方式與評量項目。',
+      '3. 科目名稱與課程概要由學系訂定，不得修改，也不要輸出。',
+      '4. 寫法要具體：寫出學生在哪幾週、使用什麼 AI 工具、做什麼活動，以及哪一項作業或評量會檢核這項能力。',
+      '5. 每一項 AI 相關做法都要寫進「授課方式」，有占分的也要寫進對應的評量評分方式（只寫在週次進度不會被採計）。',
+      '6. 教學目標要明確寫出「AI」或「生成式AI」等詞，並說明學生要學會用 AI 做什麼。',
+      '7. 不得使用「可能會」「應該會」「通常會」「視情況」等不確定的字眼。',
+      '8. 成績評定分為平時、期中、期末、其他四組；四組百分比合計必須為 100。若教師原本的百分比合計已是 100，不要更改百分比，只改寫評分方式文字。沒有的組別評分方式填「無」、百分比填「0」。',
+      '9. 使用繁體中文與臺灣常用用語；需要分段時用 \\n。', '',
+      '【輸出格式】只輸出一個 JSON 物件，不要加任何說明或程式碼區塊：',
+      '{"教學目標":"…","授課方式":"…","平時評量評分方式":"…","平時評量百分比":"…","期中評量評分方式":"…","期中評量百分比":"…","期末評量評分方式":"…","期末評量百分比":"…","其他評量評分方式":"…","其他評量百分比":"…","使用的AI工具":"…","修改說明":"用一兩句說明改了哪裡"}', '',
+      '【課程資料】', '科目名稱：' + info.name,
+      '課程概要（學系訂定，僅供參考，不得修改）：' + (info.summary ? String(info.summary).replace(/\s*\n\s*/g, ' ') : '（無）')];
+    if(info.dims){
+      L.push('學系對本課程的 AI 能力標註（0–5，取各面向最高）：' + ['A','B','C','D'].map(function(dm){ return dm + ' ' + DIM_NAME[dm] + '：' + info.dims[dm]; }).join('；'));
+      var st = info.tag && info.tag.stmt ? Object.keys(info.tag.stmt).filter(function(k){ return String(info.tag.stmt[k] || '').trim(); }) : [];
+      if(st.length) L.push('學系寫的具體能力表述：' + st.map(function(k){ return k + ' ' + String(info.tag.stmt[k]).trim(); }).join('；'));
+    }
+    L.push('', '【教師目前的內容】', '教學目標：' + (coach.f.obj || '（空白）'), '授課方式：' + (coach.f.appr || '（空白）'));
+    GRADE_PARTS.forEach(function(x){ L.push(x[1] + '評分方式：' + (coach.f['m' + x[0]] || '（空白）') + '；百分比：' + (coach.f['p' + x[0]] || '（空白）')); });
+    L.push('使用的AI工具：' + (coach.f.aiTools || '（空白）'), '', '【教師勾選的實際做法】');
+    var pl = coachPracList();
+    if(!pl.length) L.push('（教師沒有勾選任何 AI 做法：請只潤飾文字，不要新增 AI 活動）');
+    pl.forEach(function(p){ L.push('- ' + p.text + (p.wk ? '；週次：' + p.wk : '') + (p.task ? '；搭配作業／評量：' + p.task : '') + (p.pct ? '；占分：' + p.pct : '')); });
+    if(String(coach.other || '').trim()) L.push('其他實際做法（教師自述）：' + String(coach.other).trim());
+    return L.join('\n');
+  }
+  function coachChecks(info){
+    var out = [], add = function(lv, t){ out.push({lv:lv, t:t}); };
+    var gtxt = gradingText(coachGrade());
+    var hName = keytermHits(info.name + '\n' + info.summary), hObj = keytermHits(coach.f.obj), hAppr = keytermHits(coach.f.appr), hGr = keytermHits(gtxt);
+    var hAll = keytermHits(info.name + '\n' + coachMerged(info));
+    if(!hAll.length) add('bad', '初篩：課名、概要與三欄都沒有 AI 關鍵詞 → 輔導團初篩會直接判 0 分。');
+    else add('ok', '初篩：會命中（' + hAll.slice(0, 6).join('、') + (hAll.length > 6 ? '…' : '') + '）' + (hName.length ? '' : '。課名與概要沒有關鍵詞，全靠教師填寫的三欄。'));
+    if(hAll.length){
+      add(hObj.length ? 'ok' : 'warn', hObj.length ? '教學目標有寫到 AI。' : '教學目標沒有寫到 AI：建議寫出學生要學會用 AI 做什麼。');
+      add(hAppr.length ? 'ok' : 'warn', hAppr.length ? '授課方式有寫到 AI 活動。' : '授課方式沒有寫到 AI：3 分門檻需要「教學活動」，請寫出學生哪幾週用 AI 做什麼。');
+      add(hGr.length ? 'ok' : 'warn', hGr.length ? '成績評定有評量項目連到 AI。' : '成績評定沒有任何一組寫到 AI：3 分門檻需要「作業或評量」。');
+    }
+    var sum = 0, any = false, bad = false;
+    GRADE_PARTS.forEach(function(x){ var v = String(coach.f['p' + x[0]] || '').replace(/[%％\s]/g, ''); if(blankish(v)) return; any = true; if(isNaN(Number(v))) bad = true; else sum += Number(v); });
+    if(!any) add('warn', '成績評定的百分比都是空白。');
+    else if(bad) add('bad', '百分比請只填數字。');
+    else add(sum === 100 ? 'ok' : 'bad', '四組百分比合計 ' + sum + (sum === 100 ? '。' : '，必須是 100。'));
+    var txt = [coach.f.obj, coach.f.appr, gtxt].join('\n'), vg = VAGUE_WORDS.filter(function(w){ return txt.indexOf(w) >= 0; });
+    if(vg.length) add('warn', '出現不採計的字眼：「' + vg.join('」「') + '」，請改成確定的寫法。');
+    if(info.dims){
+      var pl = coachPracList();
+      ['A','B','C','D'].forEach(function(dm){
+        if((info.dims[dm] || 0) < 3) return;
+        var has = pl.some(function(p){ return p.dim === dm; });
+        add(has ? 'ok' : 'warn', has ? '學系標 ' + dm + '（' + DIM_NAME[dm] + '）' + info.dims[dm] + ' 分，已勾選對應做法。' :
+          '學系標 ' + dm + '（' + DIM_NAME[dm] + '）' + info.dims[dm] + ' 分，但沒有勾選對應做法。若實際沒有，請與學系討論標註，不要硬寫。');
+      });
+    }
+    var aiLike = hAll.length || (info.tag && info.tag.ai === true);
+    var yn = String(coach.f.aiYN || '').trim();
+    if(aiLike && yn !== '1') add('warn', '「課程是否融入AI」目前是「' + (yn || '空白') + '」；有 AI 活動請填 1。');
+    if(yn === '1' && blankish(coach.f.aiTools)) add('warn', '「課程是否融入AI」填 1 時，請填寫「使用的AI工具」。');
+    ['obj','appr'].forEach(function(k){ if(!String(coach.f[k] || '').trim()) add('warn', (k === 'obj' ? '教學目標' : '授課方式') + '是空白；沒有資料請填「無」。'); });
+    return out;
+  }
+  function renderCoach(){
+    var el = document.getElementById('coachBody');
+    if(!el) return;
+    if(!currentDept){ el.innerHTML = '<div class="hint">請先在上方選擇校區、學院與系所。</div>'; return; }
+    if(planSel.track) loadDraft(planSel.track);
+    var list = coachCourses();
+    if(coach.code && !list.some(function(c){ return c.code === coach.code; })) coach.code = '';
+    var info = coach.code ? coachInfo() : null;
+    var h = '<div class="coach-step"><b>① 選課程、上傳課程大綱檔</b>' +
+      '<div class="chef-btns"><select id="coSel" style="min-width:240px;"><option value="">— 選擇 ' + EVAL.label + ' 課程（' + list.length + ' 門）—</option>' +
+      list.map(function(c){ return '<option value="' + escapeHtml(c.code) + '"' + (c.code === coach.code ? ' selected' : '') + '>' + escapeHtml(c.name) + '（' + escapeHtml(c.code) + '）</option>'; }).join('') + '</select>' +
+      '<label class="btn" style="width:auto;cursor:pointer;">上傳課程大綱 XML<input type="file" id="coFile" accept=".xml,text/xml,application/xml" style="display:none;"></label>' +
+      '<span class="hint" style="margin:0;align-self:center;">' + (coach.file ? '已讀入：' + escapeHtml(coach.file.name) : '學校系統下載的「課程大綱範本」（用 Word 編輯過也可以，請保持原格式存檔）') + '</span></div>' +
+      '<div class="chef-msg" id="coFileMsg"></div></div>';
+    if(!info){ el.innerHTML = h + '<div class="hint">選好課程後，會帶出學系訂的課名、概要與 AI 能力標註。</div>'; bindCoach(null); return; }
+    var hName = keytermHits(info.name + '\n' + info.summary);
+    h += '<div class="coach-step"><b>② 學系訂的內容（不能改）</b>' +
+      '<div class="coach-ro"><div><b>科目名稱：</b>' + escapeHtml(info.name) + (info.d116 ? ' ' + DEL116_TAG : '') + '</div><div><b>課程概要' + (info.src ? '（取自 ' + escapeHtml(info.src) + ' 開課資料）' : '') + '：</b>' + (info.summary ? escapeHtml(info.summary) : '（系統內尚無概要）') + '</div>' +
+      '<div><b>AI 關鍵詞：</b>' + (hName.length ? '已命中「' + escapeHtml(hName.join('、')) + '」，初篩會通過；請專心把 AI 寫進授課方式與成績評定，衝 3 分。' :
+        '<span class="ts-flag" style="display:inline;">課名與概要都沒有 AI 關鍵詞</span>，教學目標一定要寫出「AI」或「生成式AI」等詞，否則初篩不會通過。') + '</div>' +
+      '<div><b>學系的 AI 能力標註：</b>' + (info.dims ? ['A','B','C','D'].map(function(dm){ return dm + ' ' + DIM_NAME[dm] + ' <span class="ts-sc">' + info.dims[dm] + '</span>'; }).join('　') : '學系尚未標註') + '</div>' +
+      (info.tag && info.tag.stmt ? Object.keys(info.tag.stmt).filter(function(k){ return String(info.tag.stmt[k] || '').trim(); }).map(function(k){ return '<div class="hint" style="margin:2px 0 0;">' + escapeHtml(k) + '：' + escapeHtml(info.tag.stmt[k]) + '</div>'; }).join('') : '') +
+      '</div></div>';
+    h += '<div class="coach-step"><b>③ 勾選這門課「實際會做」的 AI 活動</b><div class="hint" style="margin:2px 0 6px;">沒勾的事，AI 不會幫你寫進去。學系標 3 分以上的面向排在前面。</div>' +
+      ['A','B','C','D'].slice().sort(function(a, b){ return ((info.dims && info.dims[b]) || 0) - ((info.dims && info.dims[a]) || 0); }).map(function(dm){
+        return '<div class="coach-dim"><div class="coach-dimh">' + dm + ' ' + DIM_NAME[dm] + (info.dims ? '（學系標 ' + info.dims[dm] + '）' : '') + '</div>' +
+          COACH_PRACTICES[dm].map(function(txt, i){ var k = dm + i, p = coach.prac[k] || {};
+            return '<div class="coach-pr"><label><input type="checkbox" data-pk="' + k + '"' + (p.on ? ' checked' : '') + '> ' + escapeHtml(txt) + '</label>' +
+              (p.on ? '<div class="coach-pin"><input data-pk="' + k + '" data-pf="wk" placeholder="週次，如 5–6" value="' + escapeHtml(p.wk || '') + '">' +
+                '<input data-pk="' + k + '" data-pf="task" placeholder="搭配的作業或評量，如 作業二" value="' + escapeHtml(p.task || '') + '">' +
+                '<input data-pk="' + k + '" data-pf="pct" placeholder="占分，如 10%" value="' + escapeHtml(p.pct || '') + '"></div>' : '') + '</div>'; }).join('') + '</div>';
+      }).join('') +
+      '<textarea id="coOther" placeholder="其他實際做法（選填），例如：期末成果展邀請業師評論 AI 協作作品" style="width:100%;min-height:50px;margin-top:6px;font-size:13px;">' + escapeHtml(coach.other || '') + '</textarea></div>';
+    h += '<div class="coach-step"><b>④ 請 AI 起稿</b>' + (coach.file ? '' : '<div class="hint" style="margin:2px 0;">建議先在 ① 上傳課程大綱檔，AI 會以你原本寫的內容為基礎增修。</div>') +
+      '<div class="chef-btns"><button type="button" class="btn" id="coCopy">複製提示詞</button>' +
+      '<a class="btn" href="https://gemini.google.com/app" target="_blank" rel="noopener">開啟 Gemini ↗</a>' +
+      '<button type="button" class="btn" id="coPasteToggle">貼上 AI 回傳的 JSON</button></div>' +
+      '<div class="hint" style="margin:4px 0 0;">學校帳號的 Gemini 或個人的 Gemini、ChatGPT 都可以；提示詞只有課程資訊，請勿貼入學生個資。</div>' +
+      '<textarea id="coPrompt" readonly style="display:none;width:100%;min-height:90px;margin-top:8px;font-size:12px;"></textarea>' +
+      '<div id="coPasteBox" style="display:none;"><textarea id="coPasteTa" style="width:100%;min-height:100px;margin-top:8px;font-size:12px;" placeholder="把 AI 回傳的 JSON 整段貼在這裡"></textarea>' +
+      '<div class="chef-btns"><button type="button" class="btn primary" id="coApply">帶入下方欄位</button></div></div>' +
+      '<div class="chef-msg" id="coMsg"></div></div>';
+    h += '<div class="coach-step"><b>⑤ 確認內容與健檢</b><div class="hint" style="margin:2px 0 6px;">這裡的內容就是要上傳的內容，可以直接修改；健檢會即時更新。</div>' +
+      '<label class="coach-lab">教學目標</label><textarea data-cf="obj" style="width:100%;min-height:80px;">' + escapeHtml(coach.f.obj || '') + '</textarea>' +
+      '<label class="coach-lab">授課方式</label><textarea data-cf="appr" style="width:100%;min-height:100px;">' + escapeHtml(coach.f.appr || '') + '</textarea>' +
+      '<label class="coach-lab">成績評定</label><div class="coach-grade">' + GRADE_PARTS.map(function(x){
+        return '<div><span>' + x[1] + '</span><input data-cf="m' + x[0] + '" placeholder="評分方式" value="' + escapeHtml(coach.f['m' + x[0]] || '') + '">' +
+          '<input data-cf="p' + x[0] + '" placeholder="%" style="width:60px;" value="' + escapeHtml(coach.f['p' + x[0]] || '') + '"></div>'; }).join('') + '</div>' +
+      '<div class="coach-grade"><div><span>課程是否融入AI</span><select data-cf="aiYN"><option value="">—</option><option value="1"' + (coach.f.aiYN === '1' ? ' selected' : '') + '>1 是</option><option value="2"' + (coach.f.aiYN === '2' ? ' selected' : '') + '>2 否</option></select>' +
+      '<span>使用的AI工具</span><input data-cf="aiTools" value="' + escapeHtml(coach.f.aiTools || '') + '" placeholder="例如 Gemini、ChatGPT"></div></div>' +
+      '<div id="coChecks" class="coach-checks"></div></div>';
+    h += '<div class="coach-step"><b>⑥ 試吃（選用）：用輔導團的評分提示詞看預估分數</b>' +
+      '<div class="chef-btns"><button type="button" class="btn" id="coTaste">複製試吃提示詞</button><button type="button" class="btn" id="coTastePaste">貼上試吃 CSV</button></div>' +
+      '<textarea id="coTastePr" readonly style="display:none;width:100%;min-height:80px;margin-top:8px;font-size:12px;"></textarea>' +
+      '<div id="coTasteBox" style="display:none;"><textarea id="coTasteTa" style="width:100%;min-height:80px;margin-top:8px;font-size:12px;" placeholder="把 AI 回傳的 CSV 貼在這裡"></textarea>' +
+      '<div class="chef-btns"><button type="button" class="btn primary" id="coTasteApply">看預估分數</button></div></div>' +
+      '<div class="chef-msg" id="coTasteMsg"></div><div id="coTasteRes"></div></div>';
+    h += '<div class="coach-step"><b>⑦ 下載，回學校系統上傳</b><div class="hint" style="margin:2px 0 6px;">只改教學目標、授課方式、成績評定、是否融入AI、使用的AI工具，其他欄位（含週次進度）維持你上傳的原樣。本頁不存檔，重新整理就會清空。</div>' +
+      '<div class="chef-btns"><button type="button" class="btn primary" id="coDown"' + (coach.doc ? '' : ' disabled') + '>下載填好的課程大綱檔</button></div>' +
+      (coach.doc ? '' : '<div class="hint" style="margin:4px 0 0;">要先在 ① 上傳課程大綱檔，才能下載。</div>') + '</div>';
+    el.innerHTML = h;
+    bindCoach(info);
+  }
+  function renderCoachChecks(info){
+    var box = document.getElementById('coChecks');
+    if(!box || !info) return;
+    box.innerHTML = coachChecks(info).map(function(c){ return '<div class="cc-' + c.lv + '">' + (c.lv === 'ok' ? '✓ ' : c.lv === 'bad' ? '✗ ' : '△ ') + escapeHtml(c.t) + '</div>'; }).join('');
+  }
+  function bindCoach(info){
+    var sel = document.getElementById('coSel');
+    if(sel) sel.onchange = function(){ coach.code = this.value; coach.prac = {}; coach.other = ''; coach.taste = null; renderCoach(); };
+    var fi = document.getElementById('coFile');
+    if(fi) fi.onchange = function(){
+      var f = this.files && this.files[0]; if(!f) return;
+      var rd = new FileReader();
+      rd.onload = function(){
+        var r = parseSyllabusXml(String(rd.result || '')), m = document.getElementById('coFileMsg');
+        if(!r){ m.className = 'chef-msg'; m.textContent = '讀不到教學目標等欄位。請上傳學校系統下載的課程大綱範本（XML）；用 Word 編輯後請用原格式存檔，不要另存成 .docx。'; return; }
+        coach.file = {name:f.name}; coach.doc = r.doc; coach.cells = r.cells;
+        COACH_FIELDS.forEach(function(x){ coach.f[x.k] = r.cells[x.k] ? cellText(r.cells[x.k]) : ''; });
+        renderCoach();
+      };
+      rd.readAsText(f, 'utf-8');
+    };
+    if(!info) return;
+    Array.prototype.forEach.call(document.querySelectorAll('#coachBody input[type=checkbox][data-pk]'), function(cb){
+      cb.onchange = function(){ var p = coach.prac[cb.dataset.pk] = coach.prac[cb.dataset.pk] || {}; p.on = cb.checked; renderCoach(); };
+    });
+    Array.prototype.forEach.call(document.querySelectorAll('#coachBody input[data-pf]'), function(inp){
+      inp.oninput = function(){ (coach.prac[inp.dataset.pk] = coach.prac[inp.dataset.pk] || {})[inp.dataset.pf] = inp.value; renderCoachChecks(info); };
+    });
+    var oth = document.getElementById('coOther'); if(oth) oth.oninput = function(){ coach.other = this.value; };
+    Array.prototype.forEach.call(document.querySelectorAll('#coachBody [data-cf]'), function(inp){
+      var h = function(){ coach.f[inp.dataset.cf] = inp.value; renderCoachChecks(info); };
+      inp.oninput = h; inp.onchange = h;
+    });
+    renderCoachChecks(info);
+    var msg = document.getElementById('coMsg'), pr = document.getElementById('coPrompt'), pb = document.getElementById('coPasteBox');
+    document.getElementById('coCopy').onclick = function(){ pr.value = coachPrompt(info); coachCopy(pr, msg, '已複製！請到 Gemini（或其他 AI）貼上送出，再把回傳的 JSON 貼回來。'); };
+    document.getElementById('coPasteToggle').onclick = function(){ pb.style.display = pb.style.display === 'none' ? 'block' : 'none'; };
+    document.getElementById('coApply').onclick = function(){
+      var raw = String(document.getElementById('coPasteTa').value || '').replace(/```(?:json)?/gi, ''), a = raw.indexOf('{'), b = raw.lastIndexOf('}'), o = null;
+      try{ o = JSON.parse(raw.slice(a, b + 1)); }catch(e){}
+      if(!o || typeof o !== 'object'){ msg.className = 'chef-msg'; msg.textContent = '看不懂貼上的內容，請確認貼的是 AI 回傳的 JSON（以 { 開頭、} 結尾）。'; return; }
+      var n = 0;
+      COACH_FIELDS.forEach(function(x){ if(x.k === 'aiYN') return; var v = o[x.label]; if(v === undefined || v === null) return; coach.f[x.k] = String(v).replace(/<br\s*\/?>/gi, '\n').trim(); n++; });
+      if(!n){ msg.className = 'chef-msg'; msg.textContent = 'JSON 裡找不到「教學目標」「授課方式」等欄位。'; return; }
+      if(keytermHits([coach.f.obj, coach.f.appr, gradingText(coachGrade())].join('\n')).length && !coach.f.aiYN) coach.f.aiYN = '1';
+      renderCoach();
+      var m2 = document.getElementById('coMsg'); m2.className = 'chef-msg ok';
+      m2.textContent = '已帶入 ' + n + ' 個欄位，請在 ⑤ 逐欄確認。' + (o['修改說明'] ? 'AI 的修改說明：' + o['修改說明'] : '');
+    };
+    var tpr = document.getElementById('coTastePr'), tmsg = document.getElementById('coTasteMsg'), tbox = document.getElementById('coTasteBox');
+    document.getElementById('coTaste').onclick = function(){
+      tpr.value = TASTER_PROMPT + '\n\n以下為本批課程（共 1 門）：\n\n【課程1】\n課程名稱：' + info.name + '〔' + info.code + '〕\n課程大綱：' + coachMerged(info).replace(/\s*\n\s*/g, ' ').trim();
+      coachCopy(tpr, tmsg, '已複製試吃提示詞！到 AI 貼上送出後，把回傳的 CSV 貼回來。');
+    };
+    document.getElementById('coTastePaste').onclick = function(){ tbox.style.display = tbox.style.display === 'none' ? 'block' : 'none'; };
+    document.getElementById('coTasteApply').onclick = function(){
+      var rs = parseCsv(document.getElementById('coTasteTa').value).filter(function(r){ return r.length >= 9 && !/課程名稱/.test(r[0]); });
+      if(!rs.length){ tmsg.className = 'chef-msg'; tmsg.textContent = '看不懂貼上的內容，請確認是 CSV（第一列為「課程名稱,A分數,…」）。'; return; }
+      var r = rs[0]; coach.taste = {A:r[1], Ar:r[2], B:r[3], Br:r[4], C:r[5], Cr:r[6], D:r[7], Dr:r[8], gaps:r[11] || ''};
+      renderCoachTaste(info); tmsg.className = 'chef-msg ok'; tmsg.textContent = '這是預估分數，你用的 AI 版本可能和輔導團不同，結果不保證一樣。';
+    };
+    renderCoachTaste(info);
+    document.getElementById('coDown').onclick = function(){
+      if(!coach.doc) return;
+      COACH_FIELDS.forEach(function(x){
+        var tc = coach.cells[x.k]; if(!tc) return;
+        var v = String(coach.f[x.k] == null ? '' : coach.f[x.k]).trim();
+        if(!v && (x.k === 'obj' || x.k === 'appr')) v = '無';
+        setCellText(tc, v);
+      });
+      var xml = new XMLSerializer().serializeToString(coach.doc);
+      if(!/^<\?xml/.test(xml)) xml = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\r\n' + xml;
+      var blob = new Blob([xml], {type:'application/xml'}), a = document.createElement('a');
+      a.href = URL.createObjectURL(blob); a.download = coach.file ? coach.file.name : (info.code + '_課程大綱.xml');
+      document.body.appendChild(a); a.click(); setTimeout(function(){ URL.revokeObjectURL(a.href); a.remove(); }, 1000);
+      toast('已下載，請回學校系統的課程大綱上傳頁面上傳這個檔案');
+    };
+  }
+  function renderCoachTaste(info){
+    var el = document.getElementById('coTasteRes'), t = coach.taste;
+    if(!el || !t) return;
+    el.innerHTML = '<div class="coach-ro"><div><b>預估分數：</b>' + ['A','B','C','D'].map(function(dm){ return dm + ' <span class="ts-sc">' + escapeHtml(String(t[dm]).trim()) + '</span>' +
+      (info.dims ? '<span class="hint" style="margin:0 8px 0 2px;">（學系標 ' + info.dims[dm] + '）</span>' : ' '); }).join('') + '</div>' +
+      (t.gaps ? '<div><b>證據不足處：</b>' + escapeHtml(t.gaps) + '</div>' : '') +
+      '<details><summary>各面向判定理由</summary>' + ['A','B','C','D'].map(function(dm){ return '<div><b>' + dm + '：</b>' + escapeHtml(t[dm + 'r'] || '') + '</div>'; }).join('') + '</details></div>';
+  }
+
+  /* ---------- 請老師寫大綱（115-2）：學系標註涉及 AI 的課、通知文字、大綱進度 ---------- */
+  function notifyRows(){
+    return evalCourses(planSel.track).filter(function(c){ var t = TAGS[c.code]; return t && t.ai === true; }).map(function(c){
+      var sy = evalSyllabus(c.code), d = deptDims(c.code) || {};
+      var hits = sy ? keytermHits(c.name + '\n' + sy.text) : keytermHits(c.name);
+      return {code:c.code, name:c.name, grade:c.grade, dims:d, stmt:(TAGS[c.code] || {}).stmt || {}, sy:sy, hits:hits, d116:status116(c.code, planSel.track)};
+    });
+  }
+  function notifyText(rows){
+    var url = location.origin + location.pathname + '?view=teacher';
+    var L = ['各位老師好：', '',
+      '本系下列 ' + EVAL.label + ' 課程經學系標註涉及 AI 能力。教育部「AI人才培育協作輔導團」將以「課程名稱＋課程大綱（課程概要、教學目標、授課方式、成績評定）」評估各課程的 AI 能力，先以 AI 關鍵詞初篩，再依 0–5 分規準判定。',
+      '請老師撰寫 ' + EVAL.label + ' 教學計畫表時，把課程中「實際會做」的 AI 學習活動，具體寫進教學目標、授課方式與成績評定（只寫在週次進度不會被採計）。', '',
+      '可使用「食譜教練」協助撰寫（免登入、不存檔，兼任老師也能用）：', url, '',
+      '課程與學系標註（0–5，A 運用AI學習／B 負責任使用AI／C 運用AI解決問題／D AI無法取代）：'];
+    rows.forEach(function(r){
+      L.push('・' + r.name + '（' + r.code + '）：A ' + (r.dims.A || 0) + '、B ' + (r.dims.B || 0) + '、C ' + (r.dims.C || 0) + '、D ' + (r.dims.D || 0) + (r.d116 ? '（116 學年度起刪除，本學期仍請寫清楚）' : ''));
+      Object.keys(r.stmt).forEach(function(k){ if(String(r.stmt[k] || '').trim()) L.push('　' + k + '：' + String(r.stmt[k]).trim()); });
+    });
+    L.push('', '只寫實際會教的內容；若課程實際上沒有某項 AI 活動，請與學系聯繫調整標註。', '請於（請學系填入期限）前完成上傳。謝謝老師！');
+    return L.join('\n');
+  }
+  function renderNotifyCard(){
+    var el = document.getElementById('notifyBody');
+    if(!el) return;
+    if(!currentDept || !isPlanMode() || !planSel.track){ el.innerHTML = '<div class="hint">請先選擇系所。</div>'; return; }
+    loadDraft(planSel.track);
+    var rows = notifyRows(), imp = evalImported();
+    var cur = rows.filter(function(r){ return r.sy && r.sy.cur; }), curHit = cur.filter(function(r){ return r.hits.length; });
+    var h = '<div class="pl-sum">' + EVAL.label + ' 預計開課中，學系標註「涉及 AI」的課：<b>' + rows.length + '</b> 門</div>' +
+      '<div class="hint" style="margin:4px 0 0;"><b>大綱進度：</b>' + (imp ? EVAL.label + ' 大綱已匯入 <b>' + cur.length + '</b>／' + rows.length + ' 門，其中初篩命中 <b>' + curHit.length + '</b> 門。' :
+        EVAL.label + ' 開課資料尚未匯入課程主檔；匯入後這裡會自動顯示每門課的大綱是否已寫好、是否通過初篩。下表暫以最近一次開課的大綱判斷。') + '</div>';
+    if(!rows.length){ el.innerHTML = h + '<div class="hint">目前沒有標註涉及 AI 的 ' + EVAL.label + ' 課程。請先在下方完成科目標註。</div>'; return; }
+    h += '<div class="table-wrap" style="max-height:none;margin-top:8px;"><table class="ts-tbl"><thead><tr><th>科目</th><th>學系（A/B/C/D）</th><th>最近授課教師（參考）</th><th>大綱狀態</th></tr></thead><tbody>' +
+      rows.map(function(r){
+        var st = !r.sy ? '<span class="ts-flag" style="display:inline;">尚無大綱</span>' :
+          (r.sy.cur ? '<b>' + EVAL.label + ' 已寫</b>・' : '最近 ' + escapeHtml(r.sy.src) + '・') + (r.hits.length ? '初篩命中' : '<span class="ts-flag" style="display:inline;">初篩未命中</span>');
+        return '<tr><td><a href="#" data-ntcode="' + escapeHtml(r.code) + '" data-view="1">' + escapeHtml(r.name) + '</a>' + (r.d116 ? '<br>' + DEL116_TAG : '') + '</td>' +
+          '<td>' + ['A','B','C','D'].map(function(dm){ return '<span class="ts-sc">' + (r.dims[dm] || 0) + '</span>'; }).join('') + '</td>' +
+          '<td>' + escapeHtml(r.sy && r.sy.teacher || '—') + '</td><td>' + st + '</td></tr>';
+      }).join('') + '</tbody></table></div>' +
+      '<div class="chef-btns"><button type="button" class="btn" id="ntCopy" data-view="1">複製給老師的通知文字</button></div>' +
+      '<textarea id="ntText" readonly data-view="1" style="display:none;width:100%;min-height:120px;margin-top:8px;font-size:12px;"></textarea><div class="chef-msg" id="ntMsg"></div>';
+    el.innerHTML = h;
+    Array.prototype.forEach.call(el.querySelectorAll('[data-ntcode]'), function(a){ a.onclick = function(ev){ ev.preventDefault(); openSubject(a.dataset.ntcode); }; });
+    document.getElementById('ntCopy').onclick = function(){
+      var ta = document.getElementById('ntText'); ta.value = notifyText(rows);
+      coachCopy(ta, document.getElementById('ntMsg'), '已複製！貼到 Email 或公文，填上期限後寄給授課教師。');
+    };
+  }
+
+  /* ---------- 營養師（116 四年 AI 能力分布、只指出缺口不挑課）＋ 概要修訂助手（概要草稿，學系決定） ---------- */
+  var REQ_CATS = {'校必':1, '院必':1, '系必':1};
+  var nutriSel = '';
+  function nutriData(track){
+    var d = DRAFTS[DRAFT_YEAR + '||' + track];
+    if(!d || !d.data || !d.data.courses) return null;
+    var cs = d.data.courses.filter(function(c){ return !c.del; }), seen = {}, list = [];
+    cs.forEach(function(c){ var k = c.code || ('new:' + c.name); if(seen[k]) return; seen[k] = 1; list.push(c); });
+    var grid = {}, untagged = [];
+    ['A','B','C','D'].forEach(function(dm){ grid[dm] = {}; [1,2,3,4].forEach(function(g){ grid[dm][g] = {req:[], ele:[]}; }); });
+    list.forEach(function(c){
+      if(c.cat === '校必') return;
+      var dd = c.code ? deptDims(c.code) : null;
+      if(!dd){ untagged.push(c); return; }
+      var g = Math.min(4, Math.max(1, Number(c.grade) || 1));
+      ['A','B','C','D'].forEach(function(dm){ if((dd[dm] || 0) >= 3) grid[dm][g][REQ_CATS[c.cat] ? 'req' : 'ele'].push(c.name); });
+    });
+    var gaps = [];
+    ['A','B','C','D'].forEach(function(dm){
+      var all = [1,2,3,4].reduce(function(n, g){ return n + grid[dm][g].req.length + grid[dm][g].ele.length; }, 0);
+      var req = [1,2,3,4].reduce(function(n, g){ return n + grid[dm][g].req.length; }, 0);
+      var gs = [1,2,3,4].filter(function(g){ return grid[dm][g].req.length + grid[dm][g].ele.length; });
+      if(!all) gaps.push(dm + ' ' + DIM_NAME[dm] + '：四年內沒有任何課程標到 3 以上。');
+      else {
+        if(!req) gaps.push(dm + ' ' + DIM_NAME[dm] + '：標到 3 以上的 ' + all + ' 門都是選修，沒修到的學生可能缺這項能力。');
+        if(gs.length === 1) gaps.push(dm + ' ' + DIM_NAME[dm] + '：只集中在 ' + gs[0] + ' 年級。');
+      }
+    });
+    if(!grid.A[1].req.length + grid.A[1].ele.length + grid.A[2].req.length + grid.A[2].ele.length && [3,4].some(function(g){ return grid.A[g].req.length + grid.A[g].ele.length; }))
+      gaps.push('A 運用 AI 學習：大一、大二沒有標到 3 以上的課，要到大三才出現。');
+    if(untagged.length) gaps.push('116 計畫表有 ' + untagged.length + ' 門課尚未標註（含新增或改名後還沒標的科目），分布可能低估。');
+    return {grid:grid, gaps:gaps, untagged:untagged, courses:list};
+  }
+  function nutriPrompt(track, nd){
+    var L = ['你是大學課程規劃的「營養師」。下面是某學系 116 學年度新生四年課程計畫表中，各年級標到 3 級以上（0–5）的 AI 能力課程數量，以及系統找到的缺口。',
+      '請用繁體中文寫 3–5 點觀察，並為每一點提出 1 個值得學系在課程委員會討論的問題。',
+      '【嚴格規則】不要指定、推薦或點名任何科目應新增、刪除或承載哪項能力；承載課程由學系決定。只描述分布與缺口，提出問題。不使用「可能會」「應該會」等推測字眼；沒有資料的部分直接說資料不足。', '',
+      '學系：' + track, '四項能力：A 運用AI學習、B 負責任使用AI、C 運用AI解決問題、D AI無法取代', '',
+      '各年級標到 3 級以上的課程數（必修／選修）：'];
+    ['A','B','C','D'].forEach(function(dm){ L.push(dm + '：' + [1,2,3,4].map(function(g){ var c = nd.grid[dm][g]; return g + '年級 必' + c.req.length + '／選' + c.ele.length; }).join('；')); });
+    L.push('', '系統找到的缺口：'); (nd.gaps.length ? nd.gaps : ['（無明顯缺口）']).forEach(function(x){ L.push('- ' + x); });
+    return L.join('\n');
+  }
+  function summaryForDraft(c){
+    var dcx = draftCourseByCode(c.code);
+    if(dcx && String(dcx.c.syllabus || '').trim()) return {text:dcx.c.syllabus, src:DRAFT_YEAR + ' 學系填寫'};
+    var off = c.code ? latestOfferingOf(c.code) : null;
+    return off ? {text:off.summary || off.syllabus, src:off.academicYear + ' ' + off.term} : {text:'', src:''};
+  }
+  function renderNutri(){
+    var el = document.getElementById('nutriBody');
+    if(!el) return;
+    if(!currentDept || !isPlanMode() || !planSel.track){ el.innerHTML = '<div class="hint">請先選擇系所。</div>'; return; }
+    var track = planSel.track, nd = nutriData(track);
+    if(!nd){ el.innerHTML = '<div class="hint">' + DRAFT_YEAR + ' 草稿讀取中，或尚未建立草稿。</div>'; loadDraft(track); return; }
+    var h = '<div class="hint" style="margin:0 0 6px;">依目前 ' + DRAFT_YEAR + ' 草稿（不含校訂必修）與學系的科目標註計算：每格是標到 3 級以上的課程數。<b>營養師只指出缺口，不幫學系挑課。</b></div>' +
+      '<div class="table-wrap" style="max-height:none;"><table class="ts-tbl nu-tbl"><thead><tr><th>能力</th>' + [1,2,3,4].map(function(g){ return '<th>' + g + ' 年級</th>'; }).join('') + '</tr></thead><tbody>' +
+      ['A','B','C','D'].map(function(dm){ return '<tr><td><b>' + dm + '</b> ' + DIM_NAME[dm] + '</td>' + [1,2,3,4].map(function(g){ var c = nd.grid[dm][g], n = c.req.length + c.ele.length;
+        return '<td class="' + (n ? 'nu-on' : 'nu-off') + '" title="' + escapeHtml(c.req.concat(c.ele).join('、')) + '">' + (n ? '必 ' + c.req.length + '・選 ' + c.ele.length : '—') + '</td>'; }).join('') + '</tr>'; }).join('') +
+      '</tbody></table></div>' +
+      '<div style="margin-top:8px;font-size:13px;line-height:1.7;">' + (nd.gaps.length ? nd.gaps.map(function(x){ return '<div class="cc-warn">△ ' + escapeHtml(x) + '</div>'; }).join('') : '<div class="cc-ok">✓ 四項能力在必修與各年級都有分布。</div>') + '</div>' +
+      '<div class="chef-btns"><button type="button" class="btn" id="nuCopy" data-view="1">請營養師寫觀察與討論問題（複製給 Gemini）</button><a class="btn" href="https://gemini.google.com/app" target="_blank" rel="noopener" data-view="1">開啟 Gemini ↗</a></div>' +
+      '<textarea id="nuPrompt" readonly data-view="1" style="display:none;width:100%;min-height:90px;margin-top:8px;font-size:12px;"></textarea><div class="chef-msg" id="nuMsg"></div>';
+    // 概要修訂助手
+    var cand = nd.courses.filter(function(c){
+      if(!c.code || c.cat === '校必') return false;
+      var dd = deptDims(c.code); if(!dd || !['A','B','C','D'].some(function(dm){ return (dd[dm] || 0) >= 3; })) return false;
+      return !keytermHits(c.name + '\n' + summaryForDraft(c).text).length;
+    });
+    h += '<div class="coach-step"><b>📝 概要修訂助手</b><div class="hint" style="margin:2px 0 6px;">學系標到 3 級以上、但課名與概要都沒有 AI 關鍵詞的 ' + DRAFT_YEAR + ' 課程：<b>' + cand.length + '</b> 門。' +
+      '這些課的初篩只能靠授課教師的教學目標等欄位；學系可起草修訂概要，送系院校課程委員會審議。產出一律是草稿，由學系決定。</div>';
+    if(cand.length){
+      if(nutriSel && !cand.some(function(c){ return c.code === nutriSel; })) nutriSel = '';
+      var cur = cand.filter(function(c){ return c.code === nutriSel; })[0];
+      h += '<div class="chef-btns"><select id="nuSel" data-view="1" style="min-width:240px;"><option value="">— 選擇科目 —</option>' + cand.map(function(c){ return '<option value="' + escapeHtml(c.code) + '"' + (c.code === nutriSel ? ' selected' : '') + '>' + escapeHtml(c.name) + '（' + escapeHtml(c.code) + '）</option>'; }).join('') + '</select></div>';
+      if(cur){
+        var sm = summaryForDraft(cur), dd = deptDims(cur.code), t = TAGS[cur.code] || {};
+        h += '<div class="coach-ro"><div><b>目前概要' + (sm.src ? '（' + escapeHtml(sm.src) + '）' : '') + '：</b>' + (sm.text ? escapeHtml(sm.text) : '（無）') + '</div>' +
+          '<div><b>學系標註：</b>' + ['A','B','C','D'].map(function(dm){ return dm + ' <span class="ts-sc">' + dd[dm] + '</span>'; }).join(' ') + '</div></div>' +
+          '<div class="chef-btns"><button type="button" class="btn" id="nuSyCopy" data-view="1">複製概要修訂提示詞</button><button type="button" class="btn" id="nuPasteToggle" data-view="1">貼上 AI 回傳的 JSON</button></div>' +
+          '<textarea id="nuSyPrompt" readonly data-view="1" style="display:none;width:100%;min-height:80px;margin-top:8px;font-size:12px;"></textarea>' +
+          '<div id="nuPasteBox" style="display:none;"><textarea id="nuPasteTa" data-view="1" style="width:100%;min-height:80px;margin-top:8px;font-size:12px;" placeholder="把 AI 回傳的 JSON 貼在這裡"></textarea>' +
+          '<div class="chef-btns"><button type="button" class="btn" id="nuApply" data-view="1">帶入下方</button></div></div>' +
+          '<label class="coach-lab">修訂後課程概要（草稿，可直接修改）</label><textarea id="nuNew" style="width:100%;min-height:90px;"></textarea>' +
+          '<label class="coach-lab">修訂說明（可用於課程委員會提案）</label><textarea id="nuWhy" style="width:100%;min-height:50px;"></textarea>' +
+          '<div class="chef-btns"><button type="button" class="btn primary" id="nuSave">存為 ' + DRAFT_YEAR + ' 概要草稿</button></div><div class="chef-msg" id="nuSyMsg"></div>';
+        nutriCur = {c:cur, sm:sm, dd:dd, stmt:t.stmt || {}};
+      }
+    }
+    h += '</div>';
+    el.innerHTML = h;
+    var pr = document.getElementById('nuPrompt');
+    document.getElementById('nuCopy').onclick = function(){ pr.value = nutriPrompt(track, nd); coachCopy(pr, document.getElementById('nuMsg'), '已複製！到 Gemini 貼上送出，就會得到觀察與討論問題。'); };
+    var sel = document.getElementById('nuSel'); if(sel) sel.onchange = function(){ nutriSel = this.value; renderNutri(); };
+    if(!document.getElementById('nuSyCopy')) return;
+    var m = document.getElementById('nuSyMsg'), cc = nutriCur;
+    document.getElementById('nuSyCopy').onclick = function(){
+      var L = ['你是大學課程委員會的文書助手。請協助學系修訂下列科目的「課程概要」，讓學系已標註的 AI 能力在概要中被明確寫出，供系院校課程委員會審議。', '',
+        '【嚴格規則】', '1. 以原概要為基礎增修，保留原有的專業內容與重點。', '2. 只能寫入學系標註與具體能力表述中已有的 AI 能力；不得新增學系沒有標註的能力、工具或活動。',
+        '3. 明確寫出「AI」或「生成式AI」等詞，說明學生在本課程如何學習與運用 AI。', '4. 概要是課程的整體描述，不寫週次與成績比例；長度與原概要相近，最多增加 100 字。',
+        '5. 不使用「可能會」「應該會」「視情況」等不確定字眼。使用繁體中文與臺灣常用用語。', '',
+        '【輸出】只輸出 JSON，不要加任何說明或程式碼區塊：{"修訂後課程概要":"…","修訂說明":"一兩句說明修訂理由，可直接用於課程委員會提案"}', '',
+        '【科目】' + cc.c.name + '（' + cc.c.code + '）・' + (PLAN_CAT_LABEL[cc.c.cat] || cc.c.cat) + '・' + cc.c.grade + ' 年級' + cc.c.sem + '學期・' + cc.c.credits + ' 學分',
+        '【原課程概要】' + (cc.sm.text || '（無）'),
+        '【學系標註（0–5）】' + ['A','B','C','D'].map(function(dm){ return dm + ' ' + DIM_NAME[dm] + '：' + cc.dd[dm]; }).join('；')];
+      var st = Object.keys(cc.stmt).filter(function(k){ return String(cc.stmt[k] || '').trim(); });
+      if(st.length) L.push('【具體能力表述】' + st.map(function(k){ return k + ' ' + String(cc.stmt[k]).trim(); }).join('；'));
+      var ta = document.getElementById('nuSyPrompt'); ta.value = L.join('\n');
+      coachCopy(ta, m, '已複製！到 Gemini 貼上送出，再把回傳的 JSON 貼回來。');
+    };
+    document.getElementById('nuPasteToggle').onclick = function(){ var b = document.getElementById('nuPasteBox'); b.style.display = b.style.display === 'none' ? 'block' : 'none'; };
+    document.getElementById('nuApply').onclick = function(){
+      var raw = String(document.getElementById('nuPasteTa').value || '').replace(/```(?:json)?/gi, ''), a = raw.indexOf('{'), b = raw.lastIndexOf('}'), o = null;
+      try{ o = JSON.parse(raw.slice(a, b + 1)); }catch(e){}
+      if(!o || !o['修訂後課程概要']){ m.className = 'chef-msg'; m.textContent = '看不懂貼上的內容，請確認是 AI 回傳的 JSON。'; return; }
+      document.getElementById('nuNew').value = o['修訂後課程概要']; document.getElementById('nuWhy').value = o['修訂說明'] || '';
+      var hit = keytermHits(o['修訂後課程概要']);
+      m.className = 'chef-msg' + (hit.length ? ' ok' : ''); m.textContent = hit.length ? '已帶入。修訂後概要命中 AI 關鍵詞：' + hit.join('、') + '。請逐字確認再存檔。' : '已帶入，但修訂後概要仍沒有 AI 關鍵詞，請修改。';
+    };
+    document.getElementById('nuSave').onclick = function(){
+      if(!authToken()){ needLogin('tag'); return; }
+      var v = document.getElementById('nuNew').value.trim();
+      if(v.length < 20){ m.className = 'chef-msg'; m.textContent = '修訂後概要太短。'; return; }
+      var dcx = draftCourseByCode(cc.c.code);
+      if(!dcx){ m.className = 'chef-msg'; m.textContent = '找不到這門課的 ' + DRAFT_YEAR + ' 草稿。'; return; }
+      dcx.c.syllabus = v; dcx.c.syllabusNote = document.getElementById('nuWhy').value.trim();
+      m.className = 'chef-msg'; m.textContent = '雲端儲存中…';
+      postDraftNow(dcx.track, dcx.d, function(ok){ var m2 = document.getElementById('nuSyMsg'); if(!m2) return;
+        m2.className = 'chef-msg' + (ok ? ' ok' : ''); m2.textContent = ok ? '已存為 ' + DRAFT_YEAR + ' 概要草稿（' + dcx.d.updatedAt + '）。正式修訂仍須經系院校課程委員會審議。' : '雲端儲存失敗，請稍後再試。';
+        if(ok) toast('概要草稿已存檔'); });
+    };
+  }
+  var nutriCur = null;
+
   /* ---------- 學系自填課程大綱（新課沒有開課紀錄時使用；存在 116 草稿的科目上） ---------- */
   function draftCourseByCode(code){
     if(!code) return null;
@@ -3098,6 +3903,8 @@
     var q = 'type=draft&year=' + DRAFT_YEAR + '&dept=' + encodeURIComponent(track);
     var ok = function(d){ draftLoading[key] = false; var x = d && d[key]; DRAFTS[key] = x && x.data ? {status:x.status, data:x.data, updatedAt:x.updatedAt, editor:x.editor} : {none:true};
       renderDraftCard();
+      if(deptTab === 'coach') renderCoach();
+      if(typeof renderNotifyCard === 'function') renderNotifyCard();
       if(x && x.data && currentDept && isPlanMode()){
         if(!planYearPicked && track === planSel.track && planSel.year === DRAFT_BASE) planSel.year = DRAFT_YEAR;  // 有 116 草稿時，預設在 116 標註
         renderPlanCard(); renderPlanRadar(); renderPlanProgress();
@@ -3199,6 +4006,7 @@
     return (o.cat !== c.cat || o.grade !== c.grade || o.sem !== c.sem || Number(o.credits) !== Number(c.credits) || o.name !== c.name) ? 'chg' : 'same';
   }
   function renderDraftCard(){
+    if(typeof renderNutri === 'function') setTimeout(renderNutri, 0);
     var el = document.getElementById('draftBody');
     if(!el) return;
     if(!currentDept || !isPlanMode()){ el.innerHTML = '<div class="hint">請先選擇有四年課程計畫表的系所。</div>'; return; }
@@ -5052,8 +5860,10 @@
     reqType: ['必選修','修別','必選別','選別','課別'],
     term:    ['學期','開課學期'],
     code:    ['課號','選課代號','課程代碼','科目代號','開課序號','選課代碼'],
-    syllabus:['課程大綱','課程概述','課程簡介','課程描述']
+    syllabus:['課程大綱','課程概述','課程簡介','課程描述','中文課程概要','課程概要']
   };
+  // 課程主檔若另有下列欄位，匯入時合併成「【課程概要】【教學目標】【授課方式】【成績評定】」（與給輔導團的格式一致）
+  var SYL_EXTRA_ALIASES = {obj:['教學目標'], appr:['授課方式'], grade:['成績評定','評分方式','成績評量方式','評量方式']};
   function normalizeTerm(t){
     t = String(t == null ? '' : t).trim();
     if(!t) return '';
@@ -5081,9 +5891,18 @@
     var missing = ['name','dept','teacher','term','code'].filter(function(f){ return idx[f] < 0; })
       .map(function(f){ return COURSE_HEADER_ALIASES[f][0]; });
     if(missing.length) return {error:'課程主檔缺少欄位：' + missing.join('、')};
+    var colOf = function(names){ for(var a = 0; a < names.length; a++){ var j = headers.indexOf(names[a]); if(j >= 0) return j; }
+      for(var b = 0; b < names.length; b++){ for(var k = 0; k < headers.length; k++){ if(headers[k].indexOf(names[b]) === 0) return k; } } return -1; };
+    var xi = {obj:colOf(SYL_EXTRA_ALIASES.obj), appr:colOf(SYL_EXTRA_ALIASES.appr), grade:colOf(SYL_EXTRA_ALIASES.grade)};
+    GRADE_PARTS.forEach(function(g){ xi['m' + g[0]] = colOf([g[1] + '評分方式']); xi['p' + g[0]] = colOf([g[1] + '百分比']); });
+    var cell = function(r, j){ return j >= 0 ? String(r[j] == null ? '' : r[j]).trim() : ''; };
     var list = (data.rows || []).map(function(r){
       var o = {};
       COURSE_FIELDS.forEach(function(f){ o[f] = idx[f] >= 0 ? String(r[idx[f]] == null ? '' : r[idx[f]]).trim() : ''; });
+      var gr = cell(r, xi.grade);
+      if(!gr){ var gg = {}; GRADE_PARTS.forEach(function(g){ gg[g[0]] = {method:cell(r, xi['m' + g[0]]), pct:cell(r, xi['p' + g[0]])}; }); gr = gradingText(gg); }
+      var ob = cell(r, xi.obj), ap = cell(r, xi.appr);
+      if(!blankish(ob) || !blankish(ap) || gr){ o.summary = o.syllabus; o.syllabus = mergeSyllabus({summary:o.syllabus, obj:blankish(ob) ? '' : ob, appr:blankish(ap) ? '' : ap, grade:gr}); }
       var rawTerm = o.term;
       o.term = normalizeTerm(rawTerm);
       if(!o.academicYear){ var ym = rawTerm.match(/^(\d{3})[123]$/); o.academicYear = ym ? ym[1] : LATEST_YEAR; }
