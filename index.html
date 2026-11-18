@@ -174,6 +174,7 @@
   .co-chip{display:block;width:100%;text-align:left;font-size:12px;line-height:1.35;border:1px solid var(--line,#d8d8d8);border-radius:6px;padding:3px 6px;margin:2px 0;background:#fff;cursor:pointer;color:inherit;}
   .co-chip:hover:not(:disabled){border-color:#2d5bd7;} .co-chip.off{opacity:.45;cursor:default;} .co-chip.ai{border-color:#c98a00;background:#fff8e6;}
   .co-chip.sel{background:#2d5bd7;border-color:#2d5bd7;color:#fff;} .co-chip .ts-del{margin-left:4px;}
+  .co-exp{margin:4px 0 0;padding:6px 8px;background:#fff;border:1px solid var(--line,#e3e3e3);border-radius:8px;} .co-lv{display:inline-block;margin-left:8px;font-size:12px;padding:0 8px;border-radius:10px;background:#eef3ff;color:#2d5bd7;font-weight:600;}
   .ts-del{display:inline-block;font-size:11px;padding:1px 6px;border-radius:6px;background:#fde7e9;color:#a40e26;font-weight:700;margin-left:4px;}
   html.view-teacher #authBox, html.view-teacher #refreshCloudBtn{display:none !important;}
   .pl-src{font-size:12.5px;font-weight:700;color:var(--accent);margin:0 0 8px;}
@@ -3375,8 +3376,8 @@
       ['A','B','C','D'].forEach(function(dm){
         if((info.dims[dm] || 0) < 3) return;
         var has = pl.some(function(p){ return p.dim === dm; });
-        add(has ? 'ok' : 'warn', has ? '學系標 ' + dm + '（' + DIM_NAME[dm] + '）' + info.dims[dm] + ' 分，已勾選對應做法。' :
-          '學系標 ' + dm + '（' + DIM_NAME[dm] + '）' + info.dims[dm] + ' 分，但沒有勾選對應做法。若實際沒有，請與學系討論標註，不要硬寫。');
+        add(has ? 'ok' : 'warn', has ? '「' + DIM_NAME[dm] + '」：學系期待' + LEVEL_PLAIN[info.dims[dm]] + '，你已勾選對應做法。' :
+          '「' + DIM_NAME[dm] + '」：學系期待' + LEVEL_PLAIN[info.dims[dm]] + '，但你沒有勾選對應做法。若實際沒有，請與學系討論，不要硬寫。');
       });
     }
     var aiLike = hAll.length || (info.tag && info.tag.ai === true);
@@ -3405,14 +3406,13 @@
     var hName = keytermHits(info.name + '\n' + info.summary);
     h += '<div class="coach-step" id="coStep2"><b>② 學系訂的內容（不能改）</b>' +
       '<div class="coach-ro"><div><b>科目名稱：</b>' + escapeHtml(info.name) + (info.d116 ? ' ' + DEL116_TAG : '') + '</div><div><b>課程概要' + (info.src ? '（取自 ' + escapeHtml(info.src) + ' 開課資料）' : '') + '：</b>' + (info.summary ? escapeHtml(info.summary) : '（系統內尚無概要）') + '</div>' +
-      '<div><b>AI 關鍵詞：</b>' + (hName.length ? '已命中「' + escapeHtml(hName.join('、')) + '」，初篩會通過；請專心把 AI 寫進授課方式與成績評定，衝 3 分。' :
+      '<div><b>AI 關鍵詞：</b>' + (hName.length ? '已命中「' + escapeHtml(hName.join('、')) + '」，初篩會通過。接下來請把學生實際做的 AI 活動寫進授課方式與成績評定，輔導團才會判定這門課有培養 AI 能力。' :
         '<span class="ts-flag" style="display:inline;">課名與概要都沒有 AI 關鍵詞</span>，教學目標一定要寫出「AI」或「生成式AI」等詞，否則初篩不會通過。') + '</div>' +
-      '<div><b>學系的 AI 能力標註：</b>' + (info.dims ? ['A','B','C','D'].map(function(dm){ return dm + ' ' + DIM_NAME[dm] + ' <span class="ts-sc">' + info.dims[dm] + '</span>'; }).join('　') : '學系尚未標註') + '</div>' +
-      (info.tag && info.tag.stmt ? Object.keys(info.tag.stmt).filter(function(k){ return String(info.tag.stmt[k] || '').trim(); }).map(function(k){ return '<div class="hint" style="margin:2px 0 0;">' + escapeHtml(k) + '：' + escapeHtml(info.tag.stmt[k]) + '</div>'; }).join('') : '') +
+      deptExpectHtml(info) +
       '</div></div>';
-    h += '<div class="coach-step"><b>③ 勾選這門課「實際會做」的 AI 活動</b><div class="hint" style="margin:2px 0 6px;">沒勾的事，AI 不會幫你寫進去。學系標 3 分以上的面向排在前面。</div>' +
+    h += '<div class="coach-step"><b>③ 勾選這門課「實際會做」的 AI 活動</b><div class="hint" style="margin:2px 0 6px;">沒勾的事，AI 不會幫你寫進去。學系期待較高的能力排在前面。</div>' +
       ['A','B','C','D'].slice().sort(function(a, b){ return ((info.dims && info.dims[b]) || 0) - ((info.dims && info.dims[a]) || 0); }).map(function(dm){
-        return '<div class="coach-dim"><div class="coach-dimh">' + dm + ' ' + DIM_NAME[dm] + (info.dims ? '（學系標 ' + info.dims[dm] + '）' : '') + '</div>' +
+        return '<div class="coach-dim"><div class="coach-dimh">' + dm + ' ' + DIM_NAME[dm] + (info.dims && info.dims[dm] ? '<span class="co-lv">學系期待：' + LEVEL_PLAIN[info.dims[dm]] + '</span>' : '') + '</div>' +
           COACH_PRACTICES[dm].map(function(txt, i){ var k = dm + i, p = coach.prac[k] || {};
             return '<div class="coach-pr"><label><input type="checkbox" data-pk="' + k + '"' + (p.on ? ' checked' : '') + '> ' + escapeHtml(txt) + '</label>' +
               (p.on ? '<div class="coach-pin"><input data-pk="' + k + '" data-pf="wk" placeholder="週次，如 5–6" value="' + escapeHtml(p.wk || '') + '">' +
@@ -3476,6 +3476,30 @@
       '<div class="table-wrap co-grid-wrap" style="max-height:none;"><table class="co-grid"><thead><tr><th></th>' + grades.map(function(g){ return '<th>' + g + ' 年級</th>'; }).join('') + '</tr></thead><tbody>' +
       [['上','上學期'], ['下','下學期（' + EVAL.label + '）']].map(function(sm){ return '<tr class="' + (sm[0] === '下' ? 'co-now' : 'co-past') + '"><th>' + sm[1] + '</th>' + grades.map(function(g){ return '<td>' + cell(g, sm[0]) + '</td>'; }).join('') + '</tr>'; }).join('') +
       '</tbody></table></div>';
+  }
+  // 給授課教師看的白話說明（不顯示 0–5 分數代號）
+  var DIM_PLAIN = {
+    A:'學生用 AI 幫助自己學習，例如整理資料、摘要、練習、取得回饋。',
+    B:'學生了解 AI 的倫理、著作權、個資與風險，會查證 AI 結果並說明自己怎麼用 AI。',
+    C:'學生用 AI 完成專業任務或作品，並檢查、修正 AI 的結果。',
+    D:'與 AI 合作時，學生仍提出自己的判斷與創意，並與人溝通合作。'
+  };
+  var LEVEL_PLAIN = {1:'課堂中簡單提到', 2:'少數單元會涉及', 3:'至少一項教學活動、作業或評量會用到', 4:'多數教學活動與評量會用到', 5:'這門課的核心目標'};
+  function dimStmts(tag, dm){
+    var st = (tag && tag.stmt) || {};
+    return Object.keys(st).filter(function(k){ return k.charAt(0) === dm && String(st[k] || '').trim(); }).map(function(k){ return String(st[k]).trim(); });
+  }
+  function deptExpectHtml(info){
+    if(!info.tag) return '<div><b>學系的期待：</b>學系還沒有標註這門課。</div>';
+    if(info.tag.ai === false || !info.dims) return '<div><b>學系的期待：</b>學系標註這門課<b>不涉及 AI</b>。若你的課實際有 AI 活動，請與學系聯繫。</div>';
+    var ds = ['A','B','C','D'].filter(function(dm){ return (info.dims[dm] || 0) >= 1; }).sort(function(a, b){ return info.dims[b] - info.dims[a]; });
+    if(!ds.length) return '<div><b>學系的期待：</b>學系標註涉及 AI，但還沒有勾選能力等級。</div>';
+    return '<div><b>學系希望這門課培養的 AI 能力：</b></div>' + ds.map(function(dm){
+      var st = dimStmts(info.tag, dm);
+      return '<div class="co-exp"><div><b>' + DIM_NAME[dm] + '</b><span class="co-lv">' + LEVEL_PLAIN[info.dims[dm]] + '</span></div>' +
+        '<div class="hint" style="margin:0;">' + DIM_PLAIN[dm] + '</div>' +
+        (st.length ? '<div style="margin-top:2px;">學系寫的具體能力：' + st.map(escapeHtml).join('；') + '</div>' : '') + '</div>';
+    }).join('') + '<div class="hint" style="margin:4px 0 0;">「至少一項教學活動、作業或評量會用到」以上的能力，請在授課方式與成績評定寫清楚學生實際怎麼做。</div>';
   }
   function renderCoachChecks(info){
     var box = document.getElementById('coChecks');
@@ -3561,10 +3585,10 @@
   function renderCoachTaste(info){
     var el = document.getElementById('coTasteRes'), t = coach.taste;
     if(!el || !t) return;
-    el.innerHTML = '<div class="coach-ro"><div><b>預估分數：</b>' + ['A','B','C','D'].map(function(dm){ return dm + ' <span class="ts-sc">' + escapeHtml(String(t[dm]).trim()) + '</span>' +
-      (info.dims ? '<span class="hint" style="margin:0 8px 0 2px;">（學系標 ' + info.dims[dm] + '）</span>' : ' '); }).join('') + '</div>' +
+    el.innerHTML = '<div class="coach-ro"><div><b>預估分數（0–5 分，3 分以上代表有明確的教學活動、作業或評量）：</b></div>' + ['A','B','C','D'].map(function(dm){ return '<div>' + DIM_NAME[dm] + ' <span class="ts-sc">' + escapeHtml(String(t[dm]).trim()) + '</span>' +
+      (info.dims && info.dims[dm] ? '<span class="hint" style="margin:0 0 0 6px;">學系期待：' + LEVEL_PLAIN[info.dims[dm]] + '</span>' : '') + '</div>'; }).join('') +
       (t.gaps ? '<div><b>證據不足處：</b>' + escapeHtml(t.gaps) + '</div>' : '') +
-      '<details><summary>各面向判定理由</summary>' + ['A','B','C','D'].map(function(dm){ return '<div><b>' + dm + '：</b>' + escapeHtml(t[dm + 'r'] || '') + '</div>'; }).join('') + '</details></div>';
+      '<details><summary>各能力的判定理由</summary>' + ['A','B','C','D'].map(function(dm){ return '<div><b>' + DIM_NAME[dm] + '：</b>' + escapeHtml(t[dm + 'r'] || '') + '</div>'; }).join('') + '</details></div>';
   }
 
   /* ---------- 請老師寫大綱（115-2）：學系標註涉及 AI 的課、通知文字、大綱進度 ---------- */
@@ -3581,10 +3605,13 @@
       '本系下列 ' + EVAL.label + ' 課程經學系標註涉及 AI 能力。教育部「AI人才培育協作輔導團」將以「課程名稱＋課程大綱（課程概要、教學目標、授課方式、成績評定）」評估各課程的 AI 能力，先以 AI 關鍵詞初篩，再依 0–5 分規準判定。',
       '請老師撰寫 ' + EVAL.label + ' 教學計畫表時，把課程中「實際會做」的 AI 學習活動，具體寫進教學目標、授課方式與成績評定（只寫在週次進度不會被採計）。', '',
       '可使用「食譜教練」協助撰寫（免登入、不存檔，兼任老師也能用）：', url, '',
-      '課程與學系標註（0–5，A 運用AI學習／B 負責任使用AI／C 運用AI解決問題／D AI無法取代）：'];
+      '課程與學系希望培養的 AI 能力：'];
     rows.forEach(function(r){
-      L.push('・' + r.name + '（' + r.code + '）：A ' + (r.dims.A || 0) + '、B ' + (r.dims.B || 0) + '、C ' + (r.dims.C || 0) + '、D ' + (r.dims.D || 0) + (r.d116 ? '（116 學年度起刪除，本學期仍請寫清楚）' : ''));
-      Object.keys(r.stmt).forEach(function(k){ if(String(r.stmt[k] || '').trim()) L.push('　' + k + '：' + String(r.stmt[k]).trim()); });
+      L.push('・' + r.name + '（' + r.code + '）' + (r.d116 ? '（116 學年度起刪除，本學期仍請寫清楚）' : ''));
+      ['A','B','C','D'].filter(function(dm){ return (r.dims[dm] || 0) >= 1; }).sort(function(a, b){ return r.dims[b] - r.dims[a]; }).forEach(function(dm){
+        var st = dimStmts({stmt:r.stmt}, dm);
+        L.push('　' + DIM_NAME[dm] + '：' + LEVEL_PLAIN[r.dims[dm]] + (st.length ? '。學系寫的具體能力：' + st.join('；') : ''));
+      });
     });
     L.push('', '只寫實際會教的內容；若課程實際上沒有某項 AI 活動，請與學系聯繫調整標註。', '請於（請學系填入期限）前完成上傳。謝謝老師！');
     return L.join('\n');
