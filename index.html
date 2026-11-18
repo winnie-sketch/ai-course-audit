@@ -811,7 +811,7 @@
             </div>
 
             <div class="card tab-draft" id="nutriCard">
-              <div class="card-head"><h3>🥗 營養師：116 四年 AI 能力分布</h3><span class="req opt">AI 代理人</span></div>
+              <div class="card-head"><h3>🩺 菜單健檢師：116 四年 AI 能力分布</h3><span class="req opt">AI 代理人</span></div>
               <div id="nutriBody"><div class="hint">請先選擇系所。</div></div>
             </div>
             <div class="card tab-ind" id="industryCard">
@@ -3007,13 +3007,13 @@
       coord:'落差與證據不足處 → 學系（📣 請老師寫大綱）與授課教師（食譜教練）', life:'輔導團提供新版提示詞或關鍵詞時更新'},
     menu:{name:'菜單設計師 2.0', type:'半 agent（員工代理人）', purpose:'草擬 3–6 項專業 AI 能力，涵蓋四個面向、三個層次循序漸進',
       scope:'讀：學系核心能力（SE0201）、課程與標註、產業對接｜寫：只新增「AI建議草稿」', owner:'維護：教務處｜確認：學系',
-      coord:'承載課程由學系勾選（不幫學系挑）；能力缺口回饋營養師', life:'學系核心能力或產業需求改變時更新'},
-    nutri:{name:'營養師 2.0', type:'半 agent（員工代理人）', purpose:'找出 116 四年 AI 能力分布的缺口，整理成課程委員會的討論問題',
+      coord:'承載課程由學系勾選（不幫學系挑）；能力缺口回饋菜單健檢師', life:'學系核心能力或產業需求改變時更新'},
+    nutri:{name:'菜單健檢師 2.0', type:'半 agent（員工代理人）', purpose:'找出 116 四年 AI 能力分布的缺口，整理成課程委員會的討論問題',
       scope:'讀：116 草稿與科目標註｜寫：不寫入，只產生觀察與問題', owner:'維護：教務處｜決定：學系、系院校課程委員會',
       coord:'缺口由規則計算，AI 只負責描述與提問；不點名科目', life:'課程架構規則改變時更新'},
     syl:{name:'概要修訂助手 2.0', type:'半 agent（員工代理人）', purpose:'起草修訂後的課程概要：命中 AI 關鍵詞，且不超出學系標註',
       scope:'讀：原概要、學系標註與具體能力表述｜寫：只存成 116 概要草稿（須登入）', owner:'維護：教務處｜決定：系院校課程委員會',
-      coord:'來源名單由營養師與試菜員的初篩找出', life:'概要格式或審議規定改變時更新'}
+      coord:'來源名單由菜單健檢師與試菜員的初篩找出', life:'概要格式或審議規定改變時更新'}
   };
   function agentCardHtml(k){
     var c = AGENT_CARDS[k]; if(!c) return '';
@@ -3854,7 +3854,7 @@
     };
   }
 
-  /* ---------- 營養師（116 四年 AI 能力分布、只指出缺口不挑課）＋ 概要修訂助手（概要草稿，學系決定） ---------- */
+  /* ---------- 菜單健檢師（116 四年 AI 能力分布、只指出缺口不挑課）＋ 概要修訂助手（概要草稿，學系決定） ---------- */
   var REQ_CATS = {'校必':1, '院必':1, '系必':1};
   var nutriSel = '';
   function nutriData(track){
@@ -3888,7 +3888,7 @@
     return {grid:grid, gaps:gaps, untagged:untagged, courses:list};
   }
   function nutriPrompt(track, nd){
-    var L = agentFrame({role:'營養師', ask:'學系',
+    var L = agentFrame({role:'菜單健檢師', ask:'學系',
       goal:'依下方 116 學年度新生四年課程計畫表的 AI 能力分布，為每個缺口寫一點觀察，並提出一個值得學系在課程委員會討論的問題。',
       steps:['讀分布表與系統找到的缺口。', '為每個缺口寫一句觀察（引用數字）。', '自我檢核：觀察有沒有點名科目或替學系做決定？有就改寫成問題。',
         '若需要背景才能判斷（例如院、校層級是否已有相關課程），先問學系。'],
@@ -3914,13 +3914,13 @@
     if(!currentDept || !isPlanMode() || !planSel.track){ el.innerHTML = '<div class="hint">請先選擇系所。</div>'; return; }
     var track = planSel.track, nd = nutriData(track);
     if(!nd){ el.innerHTML = '<div class="hint">' + DRAFT_YEAR + ' 草稿讀取中，或尚未建立草稿。</div>'; loadDraft(track); return; }
-    var h = agentCardHtml('nutri') + '<div class="hint" style="margin:6px 0 6px;">依目前 ' + DRAFT_YEAR + ' 草稿（不含校訂必修）與學系的科目標註計算：每格是標到 3 級以上的課程數。<b>營養師只指出缺口，不幫學系挑課。</b></div>' +
+    var h = agentCardHtml('nutri') + '<div class="hint" style="margin:6px 0 6px;">依目前 ' + DRAFT_YEAR + ' 草稿（不含校訂必修）與學系的科目標註計算：每格是標到 3 級以上的課程數。<b>菜單健檢師只指出缺口，不幫學系挑課。</b></div>' +
       '<div class="table-wrap" style="max-height:none;"><table class="ts-tbl nu-tbl"><thead><tr><th>能力</th>' + [1,2,3,4].map(function(g){ return '<th>' + g + ' 年級</th>'; }).join('') + '</tr></thead><tbody>' +
       ['A','B','C','D'].map(function(dm){ return '<tr><td><b>' + dm + '</b> ' + DIM_NAME[dm] + '</td>' + [1,2,3,4].map(function(g){ var c = nd.grid[dm][g], n = c.req.length + c.ele.length;
         return '<td class="' + (n ? 'nu-on' : 'nu-off') + '" title="' + escapeHtml(c.req.concat(c.ele).join('、')) + '">' + (n ? '必 ' + c.req.length + '・選 ' + c.ele.length : '—') + '</td>'; }).join('') + '</tr>'; }).join('') +
       '</tbody></table></div>' +
       '<div style="margin-top:8px;font-size:13px;line-height:1.7;">' + (nd.gaps.length ? nd.gaps.map(function(x){ return '<div class="cc-warn">△ ' + escapeHtml(x) + '</div>'; }).join('') : '<div class="cc-ok">✓ 四項能力在必修與各年級都有分布。</div>') + '</div>' +
-      '<div class="chef-btns"><button type="button" class="btn" id="nuCopy" data-view="1">請營養師寫觀察與討論問題（複製給 Gemini）</button><a class="btn" href="https://gemini.google.com/app" target="_blank" rel="noopener" data-view="1">開啟 Gemini ↗</a></div>' +
+      '<div class="chef-btns"><button type="button" class="btn" id="nuCopy" data-view="1">請菜單健檢師寫觀察與討論問題（複製給 Gemini）</button><a class="btn" href="https://gemini.google.com/app" target="_blank" rel="noopener" data-view="1">開啟 Gemini ↗</a></div>' +
       '<textarea id="nuPrompt" readonly data-view="1" style="display:none;width:100%;min-height:90px;margin-top:8px;font-size:12px;"></textarea><div class="chef-msg" id="nuMsg"></div>';
     // 概要修訂助手
     var cand = nd.courses.filter(function(c){

@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>學味食光島｜課程中央廚房 Course Kitchen</title>
+<title>學味食光島｜課程灶咖 Course Kitchen</title>
 <style>
   :root{
     --sea:#bfe3ee; --sea2:#a7d6e5; --sand:#f3dfb3; --grass:#cfe6a8; --grass2:#b9d98c;
@@ -58,7 +58,7 @@
 <header>
   <div class="brand">
     <h1>🏝️ 學味食光島</h1>
-    <p>課程中央廚房 Course Kitchen：一份四年課程計畫表，變出各種規劃</p>
+    <p>課程灶咖 Course Kitchen：一份四年課程計畫表，變出各種規劃</p>
   </div>
   <div class="tours">
     <button type="button" data-tour="chef">👨‍🍳 跟著主廚走</button>
@@ -117,14 +117,14 @@
   var PAGE = function(slug){ return BASE + encodeURIComponent(slug); };
 
   var SPOTS = [
-    {id:'kitchen', name:'中央廚房', who:'教務處', emoji:'🏭', x:500, y:150, kind:'kitchen', open:true,
+    {id:'kitchen', name:'灶咖', who:'教務處＝灶咖管家', emoji:'🍲', x:500, y:150, kind:'kitchen', open:true,
      points:['食材庫：四年課程計畫表，每一門課程都是食材（115 已複製成 116 草稿）','訂衛生標準：畢業學分、60% 規則等規定','看每間餐廳出菜出到哪裡'],
      link:{label:'前往：進度總覽', url:PAGE('進度總覽')}},
     {id:'street', name:'餐廳街', who:'學系＝行政主廚・老師＝廚師', emoji:'🍳', x:270, y:340, kind:'shops', open:true,
      points:['每個學系是一間餐廳，學院是同一區的餐廳群','行政主廚（系課程委員會）設計整套菜單','廚師（老師）控火候、試味道，把菜煮出來','① 調整 116 必修、選修與學分 → 確認存檔 → 匯出'],
      link:{label:'前往：① 四年課程計畫表', url:PAGE('四年課程計畫表')}},
     {id:'season', name:'調味台', who:'未來人才AI能力圖像', emoji:'🧂', x:480, y:330, kind:'stall', open:true,
-     points:['② 替每道菜加上 AI 的調味','標註 A～D 四大面向、11 項 AI 能力','校必修由中央廚房供應，學系不用標'],
+     points:['② 替每道菜加上 AI 的調味','標註 A～D 四大面向、11 項 AI 能力','校必修由灶咖管家供應，學系不用標'],
      link:{label:'前往：② 未來人才AI能力圖像', url:PAGE('未來人才ai能力圖像')}},
     {id:'order', name:'點菜櫃台', who:'產業對接', emoji:'🧾', x:680, y:300, kind:'counter', open:true,
      points:['③ 依職場客人的口味點菜','列出職業與需要的能力等級','系統對照課程，標出還缺哪道菜'],
@@ -152,7 +152,7 @@
 
   var TOURS = {
     chef:{face:'👨‍🍳', title:'跟著主廚走', steps:[
-      ['kitchen','中央廚房打開食材庫：115 學年度四年課程計畫表裡的每一門課，已經複製成 116 草稿。'],
+      ['kitchen','灶咖管家打開食材庫：115 學年度四年課程計畫表裡的每一門課，已經複製成 116 草稿。'],
       ['street','① 行政主廚先調菜單：必修、選修、學分怎麼調，系統會檢查 60% 規則。確認後存檔，匯出給系院校課程委員會。'],
       ['season','② 替每道菜加上 AI 調味：點一門課，標註 11 項 AI 能力。去年標過的會先帶入，看過按確認就好。'],
       ['order','③ 看職場客人想吃什麼：列出職業和需要的能力，系統標出課程缺口。'],
@@ -290,7 +290,7 @@
   function intro(){
     setActive(null);
     panel.innerHTML = '<div class="intro"><h2 style="margin:0 0 10px;font-size:21px;">歡迎來到學味食光島</h2>' +
-      '<p>這座島是課程中央廚房：<b>每一門課程</b>是食材，<b>四年課程計畫表</b>是食材庫，<b>課程大綱</b>是食譜，<b>學系</b>是行政主廚，<b>老師</b>是廚師，<b>AI 代理人</b>是幫手，<b>學生</b>是客人。</p>' +
+      '<p>這座島是課程灶咖（灶咖，台語的廚房）：<b>每一門課程</b>是食材，<b>四年課程計畫表</b>是食材庫，<b>課程大綱</b>是食譜，<b>學系</b>是行政主廚，<b>老師</b>是廚師，<b>AI 代理人</b>是幫手，<b>教務處</b>是灶咖管家，<b>學生</b>是客人。</p>' +
       '<p>學系照 ① → ④ 做就好，每一步的資料都會自動帶到下一步。</p>' +
       '<p style="color:var(--quiet);font-size:13.5px;">點島上的地點看說明，或按上方「跟著主廚走」「跟著客人走」逛一圈。</p></div>';
   }
