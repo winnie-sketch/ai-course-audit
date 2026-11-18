@@ -168,6 +168,12 @@
   .coach-checks{margin-top:10px;font-size:13px;line-height:1.7;} .cc-ok{color:var(--good,#1a7f37);} .cc-warn{color:#9a6700;} .cc-bad{color:#cf222e;font-weight:700;}
   #coachBody .chef-btns .btn, #notifyBody .chef-btns .btn{width:auto;flex:0 0 auto;}
   .nu-tbl td.nu-on{background:#e9f6ec;} .nu-tbl td.nu-off{background:#fdf1f1;color:#a40e26;text-align:center;}
+  .co-grid{border-collapse:collapse;width:100%;font-size:12px;} .co-grid th,.co-grid td{border:1px solid var(--line,#e3e3e3);padding:4px;vertical-align:top;}
+  .co-grid thead th{background:var(--soft,#f6f7f9);} .co-grid tbody th{white-space:nowrap;background:var(--soft,#f6f7f9);text-align:left;}
+  .co-grid tr.co-past td{background:#fafafa;} .co-cat{font-size:11px;color:#777;margin:4px 0 2px;}
+  .co-chip{display:block;width:100%;text-align:left;font-size:12px;line-height:1.35;border:1px solid var(--line,#d8d8d8);border-radius:6px;padding:3px 6px;margin:2px 0;background:#fff;cursor:pointer;color:inherit;}
+  .co-chip:hover:not(:disabled){border-color:#2d5bd7;} .co-chip.off{opacity:.45;cursor:default;} .co-chip.ai{border-color:#c98a00;background:#fff8e6;}
+  .co-chip.sel{background:#2d5bd7;border-color:#2d5bd7;color:#fff;} .co-chip .ts-del{margin-left:4px;}
   .ts-del{display:inline-block;font-size:11px;padding:1px 6px;border-radius:6px;background:#fde7e9;color:#a40e26;font-weight:700;margin-left:4px;}
   html.view-teacher #authBox, html.view-teacher #refreshCloudBtn{display:none !important;}
   .pl-src{font-size:12.5px;font-weight:700;color:var(--accent);margin:0 0 8px;}
@@ -2680,7 +2686,7 @@
         TY[r[ix('學科代碼')]] = {year:yr, name:r[ix('科目名稱')], ai: ai === '是' ? true : (ai === '否' ? false : null), ratings:ratings,
           evidence:parseEvidence(r[ix('佐證說明')]), stmt:parseObj(r[ix('具體能力表述')]), st:r[ix('狀態')], src:r[ix('來源')], srcCode:r[ix('來源課號')], srcTerm:r[ix('來源學年期')], at:r[ix('更新時間')]};
       });
-      TAGS_BY_YEAR = T; tagsLoadState = 'ok'; tagViewYear = null; rebuildTagView();
+      TAGS_BY_YEAR = T; tagsLoadState = 'ok'; tagViewYear = null; rebuildTagView(); if(deptTab === 'coach') setTimeout(renderCoach, 0);
       if(currentDept) renderCurrentScope();
     };
     var fail = function(){ tagsLoadState = 'error'; };
@@ -3393,10 +3399,11 @@
       list.map(function(c){ return '<option value="' + escapeHtml(c.code) + '"' + (c.code === coach.code ? ' selected' : '') + '>' + escapeHtml(c.name) + '（' + escapeHtml(c.code) + '）</option>'; }).join('') + '</select>' +
       '<label class="btn" style="width:auto;cursor:pointer;">上傳課程大綱 XML<input type="file" id="coFile" accept=".xml,text/xml,application/xml" style="display:none;"></label>' +
       '<span class="hint" style="margin:0;align-self:center;">' + (coach.file ? '已讀入：' + escapeHtml(coach.file.name) : '學校系統下載的「課程大綱範本」（用 Word 編輯過也可以，請保持原格式存檔）') + '</span></div>' +
+      (isPlanMode() && planSel.track ? coachGridHtml(planSel.track) : '') +
       '<div class="chef-msg" id="coFileMsg"></div></div>';
     if(!info){ el.innerHTML = h + '<div class="hint">選好課程後，會帶出學系訂的課名、概要與 AI 能力標註。</div>'; bindCoach(null); return; }
     var hName = keytermHits(info.name + '\n' + info.summary);
-    h += '<div class="coach-step"><b>② 學系訂的內容（不能改）</b>' +
+    h += '<div class="coach-step" id="coStep2"><b>② 學系訂的內容（不能改）</b>' +
       '<div class="coach-ro"><div><b>科目名稱：</b>' + escapeHtml(info.name) + (info.d116 ? ' ' + DEL116_TAG : '') + '</div><div><b>課程概要' + (info.src ? '（取自 ' + escapeHtml(info.src) + ' 開課資料）' : '') + '：</b>' + (info.summary ? escapeHtml(info.summary) : '（系統內尚無概要）') + '</div>' +
       '<div><b>AI 關鍵詞：</b>' + (hName.length ? '已命中「' + escapeHtml(hName.join('、')) + '」，初篩會通過；請專心把 AI 寫進授課方式與成績評定，衝 3 分。' :
         '<span class="ts-flag" style="display:inline;">課名與概要都沒有 AI 關鍵詞</span>，教學目標一定要寫出「AI」或「生成式AI」等詞，否則初篩不會通過。') + '</div>' +
@@ -3443,6 +3450,33 @@
     el.innerHTML = h;
     bindCoach(info);
   }
+  // 食譜教練第一步：115 新生入學課程計畫表，115-2 的課可點選
+  function coachGridHtml(track){
+    if(!PLAN_DATA || !track) return '';
+    var rows = PLAN_DATA.rows.filter(function(r){ return r['系所'] === track && r['入學學年度'] === EVAL.planYear && r['類別'] !== '校必'; });
+    if(!rows.length) return '';
+    var ev = {}; evalCourses(track).forEach(function(c){ ev[c.code] = 1; });
+    var grades = []; rows.forEach(function(r){ var g = Number(r['年級']) || 0; if(g && grades.indexOf(g) < 0) grades.push(g); }); grades.sort();
+    var cats = [['院必','院訂必修'], ['系必','系訂必修'], ['系選','系訂選修']];
+    var cell = function(g, sem){
+      var seen = {};
+      return cats.map(function(ct){
+        var items = rows.filter(function(r){ return Number(r['年級']) === g && r['學期'] === sem && r['類別'] === ct[0]; }).filter(function(r){ var k = r['學科代碼'] || r['科目名稱']; if(seen[k]) return false; seen[k] = 1; return true; });
+        if(!items.length) return '';
+        return '<div class="co-cat">' + ct[1] + '</div>' + items.map(function(r){
+          var code = r['學科代碼'], on = code && ev[code], t = code ? TAGS[code] : null, ai = t && t.ai === true;
+          var nm = String(r['科目名稱']).replace(/^[A-Z0-9]{5}-/, '');
+          return '<button type="button" class="co-chip' + (on ? '' : ' off') + (ai ? ' ai' : '') + (code && code === coach.code ? ' sel' : '') + '"' + (on ? ' data-cocode="' + escapeHtml(code) + '"' : ' disabled') +
+            ' title="' + escapeHtml(nm + '（' + (code || '無學科代碼') + '）' + (on ? '' : '：不在 ' + EVAL.label + ' 開課')) + '">' + (ai ? '🤖 ' : '') + escapeHtml(nm) +
+            (on && status116(code, track) ? '<span class="ts-del">116 刪除</span>' : '') + '</button>';
+        }).join('');
+      }).join('') || '<span class="hint" style="margin:0;">—</span>';
+    };
+    return '<div class="hint" style="margin:8px 0 4px;"><b>' + EVAL.planYear + ' 學年度新生入學課程計畫表</b>：<b>下學期（' + EVAL.label + '）</b>的課可以點選；上學期的課只供參考。🤖＝學系標註「涉及 AI」，請優先寫清楚這些課的 AI 活動。</div>' +
+      '<div class="table-wrap co-grid-wrap" style="max-height:none;"><table class="co-grid"><thead><tr><th></th>' + grades.map(function(g){ return '<th>' + g + ' 年級</th>'; }).join('') + '</tr></thead><tbody>' +
+      [['上','上學期'], ['下','下學期（' + EVAL.label + '）']].map(function(sm){ return '<tr class="' + (sm[0] === '下' ? 'co-now' : 'co-past') + '"><th>' + sm[1] + '</th>' + grades.map(function(g){ return '<td>' + cell(g, sm[0]) + '</td>'; }).join('') + '</tr>'; }).join('') +
+      '</tbody></table></div>';
+  }
   function renderCoachChecks(info){
     var box = document.getElementById('coChecks');
     if(!box || !info) return;
@@ -3450,7 +3484,10 @@
   }
   function bindCoach(info){
     var sel = document.getElementById('coSel');
-    if(sel) sel.onchange = function(){ coach.code = this.value; coach.prac = {}; coach.other = ''; coach.taste = null; renderCoach(); };
+    var pick = function(code){ coach.code = code; coach.prac = {}; coach.other = ''; coach.taste = null; renderCoach();
+      var s2 = document.getElementById('coStep2'); if(s2 && s2.scrollIntoView) s2.scrollIntoView({behavior:'smooth', block:'start'}); };
+    if(sel) sel.onchange = function(){ pick(this.value); };
+    Array.prototype.forEach.call(document.querySelectorAll('#coachBody [data-cocode]'), function(b){ b.onclick = function(){ pick(b.dataset.cocode); }; });
     var fi = document.getElementById('coFile');
     if(fi) fi.onchange = function(){
       var f = this.files && this.files[0]; if(!f) return;
@@ -3903,7 +3940,7 @@
     var q = 'type=draft&year=' + DRAFT_YEAR + '&dept=' + encodeURIComponent(track);
     var ok = function(d){ draftLoading[key] = false; var x = d && d[key]; DRAFTS[key] = x && x.data ? {status:x.status, data:x.data, updatedAt:x.updatedAt, editor:x.editor} : {none:true};
       renderDraftCard();
-      if(deptTab === 'coach') renderCoach();
+      if(deptTab === 'coach') setTimeout(renderCoach, 0);
       if(typeof renderNotifyCard === 'function') renderNotifyCard();
       if(x && x.data && currentDept && isPlanMode()){
         if(!planYearPicked && track === planSel.track && planSel.year === DRAFT_BASE) planSel.year = DRAFT_YEAR;  // 有 116 草稿時，預設在 116 標註
