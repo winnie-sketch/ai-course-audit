@@ -3283,8 +3283,15 @@
       var prp = pPr && Array.prototype.filter.call(pPr.childNodes, function(n){ return n.localName === 'rPr'; })[0]; if(prp) rPr = prp.cloneNode(true); }
     Array.prototype.slice.call(p.childNodes).forEach(function(n){ if(n.localName !== 'pPr') p.removeChild(n); });
     if(rPr) Array.prototype.slice.call(rPr.childNodes).forEach(function(n){ if(n.localName === 'highlight') rPr.removeChild(n); });  // 範本標示用的黃底不帶進內文
-    var r = doc.createElementNS(WNS, 'w:r'); if(rPr) r.appendChild(rPr);
-    var t = doc.createElementNS(WNS, 'w:t'); t.textContent = String(val).replace(/\r?\n/g, '<br>'); r.appendChild(t); p.appendChild(r);
+    // 換行用 Word 一般分段（每行一個段落），與老師自己在 Word 按 Enter 的結果相同，不寫 <br>
+    var lines = String(val).replace(/<br\s*\/?>/gi, '\n').split(/\r?\n/);
+    lines.forEach(function(line, i){
+      var para = p;
+      if(i > 0){ para = p.cloneNode(false); var pp = Array.prototype.filter.call(p.childNodes, function(n){ return n.localName === 'pPr'; })[0]; if(pp) para.appendChild(pp.cloneNode(true)); tc.appendChild(para); }
+      if(!line) return;
+      var r = doc.createElementNS(WNS, 'w:r'); if(rPr) r.appendChild(rPr.cloneNode(true));
+      var t = doc.createElementNS(WNS, 'w:t'); t.textContent = line; r.appendChild(t); para.appendChild(r);
+    });
   }
   function coachCourses(){
     var out = [], seen = {};
