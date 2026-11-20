@@ -66,6 +66,7 @@
   html.home-mode .app{grid-template-columns:1fr;}
   html.home-mode .sidebar, html.home-mode .main > .topbar, html.home-mode .main > section.view{display:none !important;}
   #homeView{display:none;}
+  .adopt-bar{display:flex;flex-wrap:wrap;gap:8px 12px;align-items:center;margin-top:10px;padding:8px 10px;border-radius:8px;background:var(--warning-bg);font-size:13px;color:var(--ink);}
   .ag-guide{margin:8px 0 2px;padding:8px 10px;border:1px dashed var(--border);border-radius:8px;background:var(--surface);font-size:12.5px;}
   .ag-guide ol{margin:6px 0;padding-left:20px;}
   .ag-guide li{margin:2px 0;}
@@ -191,7 +192,7 @@
   .dept-tabs button:hover{background:var(--grid);}
   .dept-tabs button.active{background:var(--surface);color:var(--ink);border-color:var(--border);border-bottom:2px solid var(--surface);}
   #deptContent:not([data-tab="main"]) .tab-main, #deptContent:not([data-tab="comp"]) .tab-comp,
-  #deptContent:not([data-tab="ind"]) .tab-ind, #deptContent:not([data-tab="draft"]) .tab-draft, #deptContent:not([data-tab="coach"]) .tab-coach{display:none !important;}
+  #deptContent:not([data-tab="ind"]):not([data-tab="comp"]) .tab-ind, #deptContent:not([data-tab="draft"]) .tab-draft, #deptContent:not([data-tab="coach"]) .tab-coach{display:none !important;}
   .coach-step{border:1px solid var(--line,#e3e3e3);border-radius:10px;padding:10px 12px;margin-top:10px;}
   .coach-ro{background:var(--soft,#f6f7f9);border-radius:8px;padding:8px 10px;margin-top:6px;font-size:13px;line-height:1.6;}
   .coach-dim{margin-top:6px;} .coach-dimh{font-weight:700;font-size:13px;margin:6px 0 2px;}
@@ -648,17 +649,16 @@
   <main class="main">
     <section id="homeView">
       <h1>課程灶咖 Course Kitchen</h1>
-      <p class="hv-sub">照 ① → ④ 的順序做就好，每一步的資料都會自動帶到下一步。</p>
+      <p class="hv-sub">學系照 1 → 3 的順序做，每一步的資料都會自動帶到下一步。</p>
       <div class="hv-login">✏️ 要修改資料請先用 G2 帳號登入；只看不改，不用登入。</div>
       <div class="hv-steps">
-        <div class="hv-step"><div class="hv-no">1</div><div class="hv-tx"><b>四年課程計畫表</b><div>調整 116 學年度的必修、選修與學分 → 按「確認存檔」→ 匯出課程計畫表，提系院校課程委員會。</div></div><a class="hv-go" href="?view=plan">前往</a></div>
-        <div class="hv-step"><div class="hv-no">2</div><div class="hv-tx"><b>課程盤點</b><div>替系上每門課標註 A～D 四大面向、11 項 AI 能力（校必修不用標）。</div></div><a class="hv-go" href="?view=tag">前往</a></div>
-        <div class="hv-step"><div class="hv-no">3</div><div class="hv-tx"><b>產業對接</b><div>列出畢業生可能從事的職業，填寫各職業需要的能力等級；系統會對照課程，標出缺口。</div></div><a class="hv-go" href="?view=ind">前往</a></div>
-        <div class="hv-step"><div class="hv-no">4</div><div class="hv-tx"><b>專業AI能力地圖</b><div>彙整前三步的結果，呈現本系的專業 AI 能力地圖。</div></div><a class="hv-go" href="?view=comp">前往</a></div>
+        <div class="hv-step"><div class="hv-no">1</div><div class="hv-tx"><b>116 課程架構調整</b><div>系主任、執秘｜調整必修、選修與學分 → 確認存檔 → 匯出課程計畫表。</div></div><a class="hv-go" href="?view=plan">前往</a></div>
+        <div class="hv-step"><div class="hv-no">2</div><div class="hv-tx"><b>課程盤點（補標）</b><div>系主任、執秘｜之前標過的一鍵沿用，只補標還沒標過的科目。</div></div><a class="hv-go" href="?view=tag">前往</a></div>
+        <div class="hv-step"><div class="hv-no">3</div><div class="hv-tx"><b>AI 職涯課程地圖</b><div>系主任、執秘｜列出職業 → 專業 AI 能力與承載課程 → 產生地圖。</div></div><a class="hv-go" href="?view=comp">前往</a></div>
       </div>
+      <div class="hv-other"><h3>授課教師</h3><div class="hv-links"><a href="?view=teacher">教學計畫表（寫好、試吃、下載上傳；下學年可沿用）</a></div></div>
       <div class="hv-other"><h3>其他</h3><div class="hv-links">
-        <a href="?view=teacher">⑤ 食譜教練（授課教師用）</a>
-        <a href="?view=dash">進度總覽</a>
+        <a href="?view=dash">進度總覽（院、教務處）</a>
         <button type="button" id="hvFull">全校儀表板與完整功能（教務處）</button>
       </div></div>
     </section>
@@ -688,10 +688,10 @@
       <div id="deptContent" style="display:none;" data-tab="main">
         <div class="dept-tabs" id="deptTabs" role="tablist">
           <button type="button" data-tab="draft">① 116 課程架構調整</button>
-          <button type="button" data-tab="main" class="active">② 課程標註</button>
-          <button type="button" data-tab="ind">③ 產業對接</button>
-          <button type="button" data-tab="comp">④ 專業 AI 能力地圖</button>
-          <button type="button" data-tab="coach">⑤ 食譜教練（授課教師）</button>
+          <button type="button" data-tab="main" class="active">② 課程盤點（補標）</button>
+          <button type="button" data-tab="ind" style="display:none !important;">產業對接</button>
+          <button type="button" data-tab="comp">③ AI 職涯課程地圖</button>
+          <button type="button" data-tab="coach">授課教師：教學計畫表</button>
         </div>
         <div class="chip-toggle tab-main" id="deptModeSel" style="display:none;">
           <button type="button" data-mode="plan" class="active">四年課程計畫表（科目標註）</button>
@@ -730,7 +730,7 @@
             </div>
 
             <div class="card mode-plan tab-main" id="planCard">
-              <div class="card-head"><h3>四年課程架構（課程計畫表）</h3><span class="req opt">試作版</span></div>
+              <div class="card-head"><h3>四年課程架構（課程計畫表）</h3></div>
               <div class="hint">依校務系統「四年課程計畫表」（CE0901）列出本系各年級、學期的必選修科目。科目標註以學科代碼為單位，點選任一科目即可在下方標註；過去依開課課號完成的盤點已自動沿用（取最近一次），請學系確認。</div>
               <div class="pl-bar" style="margin-top:6px;"><label class="hint" style="margin:0;">政策框架</label>
                 <select id="fwSelect" style="font:inherit;font-size:12.5px;padding:4px 8px;border-radius:8px;border:1px solid var(--border);background:var(--surface-raised);color:var(--ink);">
@@ -740,8 +740,8 @@
             </div>
 
             <div class="card mode-plan tab-comp" id="compCard">
-              <div class="card-head"><h3>專業 AI 能力地圖</h3><span class="req opt">一系一能力地圖</span></div>
-              <div class="hint">依高教深耕計畫：「各系專業AI能力地圖界定學生應具備的專業AI能力及發展層次」。下方列出本系的專業 AI 能力、三個發展層次，以及承載各層次的課程。</div>
+              <div class="card-head"><h3>2. 專業 AI 能力與承載課程</h3></div>
+              <div class="hint">列出本系 3～6 項專業 AI 能力，勾選各層次的承載課程；完成後產生地圖。</div>
               <div class="hint" id="compSync" style="margin:-2px 0 6px;font-size:11.5px;"></div>
               <div class="pl-src" id="compSrc"></div>
               <div id="compBody"></div>
@@ -840,35 +840,35 @@
 
             <div class="card mode-plan tab-main" id="notifyCard">
               <div class="card-head"><h3>📣 請老師寫大綱（115-2）</h3><span class="req opt">通知與進度</span></div>
-              <div class="hint">列出學系標註「涉及 AI」的 115-2 課程，一鍵產生給授課教師的通知文字（附食譜教練連結）；115-2 開課資料匯入後，自動顯示每門課的大綱進度。</div>
+              <div class="hint">列出要請老師寫大綱的 115-2 課程與進度（還沒寫的會標出來），一鍵複製通知文字給老師。</div>
               <div id="notifyBody"><div class="hint">請先選擇系所。</div></div>
             </div>
 
             <div class="card mode-plan tab-main" id="tasteCard">
-              <div class="card-head"><h3>🔎 試菜員：輔導團評分規準模擬初評</h3><span class="req opt">AI 代理人</span></div>
+              <div class="card-head"><h3>🔎 試菜員：輔導團評分規準模擬初評</h3></div>
               <div class="hint">以「AI人才培育協作輔導團」課程評分提示詞（原文不修改），把本系有課程大綱的科目分批複製給學校帳號的 Gemini，貼回 CSV 後存檔。結果<b>只供參考，不會改動學系的標註</b>；系統會列出學系標註與試菜員差距較大的科目，以及大綱的「證據不足處」，方便補寫大綱或調整標註。</div>
               <div id="tasteBody"><div class="hint">請先選擇系所。</div></div>
             </div>
 
             <div class="card tab-coach" id="coachCard">
-              <div class="card-head"><h3>🧑‍🍳 食譜教練：教學計畫表 AI 寫作助手</h3><span class="req opt">AI 代理人・授課教師用</span></div>
+              <div class="card-head"><h3>🧑‍🍳 食譜教練：教學計畫表 AI 寫作助手</h3></div>
               <div class="hint">科目名稱與課程概要由學系訂定；授課教師負責<b>教學目標、授課方式、成績評定</b>。食譜教練幫老師把「實際會做」的 AI 活動寫清楚，讓課程通過輔導團的關鍵詞初篩，並符合 3 分「明確納入教學活動、作業或評量」的規準。<b>免登入、不存檔</b>，兼任老師也能用。</div>
               <div id="coachBody"><div class="hint">請先選擇系所。</div></div>
             </div>
 
             <div class="card tab-draft" id="draftCard">
-              <div class="card-head"><h3>116 學年度課程計畫表調整（草稿）</h3><span class="req opt">試作版</span></div>
-              <div class="hint">從 115 學年度四年課程計畫表複製一份作為 116 草稿，學系只需調整要變動的地方：拖拉調整必選修與開課學期、刪除或新增科目、修改學分規範。系統即時檢核學分，並自動列出所有異動，請逐筆填寫異動理由。完成後按「確認存檔」，再按「匯出課程計畫表」產生四年課程計畫表格式的 Excel（含學分規範與異動對照表），可直接列印送系院校課程委員會。115 學年度正式資料不受影響。編輯需以 G2 帳號登入。</div>
+              <div class="card-head"><h3>116 學年度課程計畫表調整（草稿）</h3></div>
+              <div class="hint">已複製 115 當底稿：拖拉卡片調整必選修與學期，系統自動檢核學分、列出異動。完成按「確認存檔」→「匯出課程計畫表」。</div>
               <div id="draftBody"></div>
             </div>
 
-            <div class="card tab-draft" id="nutriCard">
-              <div class="card-head"><h3>🩺 菜單健檢師：116 四年 AI 能力分布</h3><span class="req opt">AI 代理人</span></div>
-              <div id="nutriBody"><div class="hint">請先選擇系所。</div></div>
+            <div class="card mode-plan tab-main" id="nutriCard">
+              <details><summary style="cursor:pointer;"><b>標完後：檢查與修訂（選用）</b><span class="hint" style="margin:0 0 0 8px;">菜單健檢師找四年 AI 能力缺口；概要修訂助手起草概要</span></summary>
+              <div id="nutriBody"><div class="hint">請先選擇系所。</div></div></details>
             </div>
             <div class="card tab-ind" id="industryCard">
-          <div class="card-head"><h3>產業對接：職缺能力需求與課程支撐</h3><span class="req opt">試作版</span></div>
-          <div class="hint">依兩種職缺類型（<b>現有工作導入 AI</b>：原本就有、要會用 AI 提升效能的工作；<b>AI 帶來的新工作</b>：因 AI 而出現或大幅轉型的職缺）列出本領域的職缺，每個職缺可選擇兩種設定方式：<b>依能力指標</b>（點一下為<b>必要</b>、再點一下為<b>加分</b>、再點一下取消），或<b>依課程</b>（直接勾選這個職缺需要修的本系課程，系統彙整這些課涵蓋哪些能力、哪裡還有缺口）。系統會用本系<b>已完成盤點、該指標達 3 級（中度關聯）以上</b>的課程數判斷支撐程度：2 門以上為「已有支撐」、1 門為「支撐偏弱」、0 門為「能力缺口」。</div>
+          <div class="card-head"><h3>1. 列出職業</h3></div>
+          <div class="hint">列出畢業生可能從事的職業，勾選各職業要修的課；系統標出能力缺口。</div>
           <div class="hint" style="margin-top:-4px;">職缺所需能力以教育部「未來人才AI能力圖像」（115.05.22）大專校院核心能力描述（滑鼠移到指標上可看說明）；兩種職缺類型的分類為本校自訂。職缺設定以 G2 帳號登入後存到雲端。</div>
           <div class="hint" id="industrySync" style="margin:-2px 0 6px;font-size:11.5px;"></div>
           <div id="jobSummary" class="js-wrap"></div>
@@ -2718,11 +2718,11 @@
   }
   function setDeptTab(t){
     deptTabWant = t; renderDeptTabs();
-    if(t === 'comp' && typeof renderCompCard === 'function') renderCompCard();
+    if(t === 'comp' && typeof renderCompCard === 'function'){ renderCompCard(); renderIndustryJobs(); renderIndustryGap(); }
     if(t === 'ind'){ renderIndustryJobs(); renderIndustryGap(); }
     if(t === 'draft') renderDraftCard();
     if(t === 'coach') renderCoach();
-    if(t === 'main' && isPlanMode()){ renderPlanCard(); renderPlanRadar(); renderPlanProgress(); }
+    if(t === 'main' && isPlanMode()){ renderPlanCard(); renderPlanRadar(); renderPlanProgress(); if(typeof renderNutri === 'function') setTimeout(renderNutri, 0); }
     var box = document.getElementById('deptTabs');
     if(box && box.getBoundingClientRect().top < 0 && box.scrollIntoView) box.scrollIntoView({block:'start'});
   }
@@ -2909,8 +2909,34 @@
     el.innerHTML = '<div class="progress-line"><div class="progress-track"><div class="progress-fill" style="width:' + pct + '%"></div></div><span class="progress-pct">' + pct.toFixed(0) + '%</span></div>' +
       '<div class="hint" style="margin:8px 0 0;">已確認 <b>' + done + '</b>／' + n + ' 門計畫表科目</div>' +
       '<div class="pl-prog"><div>沿用待確認<br><b>' + cnt.pend + '</b></div><div>結果不一致<br><b style="color:var(--critical)">' + cnt.conf + '</b></div>' +
-      '<div>草稿<br><b>' + cnt.draft + '</b></div><div>未標註<br><b>' + cnt.none + '</b></div></div>';
+      '<div>草稿<br><b>' + cnt.draft + '</b></div><div>未標註<br><b>' + cnt.none + '</b></div></div>' +
+      '<div class="adopt-bar">' + (cnt.pend ? '<button type="button" class="btn primary" id="adoptAll">✓ 沿用全部已標註（' + cnt.pend + ' 門）</button>' : '') +
+      '<span>還要補標 <b>' + (cnt.none + cnt.draft + cnt.conf) + '</b> 門' + (cnt.pend ? '；之前標過的按一下即可沿用' : '') + '，沿用後仍可點科目修改。</span></div>';
   }
+  // 一次沿用之前學年度的標註（存成本學年度「已確認」）；之後仍可逐門修改
+  function adoptAllInherited(){
+    if(!authToken()){ needLogin('tag'); return; }
+    var year = tagYearNow();
+    var list = planTrackCodes().map(function(x){ return x.code; }).filter(function(c){ return tagKind(c) === 'pend'; });
+    if(!list.length) return;
+    if(!window.confirm('將 ' + list.length + ' 門科目沿用之前的標註，存為 ' + year + ' 學年度「已確認」？之後仍可點科目修改。')) return;
+    var btn = document.getElementById('adoptAll'); if(btn){ btn.disabled = true; btn.textContent = '沿用中…'; }
+    var i = 0;
+    (function next(){
+      if(i >= list.length){ toast('已沿用 ' + list.length + ' 門'); renderPlanCard(); renderPlanRadar(); renderPlanProgress(); return; }
+      var code = list[i++], t = TAGS[code] || {};
+      var ai = t.ai === true, ratings = ai ? Object.assign({}, t.ratings || {}) : {};
+      var rec = {year:year, name:t.name || '', ai:t.ai, ratings:ratings, evidence:Object.assign({}, ai ? (t.evidence || {}) : {}), stmt:Object.assign({}, ai ? (t.stmt || {}) : {}),
+        st:'已確認', src:'學系填寫', srcCode:'', srcTerm:'', at:fmtTime(new Date())};
+      TAGS[code] = rec; (TAGS_BY_YEAR[year] = TAGS_BY_YEAR[year] || {})[code] = rec;
+      var body = {type:'tag', fw:TAG_FW, code:code, year:year, backfill:'', name:rec.name, aiInvolved:t.ai === true ? true : (t.ai === false ? false : null), ratings:ratings,
+        evidence:serializeEvidence(rec.evidence), stmt:rec.stmt, status:'已確認', auth:authToken()};
+      var go = function(){ setTimeout(next, 120); };
+      if(WEBAPP_URL) fetch(WEBAPP_URL, {method:'POST', mode:'no-cors', headers:{'Content-Type':'text/plain;charset=utf-8'}, body:JSON.stringify(body)}).then(go).catch(function(){ toast('雲端儲存失敗：' + rec.name); go(); });
+      else go();
+    })();
+  }
+  document.addEventListener('click', function(e){ if(e.target && e.target.id === 'adoptAll') adoptAllInherited(); });
   function renderPlanRadar(){
     var wrap = document.getElementById('deptRadarWrap');
     if(!wrap || !isPlanMode()) return;
@@ -3096,7 +3122,7 @@
   }
   function agentCardHtml(k){
     var c = AGENT_CARDS[k]; if(!c) return '';
-    return '<details class="ag-card"><summary>🪪 代理人卡：' + escapeHtml(c.name) + '（' + escapeHtml(c.type) + '）</summary><table>' +
+    return '<details class="ag-card"><summary>ⓘ AI 助手說明：' + escapeHtml(c.name.replace(/ 2\.0$/, '')) + '</summary><table>' +
       [['目的', c.purpose], ['範圍', c.scope], ['負責', c.owner], ['協作', c.coord], ['更新時機', c.life]].map(function(r){ return '<tr><th>' + r[0] + '</th><td>' + escapeHtml(r[1]) + '</td></tr>'; }).join('') +
       '<tr><th>共同護欄</th><td>只產生草稿、由人確認；不猜測不編造；寫入須 G2 登入並記錄更新者；不碰學生個資；不幫學系挑承載課程</td></tr></table>' + agentGuideHtml(k) + '</details>';
   }
@@ -4779,12 +4805,12 @@
 
   (function(){
     var B = {
-      plan:['第 ① 步｜四年課程計畫表', '調整 116 學年度的必修、選修與學分 → 按「確認存檔」→ 匯出課程計畫表，提系院校課程委員會。', '下一步：② 課程盤點'],
-      tag:['第 ② 步｜課程盤點', '替系上每門課標註 A～D 四大面向、11 項 AI 能力（校必修不用標）。', '下一步：③ 產業對接'],
-      ind:['第 ③ 步｜產業對接', '列出畢業生可能從事的職業，填寫各職業需要的能力等級；系統會對照課程，標出缺口。', '下一步：④ 專業AI能力地圖'],
-      comp:['第 ④ 步｜專業AI能力地圖', '列出本系專業 AI 能力並勾選承載課程；完成後可按「產生 AI 賦能職涯課程地圖」。', '完成 ①～④ 🎉'],
-      teacher:['授課教師｜食譜教練', '選一門課 → 依學系的 AI 標註寫教學目標、授課方式、成績評定 → 下載課程大綱檔，上傳學校系統。', ''],
-      dash:['進度總覽（院、教務處）', '查看各學系 ①～④ 的完成進度。學系不需要操作這一頁。', '']
+      plan:['第 ① 步｜116 課程架構調整（系主任、執秘）', '調整必修、選修與學分 → 確認存檔 → 匯出課程計畫表。', '下一步：② 課程盤點'],
+      tag:['第 ② 步｜課程盤點（系主任、執秘）', '之前標過的一鍵沿用，只補標還沒標過的科目；可隨時修改。', '下一步：③ AI職涯課程地圖'],
+      comp:['第 ③ 步｜AI 職涯課程地圖（系主任、執秘）', '1. 列出職業 → 2. 專業 AI 能力與承載課程 → 3. 產生地圖。', '完成 🎉'],
+      ind:['第 ③ 步｜AI 職涯課程地圖（系主任、執秘）', '產業對接已併入「③ AI職涯課程地圖」，請改用該頁。', ''],
+      teacher:['授課教師｜教學計畫表', '依學系的 AI 標註寫教學目標、授課方式、成績評定 → 試吃預估分數 → 下載上傳學校系統。寫好的內容下學年可沿用。', ''],
+      dash:['進度總覽（院、教務處）', '查看各學系的完成進度。學系不需要操作這一頁。', '']
     };
     var b = B[VIEW]; var el = document.getElementById('stepBanner');
     if(!b || !el) return;
@@ -4848,6 +4874,7 @@
     };
   }
   document.addEventListener('click', function(e){ if(e.target && e.target.id === 'cmOpen') openCareerMap(); });
+  (function(){ var ic = document.getElementById('industryCard'), cc = document.getElementById('compCard'); if(ic && cc && cc.parentNode) cc.parentNode.insertBefore(ic, cc); })();  // ③ 地圖頁：先列職業，再列專業 AI 能力
   /* ---------- 專業 AI 能力地圖 ---------- */
   var COMP_LEVELS = ['層次一（基礎）', '層次二（進階）', '層次三（整合）'];
   var COMP_EIGHT = ['問題定義與分析','資訊查證與批判判斷','AI協作與提示設計','專業知識與AI產出的交叉驗證','跨域合作與複雜問題解決','創意發想','敘事表達與溝通協作','學習反思與自主學習'];
@@ -5056,14 +5083,14 @@
     if(!currentDept){ el.innerHTML = ''; return; }
     if(!COMPS[currentDept]){ el.innerHTML = '<div class="hint">讀取中…</div>'; loadComps(currentDept); return; }
     var list = COMPS[currentDept];
-    var guide = '<details class="cp-guide"' + (list.length ? '' : ' open') + '><summary style="cursor:pointer;font-weight:700;">怎麼建立？（三個步驟）</summary><ol>' +
+    var guide = '<details class="cp-guide"><summary style="cursor:pointer;font-weight:700;">怎麼建立？（三個步驟）</summary><ol>' +
       '<li><b>列出專業 AI 能力</b>：從本系「學生核心能力」出發，每項想一想：本系畢業生在這個專業領域，會怎麼用 AI 工作？寫成 3～6 項專業 AI 能力。</li>' +
       '<li><b>寫出三個發展層次</b>：層次一（基礎）會用、能說明；層次二（進階）能以專業知識查證並修正 AI 產出；層次三（整合）能設計流程、做專業判斷並承擔責任。</li>' +
       '<li><b>勾選承載課程</b>：每個層次勾選培養它的課程。系統會檢查哪個層次還沒有課程，以及層次與年級順序是否合理。</li></ol>' +
       '<div style="margin-top:4px;">不確定怎麼寫，可以先看「' + COMP_TEMPLATE_DEPT + '範本」（教務處依該系 SE0201 學生核心能力草擬，承載課程由學系勾選）。</div></details>';
     var nCore = deptCore(currentDept).length;
-    var cmBar = '<div class="cm-bar"><button type="button" class="btn primary" id="cmOpen" data-view="1">🗺️ 產生 AI 賦能職涯課程地圖</button><span class="hint" style="margin:0;">依 116 課程計畫表草稿、科目標註、本頁的專業 AI 能力與產業對接職業自動產生；可列印或下載。</span></div>';
-    var html = cmBar + guide + '<div class="chef-box" style="margin-top:10px;"><div class="chef-head">🧑‍🍳 菜單設計師（AI 建議草稿）</div>' +
+    var cmBar = '<div class="cm-bar" style="margin-top:14px;"><b>3. 產生地圖</b><button type="button" class="btn primary" id="cmOpen" data-view="1">🗺️ 產生 AI 職涯課程地圖</button><span class="hint" style="margin:0;">可列印或下載。</span></div>';
+    var html = guide + '<div class="chef-box" style="margin-top:10px;"><div class="chef-head">🧑‍🍳 菜單設計師（AI 建議草稿）</div>' +
       '<div class="hint" style="margin:0;">把本系' + (nCore ? '學生核心能力（' + nCore + ' 項，取自 SE0201）、' : '') + '課程、AI 標註與產業對接職業複製給學校帳號的 Gemini，取得 3～6 項專業 AI 能力草稿。貼回後新增為「AI建議草稿」，<b>不覆蓋已有能力、不代勾承載課程</b>。</div>' +
       agentCardHtml('menu') + '<div class="chef-btns"><button type="button" class="btn" id="mdCopy" data-view="1">① 複製給菜單設計師</button>' +
       '<a class="btn" href="https://gemini.google.com/app" target="_blank" rel="noopener" data-view="1">② 開啟 Gemini ↗</a>' +
@@ -5086,7 +5113,7 @@
         (tl ? (tl.length ? compMatrixHtml(tl, false).html : '<div class="hint">範本尚未建立。</div>') : '<div class="hint">讀取中…</div>') + '</div>';
       if(!tl) loadComps(COMP_TEMPLATE_DEPT);
     }
-    el.innerHTML = html;
+    el.innerHTML = html + cmBar;
     var dept = currentDept;
     bindMenuDesigner(dept, list);
     var touch = function(it){ if(String(it.status || '').indexOf('範本') === 0 || it.status === '學系確認') it.status = '學系填寫'; saveComps(dept); };
