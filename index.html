@@ -62,6 +62,26 @@
   .sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;}
 
   .app{display:grid;grid-template-columns:264px 1fr;min-height:100vh;}
+  /* 首頁（網址沒有 ?view=）：只顯示操作步驟 */
+  html.home-mode .app{grid-template-columns:1fr;}
+  html.home-mode .sidebar, html.home-mode .main > .topbar, html.home-mode .main > section.view{display:none !important;}
+  #homeView{display:none;}
+  html.home-mode #homeView{display:block;max-width:880px;margin:0 auto;padding:36px 20px 48px;}
+  #homeView h1{font-family:var(--font-body);font-size:28px;color:var(--ink);margin:0 0 6px;}
+  #homeView .hv-sub{color:var(--ink-2);font-size:15px;margin:0 0 6px;}
+  #homeView .hv-login{font-size:13px;color:var(--ink-2);background:var(--warning-bg);border-radius:8px;padding:6px 10px;display:inline-block;margin:6px 0 22px;}
+  #homeView .hv-steps{display:grid;gap:12px;}
+  #homeView .hv-step{display:flex;gap:14px;align-items:center;background:var(--surface-raised);border:1px solid var(--border);border-left:5px solid var(--accent);border-radius:12px;padding:14px 16px;box-shadow:var(--shadow);}
+  #homeView .hv-no{flex:0 0 38px;height:38px;border-radius:50%;background:var(--accent);color:var(--accent-ink);font-weight:700;font-size:18px;display:flex;align-items:center;justify-content:center;}
+  #homeView .hv-tx{flex:1;min-width:0;}
+  #homeView .hv-tx b{font-size:16px;color:var(--ink);}
+  #homeView .hv-tx div{font-size:13px;color:var(--ink-2);margin-top:2px;}
+  #homeView a.hv-go{flex:0 0 auto;text-decoration:none;background:var(--accent);color:var(--accent-ink);font-weight:700;font-size:13px;padding:8px 14px;border-radius:8px;}
+  #homeView .hv-other{margin-top:22px;font-size:13px;color:var(--ink-2);}
+  #homeView .hv-other h3{font-size:14px;color:var(--ink);margin:0 0 8px;}
+  #homeView .hv-links{display:flex;flex-wrap:wrap;gap:8px;}
+  #homeView .hv-links a, #homeView .hv-links button{font:inherit;font-size:13px;text-decoration:none;color:var(--ink);background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:7px 12px;cursor:pointer;}
+  @media (max-width:640px){ #homeView .hv-step{flex-wrap:wrap;} #homeView a.hv-go{margin-left:52px;} }
   /* ?view=plan|tag|ind|comp|dash：嵌在協作平台不同頁面，只顯示單一功能 */
   html.view-mode .app{grid-template-columns:1fr;min-height:0;}
   html.view-mode .sidebar{position:static;height:auto;min-height:0;display:flex;flex-wrap:wrap;align-items:flex-end;gap:10px 18px;padding:12px 18px;overflow:visible;}
@@ -611,6 +631,22 @@
   </aside>
 
   <main class="main">
+    <section id="homeView">
+      <h1>課程灶咖 Course Kitchen</h1>
+      <p class="hv-sub">照 ① → ④ 的順序做就好，每一步的資料都會自動帶到下一步。</p>
+      <div class="hv-login">✏️ 要修改資料請先用 G2 帳號登入；只看不改，不用登入。</div>
+      <div class="hv-steps">
+        <div class="hv-step"><div class="hv-no">1</div><div class="hv-tx"><b>四年課程計畫表</b><div>調整 116 學年度的必修、選修與學分 → 按「確認存檔」→ 匯出課程計畫表，提系院校課程委員會。</div></div><a class="hv-go" href="?view=plan">前往</a></div>
+        <div class="hv-step"><div class="hv-no">2</div><div class="hv-tx"><b>未來人才AI能力圖像</b><div>替系上每門課標註 A～D 四大面向、11 項 AI 能力（校必修不用標）。</div></div><a class="hv-go" href="?view=tag">前往</a></div>
+        <div class="hv-step"><div class="hv-no">3</div><div class="hv-tx"><b>產業對接</b><div>列出畢業生可能從事的職業，填寫各職業需要的能力等級；系統會對照課程，標出缺口。</div></div><a class="hv-go" href="?view=ind">前往</a></div>
+        <div class="hv-step"><div class="hv-no">4</div><div class="hv-tx"><b>專業AI能力地圖</b><div>彙整前三步的結果，呈現本系的專業 AI 能力地圖。</div></div><a class="hv-go" href="?view=comp">前往</a></div>
+      </div>
+      <div class="hv-other"><h3>其他</h3><div class="hv-links">
+        <a href="?view=teacher">⑤ 食譜教練（授課教師用）</a>
+        <a href="?view=dash">進度總覽</a>
+        <button type="button" id="hvFull">全校儀表板與完整功能（教務處）</button>
+      </div></div>
+    </section>
     <div class="topbar">
       <div>
         <div class="eyebrow">系所課程盤點</div>
@@ -1305,7 +1341,8 @@
   var currentYear = '115';
   var currentDept = '';
   var VIEW = (function(){ try{ var v = new URLSearchParams(location.search).get('view'); return ['plan','tag','ind','comp','dash','teacher'].indexOf(v) >= 0 ? v : ''; }catch(e){ return ''; } })();
-  if(VIEW){ document.documentElement.classList.add('view-mode', 'view-' + VIEW); }
+  if(VIEW){ document.documentElement.classList.add('view-mode', 'view-' + VIEW); } else { document.documentElement.classList.add('home-mode'); }
+  document.addEventListener('click', function(e){ if(e.target && e.target.id === 'hvFull'){ document.documentElement.classList.remove('home-mode'); window.scrollTo(0,0); } });
   var VIEW_TAB = {plan:'draft', tag:'main', ind:'ind', comp:'comp', teacher:'coach'};
   var LAST_DEPT_KEY = 'aiCourseAudit_lastDept_v1';  // 各頁共用：記住上次選的系所（只是方便，不存任何填寫資料）
   var currentCourseId = null;
