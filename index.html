@@ -842,16 +842,16 @@
               <div id="noAiDoneNote" style="display:none;margin-top:16px;padding:12px 15px;border-radius:10px;background:var(--good-bg);color:var(--good);font-weight:700;font-size:13px;">✓ 已完成盤點（本課程不涉及AI）。點選當下即自動存檔，不需要再按其他按鈕。</div>
             </div>
 
-            <div class="card mode-plan tab-main" id="notifyCard">
-              <div class="card-head"><h3>📣 請老師寫大綱（115-2）</h3><span class="req opt">通知與進度</span></div>
-              <div class="hint">列出要請老師寫大綱的 115-2 課程與進度（還沒寫的會標出來），一鍵複製通知文字給老師。</div>
-              <div id="notifyBody"><div class="hint">請先選擇系所。</div></div>
-            </div>
-
             <div class="card mode-plan tab-main" id="tasteCard">
               <div class="card-head"><h3>🔎 試菜員：輔導團評分規準模擬初評</h3></div>
               <div class="hint">以「AI人才培育協作輔導團」課程評分提示詞（原文不修改），把本系有課程大綱的科目分批複製給學校帳號的 Gemini，貼回 CSV 後存檔。結果<b>只供參考，不會改動學系的標註</b>；系統會列出學系標註與試菜員差距較大的科目，以及大綱的「證據不足處」，方便補寫大綱或調整標註。</div>
               <div id="tasteBody"><div class="hint">請先選擇系所。</div></div>
+            </div>
+
+            <div class="card mode-plan tab-coach" id="notifyCard">
+              <div class="card-head"><h3>📣 請老師寫大綱（115-2）</h3><span class="req opt">通知與進度</span></div>
+              <div class="hint">列出要請老師寫大綱的 115-2 課程與進度（還沒寫的會標出來），一鍵複製通知文字給老師。</div>
+              <div id="notifyBody"><div class="hint">請先選擇系所。</div></div>
             </div>
 
             <div class="card tab-coach" id="coachCard">
@@ -2725,7 +2725,7 @@
     if(t === 'comp' && typeof renderCompCard === 'function'){ renderCompCard(); renderIndustryJobs(); renderIndustryGap(); }
     if(t === 'ind'){ renderIndustryJobs(); renderIndustryGap(); }
     if(t === 'draft') renderDraftCard();
-    if(t === 'coach') renderCoach();
+    if(t === 'coach'){ renderCoach(); if(planSel.track && isPlanMode() && typeof ensureSylFor === 'function') ensureSylFor(planSel.track); renderNotifyCard(); }
     if(t === 'main' && isPlanMode()){ renderPlanCard(); renderPlanRadar(); renderPlanProgress(); if(typeof renderNutri === 'function') setTimeout(renderNutri, 0); }
     var box = document.getElementById('deptTabs');
     if(box && box.getBoundingClientRect().top < 0 && box.scrollIntoView) box.scrollIntoView({block:'start'});
@@ -5255,7 +5255,7 @@
           return '<span class="ln">' + escapeHtml(x.name) + ' <span class="ab">(' + escapeHtml(x.abbr || x.code) + ')</span> ,' + (JS_CAT[x.cat] || x.cat) + ',' + cr + ',半</span>';
         }).join('') + '</td>';
       }).join('');
-      return '<tr><td class="jn">' + escapeHtml(job.title) + (J.notInPlan ? '<div class="hint" style="margin:4px 0 0;font-weight:400;">另 ' + J.notInPlan + ' 門不在 116 計畫表（可能已刪除）</div>' : '') + '</td>' + cells + '</tr>';
+      return '<tr><td class="jn">' + escapeHtml(job.title) + '' + '</td>' + cells + '</tr>';
     }).join('');
     el.innerHTML = head + '<div class="table-wrap" style="max-height:none;"><table class="js-tbl"><thead><tr><th>就業<br>職業類別</th><th>一年級</th><th>二年級</th><th>三年級</th><th>四年級</th></tr></thead><tbody>' + rows + '</tbody></table></div>';
   }
