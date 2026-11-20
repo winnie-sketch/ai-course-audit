@@ -66,6 +66,12 @@
   html.home-mode .app{grid-template-columns:1fr;}
   html.home-mode .sidebar, html.home-mode .main > .topbar, html.home-mode .main > section.view{display:none !important;}
   #homeView{display:none;}
+  #stepBanner{display:none;}
+  /* 整系試菜員預評：學系頁面不顯示（待 API 後由盤點研究員 3.0 自動執行）；完整功能仍保留給教務處 */
+  html.view-mode #tasteCard{display:none !important;}
+  html.view-mode #stepBanner{display:flex;flex-wrap:wrap;gap:6px 12px;align-items:center;margin:12px 18px 0;padding:10px 14px;border:1px solid var(--border);border-left:5px solid var(--accent);border-radius:10px;background:var(--surface-raised);font-size:13.5px;color:var(--ink-2);}
+  #stepBanner .sb-t{font-weight:700;color:var(--ink);font-size:14.5px;}
+  #stepBanner .sb-next{margin-left:auto;font-weight:700;color:var(--accent);white-space:nowrap;}
   .cm-bar{display:flex;flex-wrap:wrap;align-items:center;gap:8px 12px;margin:0 0 12px;padding:10px 12px;border:1px solid var(--border);border-radius:10px;background:var(--surface);}
   #cmModal{position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,.45);display:flex;flex-direction:column;padding:12px;}
   #cmModal .cm-top{display:flex;gap:8px;align-items:center;background:var(--surface-raised);border-radius:10px 10px 0 0;padding:8px 12px;}
@@ -643,7 +649,7 @@
       <div class="hv-login">✏️ 要修改資料請先用 G2 帳號登入；只看不改，不用登入。</div>
       <div class="hv-steps">
         <div class="hv-step"><div class="hv-no">1</div><div class="hv-tx"><b>四年課程計畫表</b><div>調整 116 學年度的必修、選修與學分 → 按「確認存檔」→ 匯出課程計畫表，提系院校課程委員會。</div></div><a class="hv-go" href="?view=plan">前往</a></div>
-        <div class="hv-step"><div class="hv-no">2</div><div class="hv-tx"><b>未來人才AI能力圖像</b><div>替系上每門課標註 A～D 四大面向、11 項 AI 能力（校必修不用標）。</div></div><a class="hv-go" href="?view=tag">前往</a></div>
+        <div class="hv-step"><div class="hv-no">2</div><div class="hv-tx"><b>課程盤點</b><div>替系上每門課標註 A～D 四大面向、11 項 AI 能力（校必修不用標）。</div></div><a class="hv-go" href="?view=tag">前往</a></div>
         <div class="hv-step"><div class="hv-no">3</div><div class="hv-tx"><b>產業對接</b><div>列出畢業生可能從事的職業，填寫各職業需要的能力等級；系統會對照課程，標出缺口。</div></div><a class="hv-go" href="?view=ind">前往</a></div>
         <div class="hv-step"><div class="hv-no">4</div><div class="hv-tx"><b>專業AI能力地圖</b><div>彙整前三步的結果，呈現本系的專業 AI 能力地圖。</div></div><a class="hv-go" href="?view=comp">前往</a></div>
       </div>
@@ -653,6 +659,7 @@
         <button type="button" id="hvFull">全校儀表板與完整功能（教務處）</button>
       </div></div>
     </section>
+    <div id="stepBanner"></div>
     <div class="topbar">
       <div>
         <div class="eyebrow">系所課程盤點</div>
@@ -4740,6 +4747,20 @@
     /* 不再寫入本機暫存 */
   }
 
+
+  (function(){
+    var B = {
+      plan:['第 ① 步｜四年課程計畫表', '調整 116 學年度的必修、選修與學分 → 按「確認存檔」→ 匯出課程計畫表，提系院校課程委員會。', '下一步：② 課程盤點'],
+      tag:['第 ② 步｜課程盤點', '替系上每門課標註 A～D 四大面向、11 項 AI 能力（校必修不用標）。', '下一步：③ 產業對接'],
+      ind:['第 ③ 步｜產業對接', '列出畢業生可能從事的職業，填寫各職業需要的能力等級；系統會對照課程，標出缺口。', '下一步：④ 專業AI能力地圖'],
+      comp:['第 ④ 步｜專業AI能力地圖', '列出本系專業 AI 能力並勾選承載課程；完成後可按「產生 AI 賦能職涯課程地圖」。', '完成 ①～④ 🎉'],
+      teacher:['授課教師｜食譜教練', '選一門課 → 依學系的 AI 標註寫教學目標、授課方式、成績評定 → 下載課程大綱檔，上傳學校系統。', ''],
+      dash:['進度總覽（院、教務處）', '查看各學系 ①～④ 的完成進度。學系不需要操作這一頁。', '']
+    };
+    var b = B[VIEW]; var el = document.getElementById('stepBanner');
+    if(!b || !el) return;
+    el.innerHTML = '<span class="sb-t">' + b[0] + '</span><span>' + b[1] + '</span>' + (b[2] ? '<span class="sb-next">' + b[2] + (b[2].indexOf('下一步') === 0 ? '（點上方選單）' : '') + '</span>' : '');
+  })();
   /* ---------- AI 賦能職涯課程地圖（④ 專業 AI 能力地圖 → 產生） ---------- */
   var CM_KEYS = ['A-1','A-2','B-1','B-2','B-3','C-1','C-2','C-3','D-1','D-2','D-3'];
   function careerTpl(){ try{ var b = atob(CAREER_TPL_B64), u = new Uint8Array(b.length); for(var i=0;i<b.length;i++) u[i]=b.charCodeAt(i); return new TextDecoder('utf-8').decode(u); }catch(e){ return ''; } }
