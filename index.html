@@ -66,6 +66,9 @@
   html.home-mode .app{grid-template-columns:1fr;}
   html.home-mode .sidebar, html.home-mode .main > .topbar, html.home-mode .main > section.view{display:none !important;}
   #homeView{display:none;}
+  .ag-guide{margin:8px 0 2px;padding:8px 10px;border:1px dashed var(--border);border-radius:8px;background:var(--surface);font-size:12.5px;}
+  .ag-guide ol{margin:6px 0;padding-left:20px;}
+  .ag-guide li{margin:2px 0;}
   #stepBanner{display:none;}
   /* 整系試菜員預評：學系頁面不顯示（待 API 後由盤點研究員 3.0 自動執行）；完整功能仍保留給教務處 */
   html.view-mode #tasteCard{display:none !important;}
@@ -3065,11 +3068,37 @@
       scope:'讀：原概要、學系標註與具體能力表述｜寫：只存成 116 概要草稿（須登入）', owner:'維護：教務處｜決定：系院校課程委員會',
       coord:'來源名單由菜單健檢師與試菜員的初篩找出', life:'概要格式或審議規定改變時更新'}
   };
+
+  /* 給使用者自己的 AI 代理（瀏覽器型代理）的操作說明：人也能照著做 */
+  var AGENT_GUIDE = {
+    chef:{who:'系主任、執秘', copy:'① 複製給調味師', paste:'③ 貼上調味師建議', apply:'帶入建議', human:['檢查帶入的等級與表述','按「儲存草稿」或「標記完成」']},
+    menu:{who:'系主任、執秘', copy:'① 複製給菜單設計師', paste:'③ 貼上菜單設計師建議', apply:'帶入建議', human:['勾選每個層次的承載課程','確認或修改後存檔']},
+    nutri:{who:'系主任、執秘', copy:'請菜單健檢師寫觀察與討論問題（複製給 Gemini）', paste:'', apply:'', human:['閱讀 AI 的觀察與討論問題，帶到系課程委員會討論']},
+    syl:{who:'系主任、執秘', copy:'複製概要修訂提示詞', paste:'貼上 AI 回傳的 JSON', apply:'帶入下方', human:['檢查修訂後的概要','按「存為 116 概要草稿」']},
+    coach:{who:'授課教師', copy:'複製提示詞', paste:'貼上最後的 JSON', apply:'帶入下方欄位', human:['回答 AI 提出的問題（代理不可代答）','檢查 ⑤ 的內容','下載課程大綱檔並自行上傳學校系統'], ask:true}
+  };
+  function agentGuideHtml(k){
+    var g = AGENT_GUIDE[k]; if(!g) return '';
+    var st = [];
+    st.push('使用者已自行登入（G2 帳號登入一律由本人操作，代理不輸入任何帳號密碼）。');
+    st.push('按本區的「' + g.copy + '」，取得提示詞。');
+    st.push('開啟 Gemini（盡量用學校帳號），貼上提示詞並送出。' + (g.ask ? 'AI 若提問，請把問題轉給使用者回答，<b>不要代答、不要編造</b>。' : ''));
+    if(g.paste){
+      st.push('等 AI 回答完整（最後有 ```json 區塊），整段複製。');
+      st.push('回到本頁按「' + g.paste + '」，把整段回答貼進文字框，再按「' + g.apply + '」。');
+      st.push('若頁面出現檢核錯誤或警告，停下來回報給使用者，不要自行修改。');
+    } else {
+      st.push('把 AI 的回答整段交給使用者閱讀。');
+    }
+    st.push('<b>到此停止</b>，以下由' + g.who + '本人完成：' + g.human.join('；') + '。');
+    return '<div class="ag-guide"><b>🤖 給你的 AI 代理的操作說明</b>（瀏覽器型代理可照做，人也可以照著做）<ol>' + st.map(function(x){ return '<li>' + x + '</li>'; }).join('') + '</ol>' +
+      '<div class="hint" style="margin:0;">代理只能起稿與貼回；存檔、確認、勾選承載課程一律由本人按。請勿貼入學生個資。</div></div>';
+  }
   function agentCardHtml(k){
     var c = AGENT_CARDS[k]; if(!c) return '';
     return '<details class="ag-card"><summary>🪪 代理人卡：' + escapeHtml(c.name) + '（' + escapeHtml(c.type) + '）</summary><table>' +
       [['目的', c.purpose], ['範圍', c.scope], ['負責', c.owner], ['協作', c.coord], ['更新時機', c.life]].map(function(r){ return '<tr><th>' + r[0] + '</th><td>' + escapeHtml(r[1]) + '</td></tr>'; }).join('') +
-      '<tr><th>共同護欄</th><td>只產生草稿、由人確認；不猜測不編造；寫入須 G2 登入並記錄更新者；不碰學生個資；不幫學系挑承載課程</td></tr></table></details>';
+      '<tr><th>共同護欄</th><td>只產生草稿、由人確認；不猜測不編造；寫入須 G2 登入並記錄更新者；不碰學生個資；不幫學系挑承載課程</td></tr></table>' + agentGuideHtml(k) + '</details>';
   }
   /* ---------- 輔導團 62 個 AI 關鍵詞（初篩用）與課程大綱合併格式 ---------- */
   var AI_KEYTERMS = ['AI','人工智慧','生成式AI','生成式人工智慧','ChatGPT','Gemini','Claude','Copilot','大型語言模型','LLM','機器學習','深度學習','神經網路','AI模型','生成模型','文字生成','圖像生成','語音生成','智慧代理','Agentic AI','AI代理人','Artificial Intelligence','Generative AI','GenAI','Large Language Model','Large Language Models','LLMs','Foundation Model','Foundation Models','Machine Learning','ML','Deep Learning','DL','Neural Network','Neural Networks','Artificial Neural Network','Artificial Neural Networks','AI Model','AI Models','Generative Model','Generative Models','Text Generation','Natural Language Generation','NLG','Image Generation','AI-Generated Image','AI-Generated Images','Speech Generation','Voice Generation','Speech Synthesis','Intelligent Agent','Intelligent Agents','AI Agent','AI Agents','Autonomous Agent','Autonomous Agents','Multimodal AI','Generative Adversarial Network','GAN','GANs','Transformer','Transformers'];
