@@ -1,0 +1,310 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>學院群島 3D 草圖｜課程灶咖</title>
+<style>
+  :root{--ink:#2b2a28;--quiet:#6b675f;--card:#fffdf8;--line:#e4dccb;--accent:#d9653b;}
+  html,body{margin:0;height:100%;background:#bfe3ef;font-family:"Noto Sans TC","PingFang TC","Microsoft JhengHei",sans-serif;color:var(--ink);overflow:hidden}
+  #c{display:block;width:100%;height:100%}
+  .top{position:fixed;left:16px;top:14px;right:16px;display:flex;gap:10px;align-items:flex-start;pointer-events:none}
+  .title{background:rgba(255,253,248,.92);border:1px solid var(--line);border-radius:14px;padding:10px 14px;pointer-events:auto;max-width:520px}
+  .title h1{margin:0;font-size:19px}
+  .title p{margin:4px 0 0;font-size:12.5px;color:var(--quiet)}
+  .tag{display:inline-block;background:#fff3e6;color:var(--accent);border:1px solid #f2c9a8;border-radius:999px;padding:1px 8px;font-size:11.5px;font-weight:700;margin-left:6px;vertical-align:2px}
+  .btns{margin-left:auto;display:flex;gap:6px;flex-wrap:wrap;pointer-events:auto}
+  .btns button{font:inherit;font-size:13px;border:1.5px solid var(--accent);background:#fff;color:var(--accent);padding:6px 12px;border-radius:999px;cursor:pointer;font-weight:600}
+  .btns button:hover,.btns button.on{background:var(--accent);color:#fff}
+  #panel{position:fixed;right:16px;bottom:16px;width:300px;max-width:calc(100% - 32px);background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px 16px;box-shadow:0 6px 24px rgba(0,0,0,.12);font-size:13.5px;line-height:1.6}
+  #panel h2{margin:0 0 4px;font-size:17px}
+  #panel .who{color:var(--quiet);font-size:12.5px;margin-bottom:6px}
+  #panel ul{margin:6px 0 0;padding-left:18px}
+  .legend{position:fixed;left:16px;bottom:16px;background:rgba(255,253,248,.92);border:1px solid var(--line);border-radius:12px;padding:8px 12px;font-size:12px;line-height:1.7}
+  .sw{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:5px;vertical-align:-1px}
+  @media (max-width:640px){.legend{display:none}#panel{width:auto;left:16px}}
+</style>
+</head>
+<body>
+<canvas id="c"></canvas>
+<div class="top">
+  <div class="title">
+    <h1>🏝️ 學院群島<span class="tag">3D 草圖</span></h1>
+    <p>一院一島，餐廳＝學系；中間是灶咖島（教務處）。拖曳旋轉、滾輪縮放，點島或餐廳看說明。</p>
+  </div>
+  <div class="btns">
+    <button data-go="all" class="on">全景</button>
+    <button data-go="tp">臺北校區</button>
+    <button data-go="ks">高雄校區</button>
+  </div>
+</div>
+<div id="panel"></div>
+<div class="legend" id="legend"></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+<script>
+(function(){
+  // 學院與學系：取自課程主檔（114 學年度開課資料）
+  var COLLEGES = [
+    {id:'mgmt', name:'管理學院', campus:'tp', color:0x3b7dd8, depts:['企業管理學系','國際經營與貿易學系','應用外語學系','會計學系','財務金融學系','資訊科技與管理學系','風險管理與保險學系']},
+    {id:'design', name:'設計學院', campus:'tp', color:0xc2569b, depts:['媒體傳達設計學系','工業產品設計學系','建築設計學系','服裝設計學系','建築職人學士學位學程']},
+    {id:'life', name:'民生學院', campus:'tp', color:0x3f8f5a, depts:['家庭研究與兒童發展學系','社會工作學系','音樂學系','食品營養與保健生技學系','餐飲管理學系']},
+    {id:'law', name:'法學院', campus:'tp', color:0x7a5bbf, depts:['法律學系']},
+    {id:'intl', name:'國際學程', campus:'tp', color:0x2a9d9a, depts:['國際企業英語學士學位學程','智慧服務管理英語學士學位學程']},
+    {id:'bizit', name:'商學與資訊學院', campus:'ks', color:0xd99a2b, depts:['國際企業管理學系','國際貿易學系','數位多媒體遊戲設計學系','會計暨稅務學系','東南亞智慧商務學士學位學程','行銷管理學系','視覺特效學士學位學程','資訊科技與通訊學系','資訊管理學系','金融管理學系','電腦動畫學士學位學程']},
+    {id:'culture', name:'文化與創意學院', campus:'ks', color:0xd9653b, depts:['休閒產業管理學系','應用中文學系','應用日文學系','應用英語學系','時尚設計學系','服飾設計與經營學系','觀光管理學系']}
+  ];
+  // 島的位置（x, z）：北邊臺北、南邊高雄，中間灶咖島
+  var POS = {mgmt:[-40,-50], design:[0,-74], life:[42,-50], law:[-66,-12], intl:[66,-12], bizit:[-34,60], culture:[36,64]};
+
+  var canvas = document.getElementById('c');
+  var renderer = new THREE.WebGLRenderer({canvas:canvas, antialias:true});
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+  renderer.shadowMap.enabled = true;
+  var scene = new THREE.Scene();
+  scene.background = new THREE.Color(0xbfe3ef);
+  scene.fog = new THREE.Fog(0xbfe3ef, 160, 320);
+  var camera = new THREE.PerspectiveCamera(42, 1, 0.5, 600);
+  var controls = new THREE.OrbitControls(camera, canvas);
+  controls.enableDamping = true; controls.maxPolarAngle = Math.PI * 0.46; controls.minDistance = 30; controls.maxDistance = 230;
+
+  scene.add(new THREE.HemisphereLight(0xffffff, 0x8fb7c4, 0.75));
+  var sun = new THREE.DirectionalLight(0xfff1dc, 0.8);
+  sun.position.set(60, 120, 40); sun.castShadow = true;
+  sun.shadow.mapSize.set(2048, 2048);
+  var sc = sun.shadow.camera; sc.left = -110; sc.right = 110; sc.top = 110; sc.bottom = -110; sc.far = 300;
+  scene.add(sun);
+
+  // 海
+  var seaGeo = new THREE.PlaneGeometry(700, 700, 70, 70);
+  seaGeo.rotateX(-Math.PI / 2);
+  var sea = new THREE.Mesh(seaGeo, new THREE.MeshPhongMaterial({color:0x4f9fbd, shininess:60, transparent:true, opacity:0.95, flatShading:true}));
+  sea.receiveShadow = true; scene.add(sea);
+  var seaBase = seaGeo.attributes.position.array.slice();
+
+  var clickables = [];
+  function label(text, opts){
+    opts = opts || {};
+    var fs = opts.size || 44, pad = 18;
+    var cv = document.createElement('canvas'), cx = cv.getContext('2d');
+    cx.font = '700 ' + fs + 'px "Noto Sans TC","PingFang TC","Microsoft JhengHei",sans-serif';
+    var w = Math.ceil(cx.measureText(text).width) + pad * 2, h = fs + pad * 1.4;
+    cv.width = w; cv.height = h;
+    cx.font = '700 ' + fs + 'px "Noto Sans TC","PingFang TC","Microsoft JhengHei",sans-serif';
+    cx.fillStyle = opts.bg || 'rgba(255,253,248,0.94)';
+    var r = h / 2; cx.beginPath(); cx.moveTo(r, 0); cx.lineTo(w - r, 0); cx.arc(w - r, r, r, -Math.PI / 2, Math.PI / 2); cx.lineTo(r, h); cx.arc(r, r, r, Math.PI / 2, Math.PI * 1.5); cx.fill();
+    cx.fillStyle = opts.color || '#2b2a28'; cx.textBaseline = 'middle'; cx.fillText(text, pad, h / 2 + 2);
+    var tex = new THREE.CanvasTexture(cv); tex.anisotropy = 4;
+    var sp = new THREE.Sprite(new THREE.SpriteMaterial({map:tex, depthTest:false, transparent:true}));
+    var s = (opts.scale || 0.09);
+    sp.scale.set(w * s, h * s, 1); sp.renderOrder = 10;
+    return sp;
+  }
+
+  function island(radius, x, z, top){
+    var g = new THREE.Group(); g.position.set(x, 0, z);
+    var seg = 28;
+    var sand = new THREE.Mesh(new THREE.CylinderGeometry(radius + 2.4, radius + 4, 2.2, seg), new THREE.MeshLambertMaterial({color:0xf2dfb4}));
+    sand.position.y = 0.4; sand.receiveShadow = true; g.add(sand);
+    var grassGeo = new THREE.CylinderGeometry(radius, radius + 1.5, 2.4, seg);
+    var p = grassGeo.attributes.position;
+    for(var i = 0; i < p.count; i++){ if(p.getY(i) > 0){ p.setY(i, p.getY(i) + Math.random() * 0.5); } }
+    grassGeo.computeVertexNormals();
+    var grass = new THREE.Mesh(grassGeo, new THREE.MeshLambertMaterial({color:top || 0x8cc66d, flatShading:true}));
+    grass.position.y = 1.8; grass.receiveShadow = true; g.add(grass);
+    scene.add(g); return g;
+  }
+  function tree(parent, x, z, s){
+    s = s || 1;
+    var t = new THREE.Mesh(new THREE.CylinderGeometry(0.25 * s, 0.35 * s, 1.6 * s, 6), new THREE.MeshLambertMaterial({color:0x8a6a45}));
+    t.position.set(x, 3.2 + 0.8 * s, z); t.castShadow = true; parent.add(t);
+    var c = new THREE.Mesh(new THREE.ConeGeometry(1.2 * s, 2.6 * s, 7), new THREE.MeshLambertMaterial({color:0x4f9a4a, flatShading:true}));
+    c.position.set(x, 3.2 + 2.6 * s, z); c.castShadow = true; parent.add(c);
+  }
+  function restaurant(parent, x, z, color, info){
+    var g = new THREE.Group(); g.position.set(x, 3.1, z);
+    var body = new THREE.Mesh(new THREE.BoxGeometry(3.6, 2.6, 3.2), new THREE.MeshLambertMaterial({color:0xfffaf0}));
+    body.position.y = 1.3; body.castShadow = true; body.receiveShadow = true; g.add(body);
+    var roof = new THREE.Mesh(new THREE.ConeGeometry(3.1, 1.9, 4), new THREE.MeshLambertMaterial({color:color, flatShading:true}));
+    roof.position.y = 3.5; roof.rotation.y = Math.PI / 4; roof.castShadow = true; g.add(roof);
+    var awn = new THREE.Mesh(new THREE.BoxGeometry(3.8, 0.25, 0.9), new THREE.MeshLambertMaterial({color:color}));
+    awn.position.set(0, 2.0, 1.9); g.add(awn);
+    // A～D 四根旗杆：之後接資料顯示水位（草圖先放空杯）
+    ['#3b7dd8','#3f8f5a','#d99a2b','#c2569b'].forEach(function(c, i){
+      var pole = new THREE.Mesh(new THREE.CylinderGeometry(0.12, 0.12, 1.4, 6), new THREE.MeshLambertMaterial({color:new THREE.Color(c)}));
+      pole.position.set(-1.2 + i * 0.8, 5.0, 0); g.add(pole);
+    });
+    g.lookAt(parent.position.x, 3.1, parent.position.z);
+    g.rotation.x = 0; g.rotation.z = 0;
+    parent.add(g);
+    [body, roof, awn].forEach(function(m){ m.userData.info = info; clickables.push(m); });
+    return g;
+  }
+
+  // 灶咖島（中央）
+  var hub = island(14, 0, 0, 0xa6d38a);
+  (function(){
+    var info = {title:'🍲 灶咖島', who:'教務處＝灶咖管家', pts:['食材庫：四年課程計畫表（115 已複製成 116 草稿）','訂衛生標準：畢業學分、60% 規則','各學院的進度與 A～D 水位，在這裡一眼看完（之後接資料）']};
+    var base = new THREE.Mesh(new THREE.CylinderGeometry(5.5, 6.2, 4, 8), new THREE.MeshLambertMaterial({color:0xfffaf0, flatShading:true}));
+    base.position.set(0, 5.1, 0); base.castShadow = true; hub.add(base);
+    var dome = new THREE.Mesh(new THREE.SphereGeometry(5.5, 16, 10, 0, Math.PI * 2, 0, Math.PI / 2), new THREE.MeshLambertMaterial({color:0xd9653b, flatShading:true}));
+    dome.position.set(0, 7.1, 0); dome.castShadow = true; hub.add(dome);
+    var chim = new THREE.Mesh(new THREE.CylinderGeometry(0.7, 0.9, 4, 8), new THREE.MeshLambertMaterial({color:0x8a6a45}));
+    chim.position.set(2.6, 11, 0); hub.add(chim);
+    [base, dome, chim].forEach(function(m){ m.userData.info = info; clickables.push(m); });
+    var mk = new THREE.Mesh(new THREE.BoxGeometry(5, 2, 3.5), new THREE.MeshLambertMaterial({color:0xf2a65a}));
+    mk.position.set(-7.5, 4.1, 5); mk.castShadow = true; hub.add(mk);
+    var mkInfo = {title:'🧺 共同市場', who:'共同課程委員會', pts:['校必修由共同課程委員會供應，學系不用標','通識、語言、體育都從這裡出貨到各島']};
+    mk.userData.info = mkInfo; clickables.push(mk);
+    var l1 = label('🍲 灶咖島', {size:52, scale:0.1}); l1.position.set(0, 18, 0); hub.add(l1);
+    var l2 = label('共同市場', {size:36, scale:0.08}); l2.position.set(-7.5, 8.5, 5); hub.add(l2);
+    for(var i = 0; i < 9; i++){ var a = i / 9 * Math.PI * 2 + 0.3; tree(hub, Math.cos(a) * 11, Math.sin(a) * 11, 0.9 + Math.random() * 0.4); }
+    smoke = chim;
+  })();
+  var smoke;
+  var puffs = [];
+  for(var pf = 0; pf < 6; pf++){
+    var pm = new THREE.Mesh(new THREE.SphereGeometry(0.9, 8, 6), new THREE.MeshLambertMaterial({color:0xffffff, transparent:true, opacity:0.7}));
+    pm.userData.t = pf / 6; scene.add(pm); puffs.push(pm);
+  }
+
+  // 學院島
+  var islands = {}, deptLabels = [];
+  COLLEGES.forEach(function(c){
+    var n = c.depts.length, R = Math.max(9, 5 + n * 1.6);
+    var pos = POS[c.id], g = island(R, pos[0], pos[1]);
+    islands[c.id] = {g:g, R:R, c:c};
+    var info = {title:'🏝️ ' + c.name, who:(c.campus === 'tp' ? '臺北校區' : '高雄校區') + '・' + n + ' 個學系／學程', pts:['島中央是院廚房：院必修由院課程委員會負責','點島上的餐廳看各系','之後接資料：各系 ①②③ 進度燈號、A～D 水位']};
+    // 院廚房（中央）
+    var hall = new THREE.Mesh(new THREE.CylinderGeometry(2.6, 3, 3.4, 6), new THREE.MeshLambertMaterial({color:c.color, flatShading:true}));
+    hall.position.set(0, 4.8, 0); hall.castShadow = true; g.add(hall);
+    var hroof = new THREE.Mesh(new THREE.ConeGeometry(3.4, 2.4, 6), new THREE.MeshLambertMaterial({color:0xfffaf0, flatShading:true}));
+    hroof.position.set(0, 7.7, 0); hroof.castShadow = true; g.add(hroof);
+    [hall, hroof].forEach(function(m){ m.userData.info = info; clickables.push(m); });
+    var lb = label(c.name, {size:48, scale:0.085, color:'#' + c.color.toString(16).padStart(6, '0')}); lb.position.set(0, 13.5, 0); g.add(lb);
+    var rr = R - 3.4;
+    c.depts.forEach(function(d, i){
+      var a = i / n * Math.PI * 2 + 0.4;
+      var x = Math.cos(a) * rr, z = Math.sin(a) * rr;
+      restaurant(g, x, z, c.color, {title:'🍳 ' + d, who:c.name + '（' + (c.campus === 'tp' ? '臺北校區' : '高雄校區') + '）', pts:['① 課程架構調整：進度燈號（之後接資料）','② 課程盤點：A～D 水位（之後接資料）','③ AI 職涯課程地圖：點這裡開本系地圖（之後接上）']});
+      var dl = label(d.replace('學士學位學程', '學程'), {size:30, scale:0.055}); dl.position.set(x, 8.6, z); dl.userData.dept = 1; g.add(dl); deptLabels.push(dl);
+      tree(g, Math.cos(a + Math.PI / n) * (R - 1.6), Math.sin(a + Math.PI / n) * (R - 1.6), 0.8);
+    });
+  });
+
+  // 校區標示
+  var tpL = label('臺北校區', {size:44, scale:0.09, bg:'rgba(43,42,40,0.72)', color:'#fff'}); tpL.position.set(0, 3, -100); scene.add(tpL);
+  var ksL = label('高雄校區', {size:44, scale:0.09, bg:'rgba(43,42,40,0.72)', color:'#fff'}); ksL.position.set(0, 3, 96); scene.add(ksL);
+
+  // 渡船：灶咖島 ↔ 各學院島（跨院選修、學程）
+  var boats = [];
+  function boat(from, to, speed){
+    var g = new THREE.Group();
+    var hull = new THREE.Mesh(new THREE.BoxGeometry(2.6, 0.8, 1.2), new THREE.MeshLambertMaterial({color:0xfffaf0}));
+    hull.castShadow = true; g.add(hull);
+    var cab = new THREE.Mesh(new THREE.BoxGeometry(1.1, 0.8, 0.9), new THREE.MeshLambertMaterial({color:0xd9653b}));
+    cab.position.set(-0.3, 0.8, 0); g.add(cab);
+    scene.add(g);
+    var curve = new THREE.QuadraticBezierCurve3(new THREE.Vector3(from[0], 0.6, from[1]), new THREE.Vector3((from[0] + to[0]) / 2 + (to[1] - from[1]) * 0.15, 0.6, (from[1] + to[1]) / 2 - (to[0] - from[0]) * 0.15), new THREE.Vector3(to[0], 0.6, to[1]));
+    var pts = curve.getPoints(40);
+    var line = new THREE.Line(new THREE.BufferGeometry().setFromPoints(pts), new THREE.LineDashedMaterial({color:0xffffff, dashSize:1.4, gapSize:1.2, transparent:true, opacity:0.75}));
+    line.computeLineDistances(); line.position.y = 0.3; scene.add(line);
+    boats.push({g:g, curve:curve, t:Math.random(), speed:speed || 0.04, dir:1});
+  }
+  function edge(id, toward){
+    var I = islands[id], p = POS[id], v = new THREE.Vector2(toward[0] - p[0], toward[1] - p[1]).normalize();
+    return [p[0] + v.x * (I.R + 5), p[1] + v.y * (I.R + 5)];
+  }
+  COLLEGES.forEach(function(c){
+    var p = POS[c.id], v = new THREE.Vector2(p[0], p[1]).normalize();
+    boat([v.x * 19, v.y * 19], edge(c.id, [0, 0]), 0.035 + Math.random() * 0.02);
+  });
+  boat(edge('mgmt', POS.design), edge('design', POS.mgmt), 0.05);
+  boat(edge('design', POS.life), edge('life', POS.design), 0.05);
+  boat(edge('bizit', POS.culture), edge('culture', POS.bizit), 0.05);
+  var dockInfo = {title:'⛴️ 渡船', who:'跨院、跨域', pts:['跨院選修＝搭船去別的島點菜','跨域學程＝聯名套餐；輔系、雙主修＝第二家常去餐廳','外系學分怎麼採計，依學校規定']};
+  boats.forEach(function(b){ b.g.children.forEach(function(m){ m.userData.info = dockInfo; clickables.push(m); }); });
+
+  // 點選
+  var panel = document.getElementById('panel');
+  function show(info){
+    panel.innerHTML = '<h2>' + info.title + '</h2><div class="who">' + info.who + '</div><ul>' + info.pts.map(function(p){ return '<li>' + p + '</li>'; }).join('') + '</ul>';
+  }
+  show({title:'歡迎來到學院群島', who:'草圖：學院、學系名稱取自課程主檔；進度與水位尚未接資料', pts:['中間：灶咖島（教務處）＋共同市場（共同課程委員會）','四周：一院一島，餐廳＝學系，島中央＝院廚房','船：跨院選修、跨域學程','每間餐廳屋頂上的四根小旗＝A～D，之後依實際標註顯示水位']});
+  var ray = new THREE.Raycaster(), mouse = new THREE.Vector2(), down = null;
+  canvas.addEventListener('pointerdown', function(e){ down = [e.clientX, e.clientY]; });
+  canvas.addEventListener('pointerup', function(e){
+    if(!down || Math.abs(e.clientX - down[0]) + Math.abs(e.clientY - down[1]) > 6) return;
+    var r = canvas.getBoundingClientRect();
+    mouse.set((e.clientX - r.left) / r.width * 2 - 1, -(e.clientY - r.top) / r.height * 2 + 1);
+    ray.setFromCamera(mouse, camera);
+    var hit = ray.intersectObjects(clickables, false)[0];
+    if(hit) show(hit.object.userData.info);
+  });
+  canvas.addEventListener('pointermove', function(e){
+    var r = canvas.getBoundingClientRect();
+    mouse.set((e.clientX - r.left) / r.width * 2 - 1, -(e.clientY - r.top) / r.height * 2 + 1);
+    ray.setFromCamera(mouse, camera);
+    canvas.style.cursor = ray.intersectObjects(clickables, false).length ? 'pointer' : 'grab';
+  });
+
+  // 圖例
+  document.getElementById('legend').innerHTML = COLLEGES.map(function(c){ return '<div><span class="sw" style="background:#' + c.color.toString(16).padStart(6, '0') + '"></span>' + c.name + '</div>'; }).join('');
+
+  // 鏡頭
+  var VIEWS = {all:{p:[0, 150, 170], t:[0, 0, 0]}, tp:{p:[0, 80, 30], t:[0, 0, -45]}, ks:{p:[0, 70, 140], t:[0, 0, 60]}};
+  var fly = null;
+  function go(k){
+    var v = VIEWS[k];
+    fly = {p0:camera.position.clone(), t0:controls.target.clone(), p1:new THREE.Vector3().fromArray(v.p), t1:new THREE.Vector3().fromArray(v.t), s:0};
+    Array.prototype.forEach.call(document.querySelectorAll('[data-go]'), function(b){ b.classList.toggle('on', b.dataset.go === k); });
+  }
+  Array.prototype.forEach.call(document.querySelectorAll('[data-go]'), function(b){ b.onclick = function(){ go(b.dataset.go); }; });
+  camera.position.set(0, 150, 170); controls.target.set(0, 0, 0);
+
+  function resize(){
+    var w = window.innerWidth, h = window.innerHeight;
+    renderer.setSize(w, h, false); camera.aspect = w / h; camera.updateProjectionMatrix();
+  }
+  window.addEventListener('resize', resize); resize();
+
+  var clock = new THREE.Clock();
+  function tick(){
+    var dt = Math.min(clock.getDelta(), 0.05), t = clock.elapsedTime;
+    var a = seaGeo.attributes.position;
+    for(var i = 0; i < a.count; i++){
+      var x = seaBase[i * 3], z = seaBase[i * 3 + 2];
+      a.array[i * 3 + 1] = Math.sin(x * 0.08 + t * 1.1) * 0.35 + Math.cos(z * 0.07 + t * 0.9) * 0.35 - 0.3;
+    }
+    a.needsUpdate = true;
+    boats.forEach(function(b){
+      b.t += b.speed * dt * b.dir;
+      if(b.t > 1){ b.t = 1; b.dir = -1; } if(b.t < 0){ b.t = 0; b.dir = 1; }
+      var p = b.curve.getPoint(b.t), q = b.curve.getPoint(Math.min(1, Math.max(0, b.t + 0.01 * b.dir)));
+      b.g.position.set(p.x, 0.5 + Math.sin(t * 2 + b.t * 10) * 0.15, p.z);
+      b.g.lookAt(q.x, b.g.position.y, q.z); b.g.rotateY(Math.PI / 2);
+    });
+    puffs.forEach(function(pm){
+      pm.userData.t = (pm.userData.t + dt * 0.25) % 1;
+      var u = pm.userData.t;
+      pm.position.set(2.6 + u * 3, 13 + u * 8, u * 1.5);
+      pm.scale.setScalar(0.6 + u * 1.6); pm.material.opacity = 0.7 * (1 - u);
+    });
+    if(fly){
+      fly.s = Math.min(1, fly.s + dt * 0.9);
+      var e = fly.s < 0.5 ? 2 * fly.s * fly.s : 1 - Math.pow(-2 * fly.s + 2, 2) / 2;
+      camera.position.lerpVectors(fly.p0, fly.p1, e); controls.target.lerpVectors(fly.t0, fly.t1, e);
+      if(fly.s >= 1) fly = null;
+    }
+    controls.update();
+    var wp = new THREE.Vector3();
+    deptLabels.forEach(function(l){ l.getWorldPosition(wp); l.visible = camera.position.distanceTo(wp) < 115; });
+    renderer.render(scene, camera);
+    requestAnimationFrame(tick);
+  }
+  tick();
+})();
+</script>
+</body>
+</html>
