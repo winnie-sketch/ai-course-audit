@@ -97,6 +97,8 @@
   #cmModal iframe{flex:1;width:100%;border:0;background:var(--page);border-radius:0 0 10px 10px;}
   html.home-mode #homeView{display:block;margin:0;padding:0 0 32px;}
   #homeView .hm-crumb{border-radius:0;margin:0;}
+  .hm-banner{display:flex;flex-wrap:wrap;gap:6px 12px;align-items:center;margin:12px 18px 0;padding:10px 14px;border:1px solid var(--border);border-left:5px solid var(--accent);border-radius:10px;background:var(--surface-raised);font-size:13.5px;color:var(--ink-2);}
+  .hm-banner .sb-t{font-weight:700;color:var(--ink);font-size:14.5px;}
   #homeView .pv-top .hm-path{color:var(--ink-2);padding:0;}
 
   .hm-crumb{display:flex;flex-wrap:wrap;gap:6px;align-items:center;font-size:14px;margin:14px 0 16px;color:var(--ink-2);}
@@ -758,9 +760,9 @@
   <main class="main">
     <section id="homeView">
       <div class="hm-crumb" id="hmCrumb"></div>
+      <div class="hm-banner"><span class="sb-t">實踐大學 AI 賦能儀表板</span><span>從全校、學院到學系，看課程如何培養未來人才的 AI 能力。</span></div>
       <div class="topbar pv-top"><div><div class="eyebrow">實踐大學 AI 賦能儀表板</div><h2 id="hmTitle">全校</h2></div><span class="hm-path" id="hmPath"></span></div>
       <div class="pv-in">
-        <div class="hint" style="margin:0 0 12px;">從全校、學院到學系，看課程如何培養未來人才的 AI 能力。</div>
         <div id="hmBody"><div class="hint">資料讀取中…</div></div>
         <div class="hm-foot"><button type="button" id="hvFull">全校儀表板與完整功能（教務處）</button></div>
       </div>
