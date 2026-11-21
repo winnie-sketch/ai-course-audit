@@ -142,6 +142,9 @@
   .hm-tools .btn{width:auto;}
   .hm-empty{background:var(--surface-raised);border:1px dashed var(--border);border-radius:12px;padding:18px;color:var(--ink-2);font-size:14px;}
   .hm-foot{margin-top:28px;}
+  .a3-btn{border-color:var(--accent) !important;color:var(--accent) !important;font-weight:700;}
+  .co-how{margin:2px 0 4px 22px;font-size:12.5px;color:var(--ink-2);} .co-how summary{cursor:pointer;color:var(--accent);font-weight:700;font-size:12px;}
+  .co-design{border-collapse:collapse;width:100%;font-size:12.5px;} .co-design th, .co-design td{border:1px solid var(--border);padding:5px 7px;text-align:left;vertical-align:top;color:var(--ink);} .co-design th{background:var(--surface);}
   .hm-crumb, .pv-bar{background:linear-gradient(180deg,#152238,#0f1a2c);color:#e8ecf3;border-radius:12px;padding:12px 18px;display:flex;flex-wrap:wrap;align-items:flex-end;gap:10px 14px;}
   .hm-crumb label, .pv-bar label{display:flex;flex-direction:column;align-items:stretch;gap:4px;width:180px;font-size:10.5px;letter-spacing:.1em;color:#8fa0bd;font-weight:700;}
   .hm-crumb select, .pv-bar select{width:100%;padding:10px 11px;border-radius:9px;border:1px solid rgba(255,255,255,0.18);background:rgba(255,255,255,0.06);color:#fff;font:inherit;font-size:13.5px;font-weight:600;letter-spacing:0;}
@@ -958,8 +961,8 @@
             </div>
 
             <div class="card tab-coach" id="coachCard">
-              <div class="card-head"><h3>🧑‍🍳 食譜教練：教學計畫表 AI 寫作助手</h3></div>
-              <div class="hint">科目名稱與課程概要由學系訂定；授課教師負責<b>教學目標、授課方式、成績評定</b>。食譜教練幫老師把「實際會做」的 AI 活動寫清楚，讓課程通過輔導團的關鍵詞初篩，並符合 3 分「明確納入教學活動、作業或評量」的規準。<b>免登入、不存檔</b>，兼任老師也能用。</div>
+              <div class="card-head"><h3>🧑‍🍳 食譜教練：陪老師設計 AI 教學，再寫成教學計畫表</h3></div>
+              <div class="hint">我們把輔導團依「未來人才 AI 能力圖像」進行課程初評的評分規準，從「事後打分」轉化為「事前陪伴」：AI 依同一套規準，<b>陪老師設計出學生真的練得到 AI 能力的教學</b>（規準 3 分的門檻是 AI「明確納入教學活動、作業或評量」）。食譜教練先陪老師設計怎麼教（學生做什麼、交出什麼、怎麼評），再把老師確認會做的內容寫進<b>教學目標、授課方式、成績評定</b>；科目名稱與課程概要由學系訂定。<b>免登入、不存檔</b>，兼任老師也能用。</div>
               <div id="coachBody"><div class="hint">請先選擇系所。</div></div>
             </div>
 
@@ -3186,7 +3189,7 @@
     chef:{name:'調味師 2.0', type:'半 agent（員工代理人）', purpose:'依課程大綱為科目標註 11 項指標等級、具體能力表述與教學評量方式，每個等級都要有大綱證據',
       scope:'讀：課程大綱、教育部指標與量尺｜寫：只回傳草稿，由學系確認存檔（須登入）', owner:'維護：教務處註冊課務一組｜確認：學系',
       coord:'大綱沒寫到的 AI 活動 → 請授課教師用食譜教練補寫；結果供試菜員對照', life:'教育部指標或量尺改版時更新'},
-    coach:{name:'食譜教練 2.0', type:'半 agent（員工代理人）', purpose:'協助授課教師如實寫出 AI 活動，讓教學計畫表通過初篩並達到 3 分',
+    coach:{name:'食譜教練 2.0', type:'半 agent（員工代理人）', purpose:'先陪授課教師設計怎麼教（學生做什麼、交什麼、怎麼評），培養未來人才 AI 能力；再如實寫進教學計畫表，自然達到輔導團 3 分',
       scope:'讀：學系標註、過去教學計畫、輔導團規準｜寫：只產生課程大綱檔，由老師自行上傳學校系統', owner:'維護：教務處｜確認：授課教師',
       coord:'目標能力來自學系標註（調味師）；試吃沿用試菜員規準；落差名單來自試菜員', life:'輔導團規準或學校課程大綱範本更新時更新'},
     taste:{name:'試菜員 2.0', type:'半 agent（領域代理人）', purpose:'依輔導團規準預評 115-2 課程；與學系標註落差大的課，自動排入第二輪複查',
@@ -3209,7 +3212,7 @@
     menu:{who:'系主任、執秘', copy:'① 複製給菜單設計師', paste:'③ 貼上菜單設計師建議', apply:'帶入建議', human:['勾選每個層次的承載課程','確認或修改後存檔']},
     nutri:{who:'系主任、執秘', copy:'請菜單健檢師寫觀察與討論問題（複製給 Gemini）', paste:'', apply:'', human:['閱讀 AI 的觀察與討論問題，帶到系課程委員會討論']},
     syl:{who:'系主任、執秘', copy:'複製概要修訂提示詞', paste:'貼上 AI 回傳的 JSON', apply:'帶入下方', human:['檢查修訂後的概要','按「存為 116 概要草稿」']},
-    coach:{who:'授課教師', copy:'複製提示詞', paste:'貼上最後的 JSON', apply:'帶入下方欄位', human:['回答 AI 提出的問題（代理不可代答）','檢查 ⑤ 的內容','下載課程大綱檔並自行上傳學校系統'], ask:true}
+    coach:{who:'授課教師', copy:'複製提示詞', paste:'貼上最後的 JSON', apply:'帶入下方欄位', human:['選擇或修改 AI 提出的教學設計，確認自己會做（代理不可代答）','回答 AI 提出的問題','檢查 ⑤ 的內容','下載課程大綱檔並自行上傳學校系統'], ask:true}
   };
   function agentGuideHtml(k){
     var g = AGENT_GUIDE[k]; if(!g) return '';
@@ -3555,6 +3558,25 @@
     D:['D1 學生檢核、批判 AI 結果，並提出自己的判斷與理由', 'D2 在 AI 協作中進行團隊合作、溝通或考量不同觀點',
        'D3 結合真實場域（訪談、田野、服務學習、專題）與 AI，由學生提出自己的觀察與創意']
   };
+  // 每項做法「怎麼教」：學生做什麼 → 交出什麼 → 怎麼評（教學設計示例，教師依本課調整）
+  var COACH_HOW = {
+    A0:'示範 2–3 個本領域常用的 AI 工具，學生比較後選一個完成小任務；交「工具比較表＋選用理由」，評選用理由是否合理。',
+    A1:'學生用 AI 整理指定讀物或資料，交摘要並標出 AI 漏掉或寫錯的地方；評「原文核對」是否確實。',
+    A2:'學生用 AI 產生練習題或範例並自己作答、修正提示詞；交「提示詞修改紀錄＋最後版本」，評是否越問越精準。',
+    A3:'學生每週或每單元寫 AI 學習日誌：用 AI 做了什麼、學到什麼、哪裡不可靠；期末交反思，評自我調整的具體程度。',
+    A4:'講授本課相關 AI 技術的原理與限制，搭配小測驗或案例討論；評能否說明 AI 為什麼會給出這種結果。',
+    B0:'用本領域真實案例討論 AI 的著作權、個資或倫理爭議，學生分組提出處理原則；評論點與依據。',
+    B1:'作業附「AI 使用聲明」：用了哪個工具、做了哪些事、哪些是自己完成的、怎麼查證；聲明納入評分（例如占該作業 10%）。',
+    B2:'給學生一段含錯誤的 AI 產出，學生找出偏誤或幻覺並用可靠來源查證；交查證紀錄，評查證方法與來源品質。',
+    B3:'討論 AI 對本專業工作的改變與人的責任，學生寫立場短文或辯論；評是否說清楚「哪些決定必須由人負責」。',
+    C0:'學生用 AI 處理本課的真實資料或專業任務（分析、生成、草擬方案），交成果與過程紀錄；評成果品質與 AI 使用是否恰當。',
+    C1:'學生把 AI 的答案和課本、教師示範或另一個工具比較，找出差異並修正；交「修正前後對照」，評修正理由。',
+    C2:'專題中結合本課專業知識與 AI 產出，形成可執行的方案；評方案的專業正確性與可行性，而不是只看 AI 寫得多漂亮。',
+    C3:'學生畫出「人做什麼、AI 做什麼」的流程圖，並用 AI 改善一個工作步驟；交流程圖與改善前後比較，評分工是否合理。',
+    D0:'學生針對 AI 的結論提出自己的判斷，寫出同意或不同意的理由；評論證，而不是評結論是否與 AI 相同。',
+    D1:'分組用 AI 協作完成任務，紀錄討論過程與不同意見如何整合；評團隊溝通與分工，可加入同儕互評。',
+    D2:'結合訪談、田野、服務學習或專題，學生先蒐集真實場域資料，再用 AI 輔助分析，最後提出自己的觀察與創意；評在地洞察與原創性。'
+  };
   var DIM_NAME = {A:'運用 AI 學習', B:'負責任使用 AI', C:'運用 AI 解決問題', D:'AI 無法取代'};
   var VAGUE_WORDS = ['可能會', '應該會', '通常會', '視情況', '酌情', '或許'];
   var coach = {code:'', file:null, doc:null, cells:{}, f:{}, dirty:{}, start:null, prac:{}, other:'', out:null, taste:null};
@@ -3642,23 +3664,30 @@
   }
   function coachPrompt(info){
     var tg = coachTargets(info);
-    var L = ['你是大學課程的「食譜教練」，要和授課教師一起修改教學計畫表。你會在這段對話裡自己規劃、起稿、自評、提問、修改，直到完成目標或達到停止條件。', '',
+    var L = ['你是大學課程的「食譜教練」，是陪授課教師備課的教學設計夥伴。你的任務不是幫老師把文字寫得好看、通過評分，而是先陪老師設計「怎麼教，學生才真的練到未來人才需要的 AI 能力」，再把老師確認會做的設計如實寫進教學計畫表。你會在這段對話裡自己規劃、提出設計、提問、起稿、自評、修改，直到完成目標或達到停止條件。', '',
       '【目標】',
-      '讓「教學目標」「授課方式」「成績評定」如實寫出這門課實際有的 AI 學習活動，使下列能力依輔導團規準達到 3 分以上（明確納入教學活動、作業或評量）：' +
+      '1. 教學設計：針對下列目標能力，和教師一起決定本課實際要帶學生做的 AI 學習活動（學生做什麼、交出什麼、怎麼評量）。',
+      '2. 教學計畫表：讓「教學目標」「授課方式」「成績評定」如實寫出這些活動，使目標能力依輔導團規準達到 3 分以上（明確納入教學活動、作業或評量）：' +
         (tg.length ? tg.map(function(dm){ return dm + ' ' + DIM_NAME[dm]; }).join('、') : '（學系未標註、教師也未勾選：只潤飾文字，不新增 AI 內容）') + '。',
       '同時要通過輔導團的 AI 關鍵詞初篩：教學目標或授課方式要出現「AI」「生成式AI」「人工智慧」或實際使用的 AI 工具名稱（如 Gemini、ChatGPT、Copilot）。', '',
-      '【工作流程（每一輪都照做）】',
-      '1. 規劃：讀完下方課程資料，列出每項目標能力目前缺什麼證據（一行一項）。',
-      '2. 起稿：依教師勾選的實際做法與教師在對話中的回答，改寫三欄。',
+      '【階段一：教學設計（先做，不要一開始就改寫文字）】',
+      'a. 了解課程：讀完下方課程資料。若教師勾選的做法很少或沒有，先問 1–3 個問題，了解這門課的主要內容、既有作業或專題、學生程度。',
+      'b. 提出設計：針對每項目標能力，提出 2 個貼近本課專業內容、可行、不會大幅增加負擔的 AI 學習活動。每個活動都要寫清楚：學生做什麼（約第幾週）、學生交出什麼、怎麼評量（評分重點與建議占分）、為什麼能培養這項能力（對應下方教育部能力描述）。可參考教師勾選做法附的「怎麼教」。',
+      'c. 請教師選擇或修改，確認會實際執行的活動。教師沒有確認會做的，一律不寫入。',
+      '',
+      '【階段二：寫進教學計畫表（每一輪都照做）】',
+      '1. 規劃：列出每項目標能力目前缺什麼證據（一行一項）。',
+      '2. 起稿：依教師確認的教學設計、勾選的做法與教師在對話中的回答，改寫三欄。',
       '3. 自評：依文末「輔導團評分規準」為 A、B、C、D 各給 0–5 分，每項一句理由。',
       '4. 判斷：目標能力若仍低於 3 分，先檢查教師的資料裡有沒有可用的做法；有就改寫，沒有就向教師提問。',
       '5. 提問：一次最多問 3 個具體問題（例如「第幾週學生會用 AI 做什麼？」「這項作業占幾分？」「學生是否需要附上 AI 使用說明？」），然後停下來等教師回答。',
       '', '【停止條件】符合任一項就停止，並輸出最終 JSON：',
       '- 目標能力的自評都達到 3 分以上；',
       '- 教師表示沒有這項做法、不想再改，或說「完成」；',
-      '- 已經提問 3 輪。',
+      '- 兩個階段合計已經提問 4 輪。',
       '', '【護欄（一定要遵守）】',
-      '- 只能寫入教師勾選的做法、教師原文已有的內容、教師在這段對話裡明確回答有做的事。教師沒說有做的活動、工具、週次、作業，一律不得新增；寧可分數不到 3 分。',
+      '- 只能寫入教師勾選的做法、教師原文已有的內容、教師在這段對話裡確認會做的教學設計或明確回答有做的事。教師沒確認的活動、工具、週次、作業，一律不得新增；寧可分數不到 3 分。',
+      '- 設計以學生的學習為目的，不為了命中關鍵詞或拿分而加入學生實際不會做的活動。',
       '- 科目名稱與課程概要由學系訂定，不得修改，也不要輸出。',
       '- 盡量保留教師原文，只做增補與改寫，不刪除原有的教學目標、授課方式與評量項目。',
       '- 每項 AI 做法都要寫進「授課方式」；有占分的也要寫進對應的評分方式。只寫在週次進度不會被採計。',
@@ -3667,7 +3696,8 @@
       '- 不要要求教師提供學生個資。使用繁體中文與臺灣常用用語；需要分段時用 \\n。',
       '', '【最終輸出】停止時，先用一兩句話說明結果，然後輸出一個 JSON 程式碼區塊（只有這一個）：',
       '{"教學目標":"…","授課方式":"…","平時評量評分方式":"…","平時評量百分比":"…","期中評量評分方式":"…","期中評量百分比":"…","期末評量評分方式":"…","期末評量百分比":"…","其他評量評分方式":"…","其他評量百分比":"…","使用的AI工具":"…","預估分數":{"A":0,"B":0,"C":0,"D":0},"仍待確認":["…"],"修改說明":"…"}',
-      '「仍待確認」列出還沒得到教師確認、因此沒有寫進去的事項；沒有就給空陣列。', '',
+      '「仍待確認」列出還沒得到教師確認、因此沒有寫進去的事項；沒有就給空陣列。',
+      'JSON 另外加一個欄位 "教學設計"：列出教師確認會做的活動，例如 [{"能力":"B","活動":"…","學生產出":"…","評量":"…","週次":"…"}]；沒有就給空陣列。', '',
       '現在請從第 1 步開始。', '',
       '==========', '【課程資料】', '科目名稱：' + info.name,
       '課程概要（學系訂定，僅供參考，不得修改）：' + (info.summary ? String(info.summary).replace(/\s*\n\s*/g, ' ') : '（無）')];
@@ -3683,6 +3713,9 @@
     if(!pl.length) L.push('（教師還沒有勾選。請在第 4 步直接向教師提問，確認實際有哪些 AI 活動）');
     pl.forEach(function(p){ L.push('- ' + p.text + (p.wk ? '；週次：' + p.wk : '') + (p.task ? '；搭配作業／評量：' + p.task : '') + (p.pct ? '；占分：' + p.pct : '')); });
     if(String(coach.other || '').trim()) L.push('其他實際做法（教師自述）：' + String(coach.other).trim());
+    if(pl.length) L.push('', '【教師勾選做法的「怎麼教」參考】'), ['A','B','C','D'].forEach(function(dm){ COACH_PRACTICES[dm].forEach(function(txt, i){ var p = coach.prac[dm + i]; if(p && p.on && COACH_HOW[dm + i]) L.push('- ' + txt + '：' + COACH_HOW[dm + i]); }); });
+    L.push('', '【教育部未來人才 AI 能力（大專校院）】');
+    INDICATORS.forEach(function(i){ L.push('- ' + i.code + ' ' + i.label); });
     L.push('', '==========', '【輔導團評分規準（自評用；輸出格式以上方「最終輸出」為準）】', TASTER_PROMPT.split('六、輸出格式')[0].trim());
     return L.join('\n');
   }
@@ -3809,17 +3842,18 @@
         '<span class="ts-flag" style="display:inline;">課名與概要都沒有 AI 關鍵詞</span>，教學目標一定要寫出「AI」或「生成式AI」等詞，否則初篩不會通過。') + '</div>' +
       deptExpectHtml(info) +
       '</div></div>';
-    h += '<div class="coach-step"><b>③ 勾選這門課「實際會做」的 AI 活動</b><div class="hint" style="margin:2px 0 6px;">沒勾的事，AI 不會幫你寫進去。學系期待較高的能力排在前面。</div>' +
+    h += '<div class="coach-step"><b>③ 先設計怎麼教：選這門課要帶學生做的 AI 學習活動</b><div class="hint" style="margin:2px 0 6px;">重點不是在計畫表裡提到 AI，而是<b>學生真的在活動、作業或評量中練到這項能力</b>。每項活動都附「怎麼教」：學生做什麼、交出什麼、怎麼評。選你真的會做的；不確定怎麼做，可以先不勾，④ 的食譜教練會先陪你設計，再寫進教學計畫表。學系期待較高的能力排在前面。</div>' +
       ['A','B','C','D'].slice().sort(function(a, b){ return ((info.dims && info.dims[b]) || 0) - ((info.dims && info.dims[a]) || 0); }).map(function(dm){
         return '<div class="coach-dim"><div class="coach-dimh">' + dm + ' ' + DIM_NAME[dm] + (info.dims && info.dims[dm] ? '<span class="co-lv">學系期待：' + LEVEL_PLAIN[info.dims[dm]] + '</span>' : '') + '</div>' +
           COACH_PRACTICES[dm].map(function(txt, i){ var k = dm + i, p = coach.prac[k] || {};
             return '<div class="coach-pr"><label><input type="checkbox" data-pk="' + k + '"' + (p.on ? ' checked' : '') + '> ' + escapeHtml(txt) + '</label>' +
+              (COACH_HOW[k] ? '<details class="co-how"><summary>怎麼教？</summary>' + escapeHtml(COACH_HOW[k]) + '</details>' : '') +
               (p.on ? '<div class="coach-pin"><input data-pk="' + k + '" data-pf="wk" placeholder="週次，如 5–6" value="' + escapeHtml(p.wk || '') + '">' +
                 '<input data-pk="' + k + '" data-pf="task" placeholder="搭配的作業或評量，如 作業二" value="' + escapeHtml(p.task || '') + '">' +
                 '<input data-pk="' + k + '" data-pf="pct" placeholder="占分，如 10%" value="' + escapeHtml(p.pct || '') + '"></div>' : '') + '</div>'; }).join('') + '</div>';
       }).join('') +
       '<textarea id="coOther" placeholder="其他實際做法（選填），例如：期末成果展邀請業師評論 AI 協作作品" style="width:100%;min-height:50px;margin-top:6px;font-size:13px;">' + escapeHtml(coach.other || '') + '</textarea></div>';
-    h += '<div class="coach-step"><b>④ 請食譜教練（AI）幫你修改</b><div class="hint" style="margin:2px 0 6px;">食譜教練會在 AI 對話裡自己起稿、用輔導團規準自評，<b>不夠的地方會直接問你</b>（例如「第幾週學生用 AI 做什麼？」）。照實回答就好；沒做的事回答「沒有」，它不會幫你編。最多問 3 輪，最後會給你一段 JSON。</div>' + (coach.doc ? '' : '<div class="hint" style="margin:2px 0;">建議先在 ①-2 選起點（例如從 114-2 帶入），AI 會以原本的內容為基礎增修。</div>') +
+    h += '<div class="coach-step"><b>④ 食譜教練（AI）：先陪你設計教學，再寫進教學計畫表</b><div class="hint" style="margin:2px 0 6px;">食譜教練會在 AI 對話裡自己起稿、用輔導團規準自評，<b>不夠的地方會直接問你</b>（例如「第幾週學生用 AI 做什麼？」）。照實回答就好；沒做的事回答「沒有」，它不會幫你編。最多問 3 輪，最後會給你一段 JSON。</div>' + (coach.doc ? '' : '<div class="hint" style="margin:2px 0;">建議先在 ①-2 選起點（例如從 114-2 帶入），AI 會以原本的內容為基礎增修。</div>') +
       '<div class="chef-btns"><button type="button" class="btn" id="coCopy">複製提示詞</button>' +
       '<a class="btn" href="https://gemini.google.com/app" target="_blank" rel="noopener">開啟 Gemini ↗</a>' +
       '<button type="button" class="btn" id="coPasteToggle">貼上最後的 JSON</button></div>' +
@@ -3909,6 +3943,9 @@
     var a = coach.agent; if(!a) return '';
     var tg = coachTargets(info);
     return '<div class="coach-ro" style="margin-top:8px;">' +
+      (a.design && a.design.length ? '<div><b>你確認要帶學生做的 AI 學習活動：</b><div class="table-wrap" style="max-height:none;margin-top:4px;"><table class="co-design"><thead><tr><th>能力</th><th>活動</th><th>學生產出</th><th>評量</th><th>週次</th></tr></thead><tbody>' +
+        a.design.map(function(d){ var dm = String(d['能力'] || '').charAt(0); return '<tr><td>' + (DIM_NAME[dm] ? '<b style="color:' + dimColor(dm) + '">' + dm + '</b> ' + DIM_NAME[dm] : escapeHtml(d['能力'] || '')) + '</td><td>' + escapeHtml(d['活動'] || '') + '</td><td>' + escapeHtml(d['學生產出'] || '') + '</td><td>' + escapeHtml(d['評量'] || '') + '</td><td>' + escapeHtml(d['週次'] || '') + '</td></tr>'; }).join('') +
+        '</tbody></table></div><div class="hint" style="margin:2px 0 0;">這是你的教學設計，建議另存給自己備課用；下載的教學計畫表只會包含寫進三欄的內容。</div></div>' : '') +
       (a.note ? '<div><b>食譜教練的修改說明：</b>' + escapeHtml(a.note) + '</div>' : '') +
       (a.score ? '<div><b>食譜教練自評（僅供參考）：</b>' + ['A','B','C','D'].map(function(dm){ var v = a.score[dm]; return DIM_NAME[dm] + ' <span class="ts-sc">' + escapeHtml(v === undefined ? '—' : String(v)) + '</span>' + (tg.indexOf(dm) >= 0 ? '<span class="hint" style="margin:0 6px 0 2px;">目標</span>' : ' '); }).join('') + '</div>' +
         '<div class="hint" style="margin:2px 0 0;">自評是 AI 給自己打分，可能偏高。想知道輔導團大概會給幾分，請用 ⑥ 試吃，<b>開一個新的對話</b>再評一次。</div>' : '') +
@@ -3967,7 +4004,7 @@
       var n = 0;
       COACH_FIELDS.forEach(function(x){ if(x.k === 'aiYN') return; var v = o[x.label]; if(v === undefined || v === null) return; coach.f[x.k] = String(v).replace(/<br\s*\/?>/gi, '\n').trim(); coach.dirty[x.k] = 1; n++; });
       if(!n){ msg.className = 'chef-msg'; msg.textContent = 'JSON 裡找不到「教學目標」「授課方式」等欄位。'; return; }
-      coach.agent = {score:o['預估分數'] && typeof o['預估分數'] === 'object' ? o['預估分數'] : null, pending:Array.isArray(o['仍待確認']) ? o['仍待確認'].filter(function(x){ return String(x || '').trim(); }) : [], note:o['修改說明'] || ''};
+      coach.agent = {score:o['預估分數'] && typeof o['預估分數'] === 'object' ? o['預估分數'] : null, pending:Array.isArray(o['仍待確認']) ? o['仍待確認'].filter(function(x){ return String(x || '').trim(); }) : [], note:o['修改說明'] || '', design:Array.isArray(o['教學設計']) ? o['教學設計'].filter(function(x){ return x && typeof x === 'object'; }) : []};
       if(keytermHits([coach.f.obj, coach.f.appr, gradingText(coachGrade())].join('\n')).length && !coach.f.aiYN){ coach.f.aiYN = '1'; coach.dirty.aiYN = 1; }
       renderCoach();
       var m2 = document.getElementById('coMsg'); m2.className = 'chef-msg ok';
@@ -4133,8 +4170,9 @@
         return '<td class="' + (n ? 'nu-on' : 'nu-off') + '" title="' + escapeHtml(c.req.concat(c.ele).join('、')) + '">' + (n ? '必 ' + c.req.length + '・選 ' + c.ele.length : '—') + '</td>'; }).join('') + '</tr>'; }).join('') +
       '</tbody></table></div>' +
       '<div style="margin-top:8px;font-size:13px;line-height:1.7;">' + (nd.gaps.length ? nd.gaps.map(function(x){ return '<div class="cc-warn">△ ' + escapeHtml(x) + '</div>'; }).join('') : '<div class="cc-ok">✓ 四項能力在必修與各年級都有分布。</div>') + '</div>' +
-      '<div class="chef-btns"><button type="button" class="btn" id="nuCopy" data-view="1">請菜單健檢師寫觀察與討論問題（複製給 Gemini）</button><a class="btn" href="https://gemini.google.com/app" target="_blank" rel="noopener" data-view="1">開啟 Gemini ↗</a></div>' +
-      '<textarea id="nuPrompt" readonly data-view="1" style="display:none;width:100%;min-height:90px;margin-top:8px;font-size:12px;"></textarea><div class="chef-msg" id="nuMsg"></div>';
+      '<div class="chef-btns">' + a3BtnHtml('nuA3') + '<button type="button" class="btn" id="nuCopy" data-view="1">請菜單健檢師寫觀察與討論問題（複製給 Gemini）</button><a class="btn" href="https://gemini.google.com/app" target="_blank" rel="noopener" data-view="1">開啟 Gemini ↗</a></div>' +
+      '<textarea id="nuPrompt" readonly data-view="1" style="display:none;width:100%;min-height:90px;margin-top:8px;font-size:12px;"></textarea><div class="chef-msg" id="nuMsg"></div>' +
+      '<div id="nuA3Box" style="display:none;"><label class="coach-lab">🤖 菜單健檢師 3.0 的觀察與討論問題（草稿，可直接修改後用於課程委員會）</label><textarea id="nuA3Out" style="width:100%;min-height:140px;"></textarea></div>';
     // 概要修訂助手
     var cand = nd.courses.filter(function(c){
       if(!c.code || c.cat === '校必') return false;
@@ -4151,7 +4189,7 @@
         var sm = summaryForDraft(cur), dd = deptDims(cur.code), t = TAGS[cur.code] || {};
         h += '<div class="coach-ro"><div><b>目前概要' + (sm.src ? '（' + escapeHtml(sm.src) + '）' : '') + '：</b>' + (sm.text ? escapeHtml(sm.text) : '（無）') + '</div>' +
           '<div><b>學系標註：</b>' + ['A','B','C','D'].map(function(dm){ return dm + ' <span class="ts-sc">' + dd[dm] + '</span>'; }).join(' ') + '</div></div>' +
-          '<div class="chef-btns"><button type="button" class="btn" id="nuSyCopy" data-view="1">複製概要修訂提示詞</button><button type="button" class="btn" id="nuPasteToggle" data-view="1">貼上 AI 回傳的 JSON</button></div>' +
+          '<div class="chef-btns">' + a3BtnHtml('nuSyA3') + '<button type="button" class="btn" id="nuSyCopy" data-view="1">複製概要修訂提示詞</button><button type="button" class="btn" id="nuPasteToggle" data-view="1">貼上 AI 回傳的 JSON</button></div>' +
           '<textarea id="nuSyPrompt" readonly data-view="1" style="display:none;width:100%;min-height:80px;margin-top:8px;font-size:12px;"></textarea>' +
           '<div id="nuPasteBox" style="display:none;"><textarea id="nuPasteTa" data-view="1" style="width:100%;min-height:80px;margin-top:8px;font-size:12px;" placeholder="把 AI 回傳的 JSON 貼在這裡"></textarea>' +
           '<div class="chef-btns"><button type="button" class="btn" id="nuApply" data-view="1">帶入下方</button></div></div>' +
@@ -4164,11 +4202,15 @@
     h += '</div>';
     el.innerHTML = h;
     var pr = document.getElementById('nuPrompt');
+    var nu3 = document.getElementById('nuA3');
+    if(nu3) nu3.onclick = function(){ a3Run('nutri', track, nutriPrompt(track, nd), document.getElementById('nuMsg'), function(c){
+      document.getElementById('nuA3Box').style.display = 'block'; document.getElementById('nuA3Out').value = c;
+      var m = document.getElementById('nuMsg'); m.className = 'chef-msg ok'; m.textContent = '🤖 菜單健檢師 3.0 已完成，內容是草稿，請學系確認。'; }); };
     document.getElementById('nuCopy').onclick = function(){ pr.value = nutriPrompt(track, nd); coachCopy(pr, document.getElementById('nuMsg'), '已複製！到 Gemini 貼上送出，就會得到觀察與討論問題。'); };
     var sel = document.getElementById('nuSel'); if(sel) sel.onchange = function(){ nutriSel = this.value; renderNutri(); };
     if(!document.getElementById('nuSyCopy')) return;
     var m = document.getElementById('nuSyMsg'), cc = nutriCur;
-    document.getElementById('nuSyCopy').onclick = function(){
+    var sylBrief = function(){
       var L = agentFrame({role:'概要修訂助手', ask:'學系',
         goal:'起草修訂後的課程概要，讓學系已標註的 AI 能力被明確寫出、通過輔導團 AI 關鍵詞初篩，且不超出學系標註，供系院校課程委員會審議。',
         steps:['讀原概要、學系標註與具體能力表述，列出要放進概要的 AI 能力。', '以原概要為基礎增修起稿。',
@@ -4182,7 +4224,13 @@
         '【學系標註（0–5）】' + ['A','B','C','D'].map(function(dm){ return dm + ' ' + DIM_NAME[dm] + '：' + cc.dd[dm]; }).join('；')]);
       var st = Object.keys(cc.stmt).filter(function(k){ return String(cc.stmt[k] || '').trim(); });
       if(st.length) L.push('【具體能力表述】' + st.map(function(k){ return k + ' ' + String(cc.stmt[k]).trim(); }).join('；'));
-      var ta = document.getElementById('nuSyPrompt'); ta.value = L.join('\n');
+      return L.join('\n');
+    };
+    var sy3 = document.getElementById('nuSyA3');
+    if(sy3) sy3.onclick = function(){ a3Run('syl', cc.c.code, sylBrief(), m, function(c){ document.getElementById('nuPasteTa').value = c; document.getElementById('nuApply').click();
+      var m2 = document.getElementById('nuSyMsg'); if(m2) m2.textContent = '🤖 概要修訂助手 3.0 已自己讀資料起稿。' + m2.textContent; }); };
+    document.getElementById('nuSyCopy').onclick = function(){
+      var ta = document.getElementById('nuSyPrompt'); ta.value = sylBrief();
       coachCopy(ta, m, '已複製！到 Gemini 貼上送出，回答它的問題；最後把它給的 JSON 貼回來。');
     };
     document.getElementById('nuPasteToggle').onclick = function(){ var b = document.getElementById('nuPasteBox'); b.style.display = b.style.display === 'none' ? 'block' : 'none'; };
@@ -4257,6 +4305,40 @@
   /* ---------- 調味師：複製課程資料給 Gemini、貼回建議（不需 API 金鑰） ---------- */
   var CHEF_RUBRIC = ['0 無關聯：教學內容、活動與評量完全未涉及此項能力', '1 極低：僅偶爾提及或簡短介紹，未安排練習、作業或評量', '2 低度：小部分單元或作業觸及，屬輔助性質、非教學重點',
     '3 中度：明確安排至少一項教學活動、作業或評量對應此能力，但非主要學習目標', '4 高度：重要學習目標之一，有專門單元、實作與對應評量', '5 核心：本課程核心目標，貫穿教學設計、主要活動與評量'];
+  /* ---------- AI 代理人 3.0（雙模式）：有 API 金鑰時 AI 自己呼叫工具起稿；沒有就用 2.0 複製貼上 ---------- */
+  var A3 = {key:false, model:'', loaded:false};
+  function a3Load(){
+    if(A3.loaded || !WEBAPP_URL) return; A3.loaded = true;
+    var q = 'type=agent3cfg', ok = function(d){ A3.key = !!(d && d.key); A3.model = (d && d.model) || ''; if(A3.key) a3Refresh(); };
+    fetch(WEBAPP_URL + (WEBAPP_URL.indexOf('?') < 0 ? '?' : '&') + q, {credentials:'omit'}).then(function(r){ return r.text(); }).then(function(t){ ok(JSON.parse(t)); }).catch(function(){ try{ jsonp(q, ok, function(){}, 20000); }catch(e){} });
+  }
+  function a3Refresh(){
+    var b = document.getElementById('chefA3'); if(b) b.style.display = A3.key ? '' : 'none';
+    if(document.getElementById('compBody') && currentDept && typeof renderCompCard === 'function') renderCompCard();
+    if(document.getElementById('nutriBody') && currentDept && typeof renderNutri === 'function') renderNutri();
+  }
+  function a3BtnHtml(id){ return A3.key ? '<button type="button" class="btn a3-btn" id="' + id + '" title="AI 自己呼叫工具讀資料、查證後存成草稿（模型：' + escapeHtml(A3.model) + '）">🤖 3.0：AI 自己查資料起稿</button>' : ''; }
+  function a3Run(agent, target, brief, msgEl, onDone){
+    if(!authToken()){ needLogin('tag'); return; }
+    var runId = 'A3' + Date.now().toString(36) + Math.random().toString(36).slice(2, 8), tries = 0;
+    var say = function(t, ok){ if(msgEl){ msgEl.className = 'chef-msg' + (ok ? ' ok' : ''); msgEl.textContent = t; } };
+    say('🤖 3.0 執行中：AI 正在自己讀資料、查證、起稿（約 1～3 分鐘，請勿關閉頁面）…');
+    fetch(WEBAPP_URL, {method:'POST', mode:'no-cors', headers:{'Content-Type':'text/plain;charset=utf-8'},
+      body: JSON.stringify({type:'agent3', agent:agent, dept:currentDept, target:target || '', brief:brief, runId:runId, auth:authToken()})}).catch(function(){});
+    var poll = function(){
+      tries++;
+      var q = 'type=agent3job&run=' + runId, ok = function(d){
+        d = d || {};
+        if(d.status === 'done' && d.content){ say('🤖 3.0 已完成，草稿帶入中…', true); onDone(d.content, d); return; }
+        if(d.status === 'error'){ say('3.0 沒有完成：' + (d.error || '未知錯誤') + '。可改用 2.0（複製提示詞給 Gemini）。'); return; }
+        if(d.steps && d.steps.length) say('🤖 3.0 執行中（' + d.steps.length + ' 步）：' + d.steps[d.steps.length - 1]);
+        if(tries < 80) setTimeout(poll, 4000); else say('等候逾時。可稍後重新整理，或改用 2.0。');
+      };
+      fetch(WEBAPP_URL + (WEBAPP_URL.indexOf('?') < 0 ? '?' : '&') + q, {credentials:'omit'}).then(function(r){ return r.text(); }).then(function(t){ ok(JSON.parse(t)); })
+        .catch(function(){ if(tries < 80) setTimeout(poll, 4000); });
+    };
+    setTimeout(poll, 5000);
+  }
   function chefPromptText(code, rec, off){
     var name = document.getElementById('dcName').textContent, meta = document.getElementById('dcMeta').textContent.replace(/ ・ [^・]*$/, '');
     var done = INDICATORS.filter(function(i){ return rec.ratings[i.code] !== undefined; });
@@ -4296,6 +4378,15 @@
     var box = document.getElementById('chefBox'), msg = document.getElementById('chefMsg'), pr = document.getElementById('chefPrompt'), pb = document.getElementById('chefPasteBox');
     box.style.display = 'block'; msg.textContent = ''; msg.className = 'chef-msg';
     if(!document.getElementById('chefAgCard')){ var cd = document.createElement('div'); cd.id = 'chefAgCard'; cd.innerHTML = agentCardHtml('chef'); box.appendChild(cd); } pr.style.display = 'none'; pb.style.display = 'none'; document.getElementById('chefPasteTa').value = '';
+    if(!document.getElementById('chefA3')){ var cb0 = document.getElementById('chefCopy'), b30 = document.createElement('button'); b30.type = 'button'; b30.className = 'btn a3-btn'; b30.id = 'chefA3'; b30.textContent = '🤖 3.0：AI 自己查資料起稿'; cb0.parentNode.insertBefore(b30, cb0); }
+    var b3 = document.getElementById('chefA3'); b3.style.display = A3.key ? '' : 'none';
+    b3.onclick = function(){
+      if(!off || !String(off.syllabus || '').trim()){ msg.className = 'chef-msg'; msg.textContent = '本科目還沒有課程大綱，調味師無法提供建議。'; return; }
+      a3Run('chef', code, chefPromptText(code, rec, off), msg, function(c){
+        document.getElementById('chefPasteTa').value = c; document.getElementById('chefApply').click();
+        var m = document.getElementById('chefMsg'); m.textContent = '🤖 調味師 3.0 已自己讀資料起稿。' + m.textContent;
+      });
+    };
     document.getElementById('chefCopy').onclick = function(){
       if(!off || !String(off.syllabus || '').trim()){ msg.className = 'chef-msg'; msg.textContent = '本科目還沒有課程大綱，調味師無法提供建議。請先在上方「課程大綱」按「填寫／修改課程大綱」，存檔後再請調味師。'; return; }
       pr.value = chefPromptText(code, rec, off); pr.style.display = 'block';
@@ -5513,6 +5604,9 @@
       if(ok){ done(); return; }
       if(navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(pr.value).then(done).catch(manual); else manual();
     };
+    var md3 = document.getElementById('mdA3');
+    if(md3) md3.onclick = function(){ a3Run('menu', '', menuPromptText(dept), msg, function(c){ document.getElementById('mdPasteTa').value = c; document.getElementById('mdApply').click();
+      var m = document.getElementById('mdMsg'); if(m) m.textContent = '🤖 菜單設計師 3.0 已自己讀資料起稿。' + m.textContent; }); };
     document.getElementById('mdPasteToggle').onclick = function(){ pb.style.display = pb.style.display === 'none' ? 'block' : 'none'; if(pb.style.display === 'block') document.getElementById('mdPasteTa').focus(); };
     document.getElementById('mdApply').onclick = function(){
       if(!authToken()){ needLogin('comp'); return; }
@@ -5555,7 +5649,7 @@
       '<div class="hint" style="margin:0;">把本系' + (nCore ? '學生核心能力（' + nCore + ' 項，取自 SE0201）、' : '') + '課程、AI 標註與產業對接職業複製給學校帳號的 Gemini，取得 3～6 項專業 AI 能力草稿。貼回後新增為「AI建議草稿」，<b>不覆蓋已有能力、不代勾承載課程</b>。</div>' +
       agentCardHtml('menu') + '<div class="chef-btns"><button type="button" class="btn" id="mdCopy" data-view="1">① 複製給菜單設計師</button>' +
       '<a class="btn" href="https://gemini.google.com/app" target="_blank" rel="noopener" data-view="1">② 開啟 Gemini ↗</a>' +
-      '<button type="button" class="btn" id="mdPasteToggle">③ 貼上菜單設計師建議</button></div>' +
+      '<button type="button" class="btn" id="mdPasteToggle">③ 貼上菜單設計師建議</button>' + a3BtnHtml('mdA3') + '</div>' +
       '<textarea id="mdPrompt" readonly data-view="1" style="display:none;"></textarea>' +
       '<div id="mdPasteBox" style="display:none;"><textarea id="mdPasteTa" placeholder="把 Gemini 的回答整段貼在這裡（含 { } 的那一段）"></textarea>' +
       '<div class="chef-btns"><button type="button" class="btn primary" id="mdApply">帶入建議</button></div></div><div class="chef-msg" id="mdMsg"></div></div>';
@@ -7014,6 +7108,7 @@
     loadCloudData(true);
     loadPlanData();
     loadTags();
+    a3Load();
   });
 })();
 </script>
