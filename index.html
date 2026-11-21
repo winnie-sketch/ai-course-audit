@@ -5211,11 +5211,6 @@
     h += '<div class="db-row3"><div class="db-card"><h3>11 項核心能力 × ' + (lvl === 'dept' ? '學期' : (lvl === 'all' ? '學院' : '學系')) + '</h3><p class="hm-note">' + heatNote + '</p>' + heat + '</div><div class="db-side">' + gapHtml + cmp + '</div></div>';
     if(lvl === 'dept'){
       h += hmGapHtml(T, S.dept, S.college, tracks);
-      var trs = tracks;
-      if(trs.indexOf(S.track) < 0) S.track = trs[0] || '';
-      h += '<div class="hm-sec"><h2>' + escapeHtml(S.dept) + ' AI 賦能課程地圖</h2></div>';
-      if(trs.length > 1) h += '<div class="hm-tools">' + trs.map(function(t){ return '<button type="button" class="btn' + (t === S.track ? ' primary' : '') + '" data-hmtrack="' + escapeHtml(t) + '">' + escapeHtml(t.replace(S.dept, '') || t) + '</button>'; }).join('') + '</div>';
-      h += S.year === DRAFT_YEAR ? '<div id="hmMapBox"><div class="hint">地圖產生中…</div></div>' : '<div class="hm-empty">AI 賦能課程地圖以 ' + DRAFT_YEAR + ' 學年度課程計畫表產生，請切換到上方「' + DRAFT_YEAR + ' 學年度」。</div>';
     } else if(lvl === 'all'){
       h += '<p class="hm-note" style="margin-top:4px;"><a href="archipelago3d.html" target="_blank" rel="noopener">切換 3D 學院群島 ↗</a></p>';
     }
@@ -5223,7 +5218,6 @@
     Array.prototype.forEach.call(body.querySelectorAll('[data-hmcol]'), function(b){ b.onclick = function(){ S.college = b.dataset.hmcol; S.dept = ''; renderHomeMap(); window.scrollTo(0, 0); }; });
     Array.prototype.forEach.call(body.querySelectorAll('[data-hmdept]'), function(b){ b.onclick = function(){ S.dept = b.dataset.hmdept; S.track = ''; hmTry = 0; renderHomeMap(); window.scrollTo(0, 0); }; });
     Array.prototype.forEach.call(body.querySelectorAll('[data-hmtrack]'), function(b){ b.onclick = function(){ S.track = b.dataset.hmtrack; hmTry = 0; renderHomeMap(); }; });
-    if(lvl === 'dept' && S.year === DRAFT_YEAR) hmLoadMap();
   }
   function hmLoadMap(){
     clearTimeout(hmTimer);
