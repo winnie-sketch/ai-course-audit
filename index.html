@@ -3186,9 +3186,9 @@
     try{ var o2 = JSON.parse(s.slice(a, b + 1)); return (o2 && typeof o2 === 'object') ? o2 : null; }catch(e){ return null; }
   }
   var AGENT_CARDS = {
-    chef:{name:'調味師 2.0', type:'半 agent（員工代理人）', purpose:'依課程大綱為科目標註 11 項指標等級、具體能力表述與教學評量方式，每個等級都要有大綱證據',
+    chef:{name:'調味師 2.0', type:'半 agent（員工代理人）', purpose:'尊重學系規劃的等級，逐項對照課程大綱：有寫的指出依據，沒寫的提出教法建議，交給授課教師與食譜教練',
       scope:'讀：課程大綱、教育部指標與量尺｜寫：只回傳草稿，由學系確認存檔（須登入）', owner:'維護：教務處註冊課務一組｜確認：學系',
-      coord:'大綱沒寫到的 AI 活動 → 請授課教師用食譜教練補寫；結果供試菜員對照', life:'教育部指標或量尺改版時更新'},
+      coord:'大綱沒寫的規劃等級 → 教法建議存入標註，授課教師的食譜教練據以陪老師設計；結果供試菜員對照', life:'教育部指標或量尺改版時更新'},
     coach:{name:'食譜教練 2.0', type:'半 agent（員工代理人）', purpose:'先陪授課教師設計怎麼教（學生做什麼、交什麼、怎麼評），培養未來人才 AI 能力；再如實寫進教學計畫表，自然達到輔導團 3 分',
       scope:'讀：學系標註、過去教學計畫、輔導團規準｜寫：只產生課程大綱檔，由老師自行上傳學校系統', owner:'維護：教務處｜確認：授課教師',
       coord:'目標能力來自學系標註（調味師）；試吃沿用試菜員規準；落差名單來自試菜員', life:'輔導團規準或學校課程大綱範本更新時更新'},
@@ -3705,6 +3705,8 @@
       L.push('學系希望這門課培養的 AI 能力：' + ['A','B','C','D'].filter(function(dm){ return info.dims[dm]; }).map(function(dm){ return dm + ' ' + DIM_NAME[dm] + '（' + LEVEL_PLAIN[info.dims[dm]] + '）'; }).join('；'));
       var st = info.tag && info.tag.stmt ? Object.keys(info.tag.stmt).filter(function(k){ return String(info.tag.stmt[k] || '').trim(); }) : [];
       if(st.length) L.push('學系寫的具體能力表述：' + st.map(function(k){ return k + ' ' + String(info.tag.stmt[k]).trim(); }).join('；'));
+      var sg = info.tag && info.tag.evidence ? Object.keys(info.tag.evidence).filter(function(k){ return /【大綱未寫/.test(String(info.tag.evidence[k] || '')); }) : [];
+      if(sg.length) L.push('學系規劃了、但目前教學計畫表還沒寫的能力（調味師的教法建議，供階段一設計參考；教師確認會做才寫入）：' + sg.map(function(k){ return k + ' ' + String(info.tag.evidence[k]).replace(/^【大綱未寫・建議】/, '').trim(); }).join('；'));
     }
     L.push('', '【教師目前的內容】', '教學目標：' + (coach.f.obj || '（空白）'), '授課方式：' + (coach.f.appr || '（空白）'));
     GRADE_PARTS.forEach(function(x){ L.push(x[1] + '評分方式：' + (coach.f['m' + x[0]] || '（空白）') + '；百分比：' + (coach.f['p' + x[0]] || '（空白）')); });
@@ -3936,7 +3938,9 @@
       var st = dimStmts(info.tag, dm);
       return '<div class="co-exp"><div><b>' + DIM_NAME[dm] + '</b><span class="co-lv">' + LEVEL_PLAIN[info.dims[dm]] + '</span></div>' +
         '<div class="hint" style="margin:0;">' + DIM_PLAIN[dm] + '</div>' +
-        (st.length ? '<div style="margin-top:2px;">學系寫的具體能力：' + st.map(escapeHtml).join('；') + '</div>' : '') + '</div>';
+        (st.length ? '<div style="margin-top:2px;">學系寫的具體能力：' + st.map(escapeHtml).join('；') + '</div>' : '') +
+        (function(){ var ev = info.tag.evidence || {}, sg = Object.keys(ev).filter(function(k){ return k.charAt(0) === dm && /【大綱未寫/.test(String(ev[k] || '')); });
+          return sg.length ? '<div style="margin-top:2px;color:#9a5b00;">目前教學計畫表還沒寫到，調味師建議的教法：' + sg.map(function(k){ return escapeHtml(String(ev[k]).replace(/^【大綱未寫・建議】/, '')); }).join('；') + '</div>' : ''; })() + '</div>';
     }).join('') + '<div class="hint" style="margin:4px 0 0;">「至少一項教學活動、作業或評量會用到」以上的能力，請在授課方式與成績評定寫清楚學生實際怎麼做。</div>';
   }
   function coachAgentResultHtml(info){
@@ -4343,28 +4347,36 @@
     var name = document.getElementById('dcName').textContent, meta = document.getElementById('dcMeta').textContent.replace(/ ・ [^・]*$/, '');
     var done = INDICATORS.filter(function(i){ return rec.ratings[i.code] !== undefined; });
     var L = agentFrame({role:'調味師', ask:'學系',
-      goal:'為本課程完成教育部「未來人才AI能力圖像」11 項指標的關聯等級、具體能力表述與教學評量方式；每個 1 級以上的等級，都要能指出大綱（或學系在對話中說明）的依據。',
+      goal:'為本課程完成教育部「未來人才AI能力圖像」11 項指標的關聯等級、具體能力表述與教學評量方式。學系已規劃的等級予以尊重、不改；但要逐項對照大綱：大綱有寫的指出依據，大綱沒寫的提出本課可行的教法建議，交給授課教師與食譜教練寫進教學計畫表。',
       steps:['讀課程大綱，逐句找出與 AI 有關的教學內容、活動、作業與評量（列出原文短句）。', '依下方規則為 11 項指標初判等級。',
         '自我檢核：每個 1 級以上的等級都要對到一句依據；對不到就降為 0，或列入「待確認」。', '若大綱看起來有 AI 活動但寫得不清楚，向學系提問（例如「這門課學生實際會用 AI 做什麼？」）。',
-        '依學系回答修正；依學系說明（而非大綱）給的等級，evidence 開頭寫「依學系說明：」，並在「待確認」提醒請授課教師把它寫進教學計畫表。'],
+        '依學系回答修正；依學系說明（而非大綱）給的等級，evidence 開頭寫「依學系說明：」，並在「待確認」提醒請授課教師把它寫進教學計畫表。',
+        '逐項對照：每個 1 級以上的指標，在 basis 寫「有：大綱原文短句」或「沒寫」。學系的等級與表述不是大綱依據。',
+        '對 3 級以上但大綱沒寫的指標，從下方【AI 教學做法】挑一項貼近本課專業內容的做法，寫成教法建議（學生做什麼、交出什麼、怎麼評），放進 evidence，開頭寫「【大綱未寫・建議】」。'],
       stop:['11 項指標都已判定，且每個 1 級以上的等級都有依據；'],
-      guard:['大綱與學系都沒有說明的 AI 活動，一律不得給分。', '學系已勾選的等級以學系為準、不得更改，只補寫表述與教學評量方式。'],
+      guard:['大綱與學系都沒有說明的 AI 活動，一律不得給分。', '學系已勾選的等級以學系為準、不得更改，只補寫表述與教學評量方式。',
+        '不得把學系的等級或表述當成大綱依據；大綱沒寫就如實標「沒寫」。', '教法建議只是建議，要可在本課實施、不大幅增加負擔；不得寫成大綱已經有的內容。'],
       output:'停止時，先用一兩句話說明結果，然後輸出一個 JSON 程式碼區塊（只有這一個），格式見下方【回傳格式】，並多加兩個欄位："待確認":["…"]（沒有就給空陣列）、"說明":"…"。'});
     L.push('【規則】');
     L.push('1. 原則上依課程大綱判斷；大綱找不到依據、學系也沒有說明的指標一律給 0，不要猜測。');
     L.push('2. 關聯程度 0–5 級：');
     CHEF_RUBRIC.forEach(function(r){ L.push('   ' + r); });
     L.push('3. 等級 1 以上的指標寫「具體能力表述」：學生修完本課程，在這項能力上能做到什麼。句型：能＋運用 AI＋做什麼＋依據什麼查核。一句話，60 字以內。');
-    L.push('4. 等級 3 以上的指標寫「教學與評量方式」：摘要大綱中對應的教學活動、學生產出或評量方式，60 字以內。');
+    L.push('4. 等級 3 以上的指標寫「教學與評量方式」：大綱有寫的，摘要大綱中對應的教學活動、學生產出或評量方式；大綱沒寫的，寫「【大綱未寫・建議】」加教法建議（學生做什麼、交出什麼、怎麼評）。80 字以內。');
+    L.push('4-1. 每個 1 級以上的指標，在 basis 標示大綱依據：「有：大綱原文短句（20 字內）」或「沒寫」。');
     L.push('5. 若本課程完全不涉及 AI，aiInvolved 填 false，其餘留空物件。');
     if(done.length) L.push('6. 學系已勾選以下等級，請以此為準、不要更改，只補寫表述與教學評量方式：' + done.map(function(i){ return i.code + '=' + rec.ratings[i.code]; }).join('、'));
     L.push((done.length ? '7' : '6') + '. 最終 JSON 的格式如下。');
     L.push('');
     L.push('【回傳格式】');
-    L.push('{"aiInvolved":true,"ratings":{"A-1":0,"A-2":0,"B-1":0,"B-2":0,"B-3":0,"C-1":0,"C-2":0,"C-3":0,"D-1":0,"D-2":0,"D-3":0},"stmt":{"A-1":"能…"},"evidence":{"A-1":"…"}}');
+    L.push('{"aiInvolved":true,"ratings":{"A-1":0,"A-2":0,"B-1":0,"B-2":0,"B-3":0,"C-1":0,"C-2":0,"C-3":0,"D-1":0,"D-2":0,"D-3":0},"stmt":{"A-1":"能…"},"evidence":{"A-1":"…"},"basis":{"A-1":"有：…"}}');
     L.push('');
     L.push('【11 項指標（大專校院階段）】');
     INDICATORS.forEach(function(i){ var v = CORE_IV[i.code]; L.push(i.code + ' ' + (v ? v.title + '：' + v.desc : i.label)); });
+    L.push('');
+    L.push('');
+    L.push('【AI 教學做法（教法建議從這裡挑，依本課改寫）】');
+    ['A','B','C','D'].forEach(function(dm){ COACH_PRACTICES[dm].forEach(function(txt, i){ L.push('- ' + txt + (COACH_HOW[dm + i] ? '：' + COACH_HOW[dm + i] : '')); }); });
     L.push('');
     L.push('【課程】' + name + '（' + meta + '）');
     L.push('【課程大綱】' + (off.own ? '（' + DRAFT_YEAR + ' 學年度學系填寫）' : ''));
@@ -4376,7 +4388,7 @@
   }
   function bindChef(code, rec, off){
     var box = document.getElementById('chefBox'), msg = document.getElementById('chefMsg'), pr = document.getElementById('chefPrompt'), pb = document.getElementById('chefPasteBox');
-    box.style.display = 'block'; msg.textContent = ''; msg.className = 'chef-msg';
+    box.style.display = 'block'; msg.textContent = ''; msg.className = 'chef-msg'; var gp0 = document.getElementById('chefGap'); if(gp0) gp0.innerHTML = '';
     if(!document.getElementById('chefAgCard')){ var cd = document.createElement('div'); cd.id = 'chefAgCard'; cd.innerHTML = agentCardHtml('chef'); box.appendChild(cd); } pr.style.display = 'none'; pb.style.display = 'none'; document.getElementById('chefPasteTa').value = '';
     if(!document.getElementById('chefA3')){ var cb0 = document.getElementById('chefCopy'), b30 = document.createElement('button'); b30.type = 'button'; b30.className = 'btn a3-btn'; b30.id = 'chefA3'; b30.textContent = '🤖 3.0：AI 自己查資料起稿'; cb0.parentNode.insertBefore(b30, cb0); }
     var b3 = document.getElementById('chefA3'); b3.style.display = A3.key ? '' : 'none';
@@ -4417,12 +4429,33 @@
         });
       }
       renderSubjectAi(rec); renderDimGroups(rec); renderEvidence(rec); renderRadar(rec); if(typeof updateRatingProgress === 'function') updateRatingProgress(rec);
+      var gapN = renderChefGap(rec, o);
       msg.className = 'chef-msg ok';
       msg.textContent = rec.aiInvolved === false ? '調味師判斷本課程不涉及 AI。請確認後存檔。' :
         '已帶入：等級 ' + nR + ' 項、具體能力表述 ' + nS + ' 則、教學與評量方式 ' + nE + ' 則（已填的內容未覆蓋）。請逐項確認再按「確認標註」。' +
+        (gapN ? ' 有 ' + gapN + ' 項規劃等級大綱還沒寫，下方列出教法建議；存檔後授課教師的食譜教練會看到。' : '') +
         (Array.isArray(o['待確認']) && o['待確認'].length ? ' 調味師提醒待確認：' + o['待確認'].join('；') : '');
       pb.style.display = 'none';
     };
+  }
+  // 調味師落差表：學系規劃等級 vs 大綱依據；大綱沒寫的列出教法建議
+  function renderChefGap(rec, o){
+    var box = document.getElementById('chefGap');
+    if(!box){ box = document.createElement('div'); box.id = 'chefGap'; var m = document.getElementById('chefMsg'); m.parentNode.insertBefore(box, m.nextSibling); }
+    var B = (o && o.basis) || {}, E = (o && o.evidence) || {};
+    var rows = INDICATORS.filter(function(i){ return (rec.ratings[i.code] || 0) >= 1 && B[i.code] !== undefined; }).map(function(i){
+      var b = String(B[i.code] || ''), has = /^有/.test(b), lv = rec.ratings[i.code] || 0;
+      var sug = String(E[i.code] || rec.evidence[i.code] || '');
+      sug = /【大綱未寫/.test(sug) ? sug.replace(/^【大綱未寫・建議】/, '') : '';
+      return {code:i.code, lv:lv, has:has, b:has ? b.replace(/^有[：:]?/, '') : '大綱沒寫', sug:has ? '' : (sug || (lv >= 3 ? '（請授課教師以食譜教練設計）' : '—'))};
+    });
+    if(!rows.length){ box.innerHTML = ''; return 0; }
+    var gap = rows.filter(function(r){ return !r.has; });
+    box.innerHTML = '<div class="coach-lab" style="margin-top:8px;">規劃等級 × 大綱依據' + (gap.length ? '（' + gap.length + ' 項大綱還沒寫）' : '（都有依據）') + '</div>' +
+      '<div class="table-wrap" style="max-height:none;"><table class="ts-tbl"><thead><tr><th>指標</th><th>學系規劃</th><th>大綱依據</th><th>要補的教法（建議）</th></tr></thead><tbody>' +
+      rows.map(function(r){ return '<tr><td>' + r.code + '</td><td style="text-align:center;">' + r.lv + '</td><td class="' + (r.has ? 'nu-on' : 'nu-off') + '">' + escapeHtml(r.b) + '</td><td>' + escapeHtml(r.sug) + '</td></tr>'; }).join('') +
+      '</tbody></table></div>';
+    return gap.length;
   }
   function saveSubject(code, rec, status){
     if(!authToken()){ needLogin('tag'); return; }
