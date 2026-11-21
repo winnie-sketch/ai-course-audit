@@ -127,6 +127,23 @@
   .hm-tools .btn{width:auto;}
   .hm-empty{background:var(--surface-raised);border:1px dashed var(--border);border-radius:12px;padding:18px;color:var(--ink-2);font-size:14px;}
   .hm-foot{margin-top:28px;}
+  .hm-crumb label{display:flex;align-items:center;gap:6px;font-weight:700;color:var(--ink);}
+  .hm-crumb select{font:inherit;font-size:13.5px;padding:5px 8px;border:1px solid var(--border);border-radius:8px;background:var(--surface-raised);color:var(--ink);}
+  .hm-crumb{gap:12px;} .hm-path{margin-left:auto;color:var(--ink-2);font-size:13px;}
+  .db-card{background:var(--surface-raised);border:1px solid var(--border);border-radius:14px;padding:14px 16px;min-width:0;}
+  .db-card h3{margin:0 0 6px;font-size:14.5px;color:var(--ink);font-family:var(--font-body);}
+  .db-kpi{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:10px;margin:0 0 12px;}
+  .db-kpi1 .k{font-size:12.5px;color:var(--ink-2);} .db-kpi1 .v{font-size:26px;font-weight:800;color:var(--ink);margin-top:2px;white-space:nowrap;} .db-kpi1 .v small{font-size:13px;color:var(--muted);font-weight:600;} .db-kpi1 .d{font-size:12px;color:var(--ink-2);margin-top:2px;line-height:1.4;}
+  .db-row2{display:grid;grid-template-columns:1.2fr 1fr;gap:12px;margin:0 0 12px;} .db-row3{display:grid;grid-template-columns:1.6fr 1fr;gap:12px;margin:0 0 16px;} .db-side{display:grid;gap:12px;align-content:start;}
+  .db-dims{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;text-align:center;font-size:12.5px;color:var(--ink);} .db-dims .d{font-size:11.5px;color:var(--ink-2);}
+  .db-br{display:grid;grid-template-columns:minmax(90px,30%) 1fr 64px;gap:8px;align-items:center;font-size:12.5px;margin:7px 0;color:var(--ink);} .db-br[role=button]{cursor:pointer;} .db-br[role=button]:hover span{color:var(--accent);text-decoration:underline;}
+  .db-br i{height:11px;background:var(--border);border-radius:6px;overflow:hidden;} .db-br u{display:block;height:100%;background:var(--accent);} .db-br em{font-style:normal;color:var(--ink-2);text-align:right;font-size:11.5px;}
+  .db-heat{border-collapse:separate;border-spacing:3px;width:100%;font-size:11.5px;} .db-heat td{text-align:center;border-radius:5px;height:24px;color:var(--ink);font-weight:600;} .db-heat th{font-weight:600;color:var(--ink);} .db-heat tbody th{text-align:left;white-space:nowrap;padding-right:6px;}
+  .db-click{cursor:pointer;} .db-click:hover th{color:var(--accent);text-decoration:underline;}
+  .db-gap{margin:0;padding-left:18px;font-size:12.5px;color:var(--ink);} .db-gap li{margin:6px 0;} .db-gap .cv-pill{margin-right:6px;} .db-gap b{margin-left:6px;}
+  .db-cmp{display:grid;grid-template-columns:20px 1fr 92px;gap:6px 8px;align-items:center;font-size:12px;color:var(--ink-2);} .db-cmp i{display:block;height:8px;border-radius:4px;margin:2px 0;min-width:2px;}
+  @media (max-width:860px){ .db-kpi{grid-template-columns:repeat(2,minmax(0,1fr));} .db-row2, .db-row3{grid-template-columns:1fr;} .db-dims{grid-template-columns:repeat(2,1fr);} }
+
   .cv-tbl, .gap-tbl{border-collapse:collapse;width:100%;font-size:12.5px;background:var(--surface-raised);}
   .cv-tbl th, .cv-tbl td, .gap-tbl th, .gap-tbl td{border:1px solid var(--border);padding:5px 7px;text-align:center;color:var(--ink);}
   .cv-tbl tbody th{text-align:left;white-space:nowrap;font-weight:600;}
@@ -5105,77 +5122,108 @@
     });
     return h + '</tbody></table></div></div>';
   }
+  function hmWithYear(y, fn){ var o = hmState.year; hmState.year = y; hmCourseIdx.k = null; try{ return fn(); } finally { hmState.year = o; hmCourseIdx.k = null; } }
+  function hmSem(tracks){
+    var sems = [], by = {}, seen = {};
+    tracks.forEach(function(tr){ (planRows(tr, hmState.year) || []).forEach(function(r){
+      if(r['類別'] === '校必') return;
+      var code = r['學科代碼']; if(!code || seen[code]) return; seen[code] = 1;
+      var k = (Number(r['年級']) || 1) * 2 + (r['學期'] === '下' ? 1 : 0);
+      var b = by[k] = by[k] || {k:k, total:0, tagged:0, mx:{}};
+      b.total++; var t = hmTags(code); if(!t) return; b.tagged++;
+      if(t.ai === true) INDICATORS.forEach(function(i){ b.mx[i.code] = Math.max(b.mx[i.code] || 0, Number((t.ratings || {})[i.code]) || 0); });
+    }); });
+    Object.keys(by).sort(function(a, b){ return a - b; }).forEach(function(k){ sems.push(by[k]); });
+    return sems;
+  }
+  function hmSemName(k){ return HM_GN[Math.floor(k / 2)] + (k % 2 ? '下' : '上'); }
+  function hmAlpha(dm, v){ return 'background:color-mix(in srgb, ' + dimColor(dm) + ' ' + Math.round(6 + v * 0.9) + '%, transparent);' + (v >= 55 ? 'color:#fff;' : ''); }
+  function hmPct(st, code){ return st.tagged ? Math.round(st.ind[code] / st.tagged * 100) : 0; }
   function renderHomeMap(){
     if(VIEW) return;
     var body = document.getElementById('hmBody'), crumb = document.getElementById('hmCrumb');
     if(!body) return;
     if(planLoadState !== 'ok' || tagsLoadState !== 'ok'){ body.innerHTML = '<div class="hint">' + (planLoadState === 'error' || tagsLoadState === 'error' ? '資料讀取失敗，請重新整理頁面。' : '資料讀取中…') + '</div>'; crumb.innerHTML = ''; return; }
     var T = hmTree(), S = hmState;
+    if(S.college && !T.tree[S.college]){ S.college = ''; S.dept = ''; }
+    if(S.dept && !(T.tree[S.college] || {depts:{}}).depts[S.dept]) S.dept = '';
     document.getElementById('hmYear').innerHTML = [DRAFT_BASE, DRAFT_YEAR].map(function(y){ return '<button type="button" data-hmyear="' + y + '" class="' + (S.year === y ? 'on' : '') + '">' + y + ' 學年度</button>'; }).join('');
     Array.prototype.forEach.call(document.querySelectorAll('[data-hmyear]'), function(b){ b.onclick = function(){ S.year = b.dataset.hmyear; hmTry = 0; renderHomeMap(); }; });
-    var pend = 0, allT = [];
-    if(S.year === DRAFT_YEAR){
-      T.order.forEach(function(c){ Object.keys(T.tree[c].depts).forEach(function(d){ allT = allT.concat(T.tree[c].depts[d]); }); });
-      allT.forEach(function(t){ if(PLAN_DATA.rows.some(function(r){ return r['系所'] === t && r['入學學年度'] === DRAFT_YEAR; })) return; var k = DRAFT_YEAR + '||' + t; if(!DRAFTS[k]){ pend++; loadDraft(t); } });
+    // 116 需逐系讀取課程計畫表（草稿）
+    var allT = [], pend = 0;
+    T.order.forEach(function(c){ Object.keys(T.tree[c].depts).forEach(function(d){ allT = allT.concat(T.tree[c].depts[d]); }); });
+    allT.forEach(function(t){ if(PLAN_DATA.rows.some(function(r){ return r['系所'] === t && r['入學學年度'] === DRAFT_YEAR; })) return; if(!DRAFTS[DRAFT_YEAR + '||' + t]){ pend++; loadDraft(t); } });
+    // 篩選列
+    crumb.innerHTML = '<label>學院 <select id="hmSelCol"><option value="">全校</option>' + T.order.map(function(c){ return '<option' + (c === S.college ? ' selected' : '') + '>' + escapeHtml(c) + '</option>'; }).join('') + '</select></label>' +
+      (S.college ? '<label>學系 <select id="hmSelDept"><option value="">全院</option>' + Object.keys(T.tree[S.college].depts).sort().map(function(d){ return '<option' + (d === S.dept ? ' selected' : '') + '>' + escapeHtml(d) + '</option>'; }).join('') + '</select></label>' : '') +
+      '<span class="hm-path">' + ['全校'].concat(S.college ? [S.college] : [], S.dept ? [S.dept] : []).map(escapeHtml).join(' ▸ ') + '</span>';
+    document.getElementById('hmSelCol').onchange = function(e){ S.college = e.target.value; S.dept = ''; renderHomeMap(); };
+    var sd = document.getElementById('hmSelDept'); if(sd) sd.onchange = function(e){ S.dept = e.target.value; S.track = ''; hmTry = 0; renderHomeMap(); };
+    // 範圍
+    var lvl = S.dept ? 'dept' : (S.college ? 'col' : 'all'), tracks = [], kids = [];
+    if(lvl === 'all'){ tracks = allT; kids = T.order.map(function(c){ var tr = []; Object.keys(T.tree[c].depts).forEach(function(d){ tr = tr.concat(T.tree[c].depts[d]); }); return {name:c, tracks:tr, attr:'data-hmcol'}; }); }
+    else if(lvl === 'col'){ Object.keys(T.tree[S.college].depts).sort().forEach(function(d){ var tr = T.tree[S.college].depts[d]; tracks = tracks.concat(tr); kids.push({name:d, tracks:tr, attr:'data-hmdept'}); }); }
+    else { tracks = T.tree[S.college].depts[S.dept]; }
+    var scopeName = lvl === 'all' ? '全校' : (lvl === 'col' ? S.college : S.dept);
+    var st = hmStats(tracks);
+    kids.forEach(function(k){ k.st = hmStats(k.tracks); });
+    var h = pend && S.year === DRAFT_YEAR ? '<div class="hint" style="margin-bottom:10px;">' + DRAFT_YEAR + ' 學年度課程計畫表讀取中（還有 ' + pend + ' 個系組），數字會陸續更新…</div>' : '';
+    if(!st.total){ body.innerHTML = h + '<div class="hm-empty">' + escapeHtml(scopeName) + ' 尚無 ' + S.year + ' 學年度課程計畫表資料。</div>'; return; }
+    // KPI
+    var srt = INDICATORS.slice().sort(function(a, b){ return hmPct(st, b.code) - hmPct(st, a.code); });
+    var cv = lvl === 'dept' ? hmCover(tracks) : null;
+    var kpi = function(k, v, d, col){ return '<div class="db-card db-kpi1"><div class="k">' + k + '</div><div class="v"' + (col ? ' style="color:' + col + '"' : '') + '>' + v + '</div><div class="d">' + d + '</div></div>'; };
+    h += '<div class="db-kpi">' +
+      kpi('已盤點課程', st.tagged + '<small>／' + st.total + '</small>', '盤點率 ' + Math.round(st.tagged / st.total * 100) + '%') +
+      kpi('涉及 AI 課程', st.ai, st.tagged ? '占已盤點 ' + Math.round(st.ai / st.tagged * 100) + '%' : '尚未盤點') +
+      (lvl === 'all' ? kpi('學院／學系', T.order.length + '<small>／</small>' + T.order.reduce(function(n, c){ return n + Object.keys(T.tree[c].depts).length; }, 0), '有課程計畫表者') :
+        lvl === 'col' ? kpi('學系／學程', kids.length, escapeHtml(S.college)) :
+        kpi('必修涵蓋', INDICATORS.filter(function(i){ return cv[i.code].st === 'ok'; }).length + '<small>／11</small>', '11 項核心能力')) +
+      (st.tagged ? kpi('最強項', srt[0].code + ' ' + hmPct(st, srt[0].code) + '%', escapeHtml(srt[0].label), dimColor(srt[0].dim)) +
+        kpi('待補強', srt[10].code + ' ' + hmPct(st, srt[10].code) + '%', escapeHtml(srt[10].label), dimColor(srt[10].dim)) : kpi('最強項', '—', '尚未盤點') + kpi('待補強', '—', '尚未盤點')) + '</div>';
+    // A～D 水位 + 盤點進度
+    var prog = lvl === 'dept' ? hmSem(tracks).map(function(b){ return {name:hmSemName(b.k), t:b.tagged, n:b.total}; }) : kids.map(function(k){ return {name:k.name, t:k.st.tagged, n:k.st.total, attr:k.attr}; });
+    h += '<div class="db-row2"><div class="db-card"><h3>A～D 能力水位</h3>' + hmNote() + '<div class="db-dims">' + ['A','B','C','D'].map(function(dm){
+        return '<div>' + hmPie(dm, st.w[dm], 'big') + '<div><b style="color:' + dimColor(dm) + '">' + dm + '</b> ' + DIM_NAME[dm] + '</div><div class="d">' + st.hi[dm] + '／' + st.tagged + ' 門達 3 級</div></div>'; }).join('') + '</div></div>' +
+      '<div class="db-card"><h3>' + (lvl === 'dept' ? '各學期盤點進度' : (lvl === 'all' ? '各學院' : '各學系') + '盤點進度') + '</h3>' + prog.map(function(p){
+        return '<div class="db-br"' + (p.attr ? ' ' + p.attr + '="' + escapeHtml(p.name) + '" role="button" tabindex="0"' : '') + '><span>' + escapeHtml(p.name) + '</span><i><u style="width:' + (p.n ? Math.round(p.t / p.n * 100) : 0) + '%"></u></i><em>' + p.t + '／' + p.n + '</em></div>'; }).join('') + '</div></div>';
+    // 11 項熱力表
+    var heatRows = lvl === 'dept' ? hmSem(tracks).map(function(b){ return {name:hmSemName(b.k), cells:INDICATORS.map(function(i){ var v = b.mx[i.code] || 0; return {dm:i.dim, a:v * 20, t:v ? v : ''}; })}; }) :
+      kids.map(function(k){ return {name:k.name, attr:k.attr, cells:INDICATORS.map(function(i){ var p = hmPct(k.st, i.code); return {dm:i.dim, a:p, t:k.st.tagged ? p : '—'}; })}; });
+    var heat = '<div class="table-wrap" style="max-height:none;"><table class="db-heat"><thead><tr><th></th>' + INDICATORS.map(function(i){ return '<th title="' + escapeHtml(i.label) + '" style="color:' + dimColor(i.dim) + '">' + i.code + '</th>'; }).join('') + '</tr></thead><tbody>' +
+      heatRows.map(function(r){ return '<tr' + (r.attr ? ' ' + r.attr + '="' + escapeHtml(r.name) + '" class="db-click"' : '') + '><th>' + escapeHtml(r.name) + '</th>' + r.cells.map(function(c){ return '<td style="' + hmAlpha(c.dm, c.a) + '">' + c.t + '</td>'; }).join('') + '</tr>'; }).join('') + '</tbody></table></div>';
+    var heatNote = lvl === 'dept' ? '各學期課程在該項的最高等級（0–5），看能力是否循序往上。' : '數字＝該項能力達 3 級以上的課程占已盤點課程的百分比；點列可往下看。';
+    // 缺口
+    var gapHtml = '';
+    if(lvl !== 'dept'){
+      var deps = []; if(lvl === 'all') T.order.forEach(function(c){ Object.keys(T.tree[c].depts).forEach(function(d){ deps.push(T.tree[c].depts[d]); }); }); else kids.forEach(function(k){ deps.push(k.tracks); });
+      var nAll = deps.length; deps = deps.filter(function(tr){ return hmStats(tr).tagged > 0; });
+      var cvs = deps.map(function(tr){ return hmCover(tr); });
+      var rank = INDICATORS.map(function(i){ return {i:i, n:cvs.filter(function(c){ return c[i.code].st !== 'ok'; }).length}; }).sort(function(a, b){ return b.n - a.n; }).slice(0, 5);
+      gapHtml = '<div class="db-card"><h3>能力缺口排行</h3><p class="hm-note">必修（含校必修）沒有任何課達 3 級的學系數（只算已盤點的 ' + deps.length + '／' + nAll + ' 個學系）。</p>' + (deps.length ? '' : '<div class="hint">尚無已盤點的學系。</div>') + '<ol class="db-gap">' + (deps.length ? rank : []).map(function(x){
+        return '<li><span class="cv-pill cv-none">' + x.i.code + '</span>' + escapeHtml(x.i.label) + '<b>' + x.n + ' 系</b></li>'; }).join('') + '</ol></div>';
     }
-    if(S.college && !T.tree[S.college]){ S.college = ''; S.dept = ''; }
-    var cr = [S.college || S.dept ? '<button type="button" data-hm="top">全校</button>' : '<b>全校</b>'];
-    if(S.college) cr.push(S.dept ? '<button type="button" data-hm="col">' + escapeHtml(S.college) + '</button>' : '<b>' + escapeHtml(S.college) + '</b>');
-    if(S.dept) cr.push('<b>' + escapeHtml(S.dept) + '</b>');
-    crumb.innerHTML = cr.join(' ▸ ');
-    var h = pend ? '<div class="hint" style="margin-bottom:10px;">' + DRAFT_YEAR + ' 學年度課程計畫表讀取中（還有 ' + pend + ' 個系組），數字會陸續更新…</div>' : '';
-    if(!S.college){
-      var all = []; T.order.forEach(function(c){ Object.keys(T.tree[c].depts).forEach(function(d){ all = all.concat(T.tree[c].depts[d]); }); });
-      var st = hmStats(all);
-      h += '<div class="hm-sec"><h2>全校 AI 能力水位</h2>' + hmNote() + hmDimsHtml(st) +
-        '<div class="hm-kpi"><span>學院 <b>' + T.order.length + '</b></span><span>學系 <b>' + T.order.reduce(function(n, c){ return n + Object.keys(T.tree[c].depts).length; }, 0) + '</b></span><span>已盤點課程 <b>' + st.tagged + '</b>／' + st.total + '</span><span>涉及 AI <b>' + st.ai + '</b> 門</span></div></div>' + hmInfo(st, '全校') +
-        '<div class="hm-sec"><h2>院系能力涵蓋（避免院系配置差異造成能力落差）</h2>' + hmCvTable(T.order.map(function(c){ var tr = []; Object.keys(T.tree[c].depts).forEach(function(d){ tr = tr.concat(T.tree[c].depts[d]); }); return {name:c, cv:hmCover(tr)}; }), '學院') + '</div>';
-      h += '<div class="hm-sec"><h2>各學院</h2><p class="hm-note">點學院看各系。<a href="archipelago3d.html" target="_blank" rel="noopener">切換 3D 學院群島 ↗</a></p>';
-      CAMPUS_ORDER.forEach(function(cp){
-        var cs = T.order.filter(function(c){ return T.tree[c].campus === cp; }); if(!cs.length) return;
-        h += '<div class="hm-campus">' + escapeHtml(cp) + '</div><div class="hm-grid">' + cs.map(function(c){
-          var tr = []; Object.keys(T.tree[c].depts).forEach(function(d){ tr = tr.concat(T.tree[c].depts[d]); });
-          return '<button type="button" class="hm-card" data-hmcol="' + escapeHtml(c) + '"><div class="nm">' + escapeHtml(c) + '</div><div class="sub">' + Object.keys(T.tree[c].depts).length + ' 個學系／學程</div>' + hmMini(hmStats(tr)) + '</button>';
-        }).join('') + '</div>';
-      });
-      h += '</div>';
-    } else if(!S.dept){
-      var C = T.tree[S.college], ds = Object.keys(C.depts).sort(), tr2 = [];
-      ds.forEach(function(d){ tr2 = tr2.concat(C.depts[d]); });
-      var st2 = hmStats(tr2), req = hmStats(tr2, '院必');
-      h += '<div class="hm-sec"><h2>' + escapeHtml(S.college) + ' AI 能力水位</h2>' + hmNote() + hmDimsHtml(st2) + '</div>' + hmInfo(st2, S.college) +
-        '<div class="hm-sec"><h2>各系能力涵蓋</h2>' + hmCvTable(ds.map(function(d){ return {name:d, cv:hmCover(C.depts[d])}; }), '學系') + '</div>';
-      var rq = {}, rqo = [];
-      req.list.forEach(function(x){
-        var k = x.name.replace(/\s/g, '').replace(/（/g, '(').replace(/）/g, ')');
-        if(!rq[k]){ rq[k] = {name:x.name, dd:null}; rqo.push(k); }
-        if(x.dd){ var m = rq[k].dd = rq[k].dd || {A:0, B:0, C:0, D:0}; ['A','B','C','D'].forEach(function(dm){ m[dm] = Math.max(m[dm], x.dd[dm]); }); }
-      });
-      if(rqo.length) h += '<div class="hm-sec"><h2>院必修</h2><p class="hm-note">彩色字母＝該面向達 3 級以上（同名課程合併，取各系標註的最高等級）。</p><div class="hm-req">' + rqo.map(function(k){ return rq[k]; }).map(function(x){
-        var lt = x.dd ? ['A','B','C','D'].filter(function(dm){ return x.dd[dm] >= 3; }).map(function(dm){ return '<em style="color:' + dimColor(dm) + '">' + dm + '</em>'; }).join('') : '<em style="color:var(--muted);font-weight:400;">未盤點</em>';
-        if(lt === '') lt = '<em style="color:var(--muted);font-weight:400;">未達 3 級</em>';
-        return '<span>' + escapeHtml(x.name) + lt + '</span>'; }).join('') + '</div></div>';
-      h += '<div class="hm-sec"><h2>各學系</h2><p class="hm-note">點學系看該系的 AI 賦能課程地圖。</p><div class="hm-grid">' + ds.map(function(d){
-        var cp = COMPS[d], cn = cp ? cp.filter(function(a){ return a && a.name; }).length : null;
-        if(!cp) loadComps(d, renderHomeMap);
-        return '<button type="button" class="hm-card" data-hmdept="' + escapeHtml(d) + '"><div class="nm">' + escapeHtml(d) + '</div><div class="sub">' +
-          (hmNoPlan(C.depts[d]) ? '尚未建立 ' + DRAFT_YEAR + ' 課程計畫表・' : '') + (cn === null ? '專業 AI 能力讀取中…' : (cn ? '專業 AI 能力 ' + cn + ' 項' : '尚未建立專業 AI 能力')) + '</div>' + hmMini(hmStats(C.depts[d])) + '</button>';
-      }).join('') + '</div></div>';
-    } else {
-      var trs = (T.tree[S.college] || {depts:{}}).depts[S.dept] || [];
+    // 115 → 116
+    var s115 = hmWithYear(DRAFT_BASE, function(){ return hmStats(tracks); }), s116 = hmWithYear(DRAFT_YEAR, function(){ return hmStats(tracks); });
+    var cmp = '<div class="db-card"><h3>' + DRAFT_BASE + ' → ' + DRAFT_YEAR + ' 變化</h3><div class="db-cmp">' + ['A','B','C','D'].map(function(dm){
+      return '<b style="color:' + dimColor(dm) + '">' + dm + '</b><div><i style="background:' + dimColor(dm) + ';opacity:.35;width:' + s115.w[dm] + '%"></i><i style="background:' + dimColor(dm) + ';width:' + s116.w[dm] + '%"></i></div><span>' + s115.w[dm] + '% → ' + s116.w[dm] + '%</span>'; }).join('') +
+      '</div><p class="hm-note" style="margin-top:6px;">淺色 ' + DRAFT_BASE + '、深色 ' + DRAFT_YEAR + '。已盤點：' + s115.tagged + ' 門 → ' + s116.tagged + ' 門' + (s116.tagged < s115.tagged ? '（' + DRAFT_YEAR + ' 標註尚未完整，數字偏低）' : '') + '</p></div>';
+    h += '<div class="db-row3"><div class="db-card"><h3>11 項核心能力 × ' + (lvl === 'dept' ? '學期' : (lvl === 'all' ? '學院' : '學系')) + '</h3><p class="hm-note">' + heatNote + '</p>' + heat + '</div><div class="db-side">' + gapHtml + cmp + '</div></div>';
+    if(lvl === 'dept'){
+      h += hmGapHtml(T, S.dept, S.college, tracks);
+      var trs = tracks;
       if(trs.indexOf(S.track) < 0) S.track = trs[0] || '';
-      var st3 = hmStats(trs);
-      h += '<details class="hm-det" open><summary>' + escapeHtml(S.dept) + '｜11 項 AI 核心能力（點此收合）</summary>' + hmInfo(st3, S.dept) + '</details>' + hmGapHtml(T, S.dept, S.college, trs);
-      h += '<div class="hm-sec"><h2>' + escapeHtml(S.dept) + ' AI 賦能課程地圖</h2>' + hmMini(st3) + '</div>';
+      h += '<div class="hm-sec"><h2>' + escapeHtml(S.dept) + ' AI 賦能課程地圖</h2></div>';
       if(trs.length > 1) h += '<div class="hm-tools">' + trs.map(function(t){ return '<button type="button" class="btn' + (t === S.track ? ' primary' : '') + '" data-hmtrack="' + escapeHtml(t) + '">' + escapeHtml(t.replace(S.dept, '') || t) + '</button>'; }).join('') + '</div>';
       h += S.year === DRAFT_YEAR ? '<div id="hmMapBox"><div class="hint">地圖產生中…</div></div>' : '<div class="hm-empty">AI 賦能課程地圖以 ' + DRAFT_YEAR + ' 學年度課程計畫表產生，請切換到上方「' + DRAFT_YEAR + ' 學年度」。</div>';
+    } else if(lvl === 'all'){
+      h += '<p class="hm-note" style="margin-top:4px;"><a href="archipelago3d.html" target="_blank" rel="noopener">切換 3D 學院群島 ↗</a></p>';
     }
     body.innerHTML = h;
-    Array.prototype.forEach.call(document.querySelectorAll('[data-hm]'), function(b){ b.onclick = function(){ if(b.dataset.hm === 'top'){ S.college = ''; } S.dept = ''; renderHomeMap(); window.scrollTo(0, 0); }; });
     Array.prototype.forEach.call(body.querySelectorAll('[data-hmcol]'), function(b){ b.onclick = function(){ S.college = b.dataset.hmcol; S.dept = ''; renderHomeMap(); window.scrollTo(0, 0); }; });
     Array.prototype.forEach.call(body.querySelectorAll('[data-hmdept]'), function(b){ b.onclick = function(){ S.dept = b.dataset.hmdept; S.track = ''; hmTry = 0; renderHomeMap(); window.scrollTo(0, 0); }; });
     Array.prototype.forEach.call(body.querySelectorAll('[data-hmtrack]'), function(b){ b.onclick = function(){ S.track = b.dataset.hmtrack; hmTry = 0; renderHomeMap(); }; });
-    if(S.dept && S.year === DRAFT_YEAR) hmLoadMap();
+    if(lvl === 'dept' && S.year === DRAFT_YEAR) hmLoadMap();
   }
   function hmLoadMap(){
     clearTimeout(hmTimer);
