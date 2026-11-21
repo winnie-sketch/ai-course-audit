@@ -87,6 +87,7 @@
   #cmModal .cm-top .btn{width:auto !important;flex:0 0 auto;margin:0 !important;}
   #cmModal iframe{flex:1;width:100%;border:0;background:var(--page);border-radius:0 0 10px 10px;}
   html.home-mode #homeView{display:block;max-width:1120px;margin:0 auto;padding:32px 20px 48px;}
+  #hmYear{margin-top:16px;}
   .hm-crumb{display:flex;flex-wrap:wrap;gap:6px;align-items:center;font-size:14px;margin:14px 0 16px;color:var(--ink-2);}
   .hm-crumb button{font:inherit;background:none;border:none;padding:2px 4px;color:var(--accent);cursor:pointer;font-weight:700;}
   .hm-crumb b{color:var(--ink);}
@@ -716,6 +717,7 @@
     <section id="homeView">
       <h1>實踐大學 AI 賦能課程地圖</h1>
       <p class="hv-sub">從全校、學院到學系，看課程如何培養未來人才的 AI 能力。</p>
+      <div class="dr-ytabs" id="hmYear"></div>
       <div class="hm-crumb" id="hmCrumb"></div>
       <div id="hmBody"><div class="hint">資料讀取中…</div></div>
       <div class="hm-foot"><button type="button" id="hvFull">全校儀表板與完整功能（教務處）</button></div>
@@ -4351,6 +4353,7 @@
     var q = 'type=draft&year=' + DRAFT_YEAR + '&dept=' + encodeURIComponent(track);
     var ok = function(d){ draftLoading[key] = false; var x = d && d[key]; DRAFTS[key] = x && x.data ? {status:x.status, data:x.data, updatedAt:x.updatedAt, editor:x.editor} : {none:true};
       renderDraftCard();
+      hmSoon();
       if(deptTab === 'coach') setTimeout(renderCoach, 0);
       if(typeof renderNotifyCard === 'function') renderNotifyCard();
       if(x && x.data && currentDept && isPlanMode()){
@@ -4359,7 +4362,7 @@
         if(deptTab === 'comp') renderCompCard();
         if(deptTab === 'ind'){ renderIndustryJobs(); renderIndustryGap(); }
       } };
-    var fail = function(){ draftLoading[key] = false; DRAFTS[key] = {error:true}; renderDraftCard(); };
+    var fail = function(){ draftLoading[key] = false; DRAFTS[key] = {error:true}; renderDraftCard(); hmSoon(); };
     fetch(WEBAPP_URL + (WEBAPP_URL.indexOf('?') < 0 ? '?' : '&') + q, {credentials:'omit'})
       .then(function(r){ return r.text(); }).then(function(t){ ok(JSON.parse(t)); }).catch(function(){ jsonp(q, ok, fail, 30000); });
   }
@@ -4952,8 +4955,9 @@
   }
   document.addEventListener('click', function(e){ if(e.target && e.target.id === 'cmOpen') openCareerMap(); });
   /* ---------- 首頁：校、院、系 AI 賦能課程地圖 ---------- */
-  var hmState = {college:'', dept:'', track:''}, hmTry = 0, hmTimer = null;
-  function hmTags(code){ var t = (TAGS_BY_YEAR[DRAFT_YEAR] || {})[code] || (TAGS_BY_YEAR[DRAFT_BASE] || {})[code]; return t && (t.ai === true || t.ai === false) ? t : null; }
+  var hmState = {college:'', dept:'', track:'', year:DRAFT_BASE}, hmTry = 0, hmTimer = null, hmSoonT = null;
+  function hmSoon(){ if(VIEW) return; clearTimeout(hmSoonT); hmSoonT = setTimeout(renderHomeMap, 300); }
+  function hmTags(code){ var t = (TAGS_BY_YEAR[hmState.year] || {})[code]; return t && (t.ai === true || t.ai === false) ? t : null; }
   function hmDims(t){ var o = {}; ['A','B','C','D'].forEach(function(dm){ o[dm] = t.ai === false ? 0 : INDICATORS.filter(function(i){ return i.dim === dm; }).reduce(function(m, i){ return Math.max(m, Number((t.ratings || {})[i.code]) || 0); }, 0); }); return o; }
   function hmTree(){
     var y = defaultYear(), tree = {}, order = [];
@@ -4975,8 +4979,8 @@
     var seen = {}, total = 0, tagged = 0, ai = 0, hi = {A:0, B:0, C:0, D:0}, list = [], ind = {}, first = {};
     INDICATORS.forEach(function(i){ ind[i.code] = 0; });
     tracks.forEach(function(tr){
-      PLAN_DATA.rows.forEach(function(r){
-        if(r['系所'] !== tr || r['入學學年度'] !== DRAFT_BASE || r['類別'] === '校必') return;
+      (planRows(tr, hmState.year) || []).forEach(function(r){
+        if(r['類別'] === '校必') return;
         if(catOnly && r['類別'] !== catOnly) return;
         var code = r['學科代碼']; if(!code || seen[code]) return; seen[code] = 1; total++;
         var t = hmTags(code), dd = t ? hmDims(t) : null;
@@ -5012,7 +5016,8 @@
   }
   function hmMini(st){ return '<div class="hm-mini">' + ['A','B','C','D'].map(function(dm){ return '<i>' + hmPie(dm, st.w[dm], 'sm') + dm + '</i>'; }).join('') + '<span style="margin-left:auto;">已盤點 ' + st.tagged + '／' + st.total + '</span></div>' +
     '<div class="hm-bar"><u style="width:' + (st.total ? Math.round(st.tagged / st.total * 100) : 0) + '%"></u></div>'; }
-  function hmNote(){ return '<p class="hm-note">水位＝該面向最高等級達 3 以上的課程 ÷ 已盤點課程（依 ' + DRAFT_BASE + ' 學年度課程計畫表，不含校必修；' + DRAFT_YEAR + ' 有標註者以 ' + DRAFT_YEAR + ' 為準）。</p>'; }
+  function hmNote(){ var y = hmState.year; return '<p class="hm-note">水位＝該面向最高等級達 3 以上的課程 ÷ 已盤點課程。依 ' + y + ' 學年度課程計畫表' + (y === DRAFT_YEAR ? '（各系調整中的版本）' : '') + '，不含校必修；只採計 ' + y + ' 學年度的標註，不與其他學年度累計。</p>'; }
+  function hmNoPlan(tracks){ return hmState.year === DRAFT_YEAR && tracks.every(function(t){ var d = DRAFTS[DRAFT_YEAR + '||' + t]; return !planRows(t, DRAFT_YEAR).length && d && !draftLoading[DRAFT_YEAR + '||' + t]; }); }
   var HM_ICON = {A:'📚', B:'⚖️', C:'🧩', D:'💡'}, HM_GN = ['', '一', '二', '三', '四', '五', '六'];
   function hmInfo(st, title){
     if(!st.tagged) return '<div class="hm-sec"><h2>11 項 AI 核心能力</h2><div class="hm-empty">尚未盤點，暫無資料。</div></div>';
@@ -5038,12 +5043,19 @@
     if(!body) return;
     if(planLoadState !== 'ok' || tagsLoadState !== 'ok'){ body.innerHTML = '<div class="hint">' + (planLoadState === 'error' || tagsLoadState === 'error' ? '資料讀取失敗，請重新整理頁面。' : '資料讀取中…') + '</div>'; crumb.innerHTML = ''; return; }
     var T = hmTree(), S = hmState;
+    document.getElementById('hmYear').innerHTML = [DRAFT_BASE, DRAFT_YEAR].map(function(y){ return '<button type="button" data-hmyear="' + y + '" class="' + (S.year === y ? 'on' : '') + '">' + y + ' 學年度</button>'; }).join('');
+    Array.prototype.forEach.call(document.querySelectorAll('[data-hmyear]'), function(b){ b.onclick = function(){ S.year = b.dataset.hmyear; hmTry = 0; renderHomeMap(); }; });
+    var pend = 0, allT = [];
+    if(S.year === DRAFT_YEAR){
+      T.order.forEach(function(c){ Object.keys(T.tree[c].depts).forEach(function(d){ allT = allT.concat(T.tree[c].depts[d]); }); });
+      allT.forEach(function(t){ if(PLAN_DATA.rows.some(function(r){ return r['系所'] === t && r['入學學年度'] === DRAFT_YEAR; })) return; var k = DRAFT_YEAR + '||' + t; if(!DRAFTS[k]){ pend++; loadDraft(t); } });
+    }
     if(S.college && !T.tree[S.college]){ S.college = ''; S.dept = ''; }
     var cr = [S.college || S.dept ? '<button type="button" data-hm="top">全校</button>' : '<b>全校</b>'];
     if(S.college) cr.push(S.dept ? '<button type="button" data-hm="col">' + escapeHtml(S.college) + '</button>' : '<b>' + escapeHtml(S.college) + '</b>');
     if(S.dept) cr.push('<b>' + escapeHtml(S.dept) + '</b>');
     crumb.innerHTML = cr.join(' ▸ ');
-    var h = '';
+    var h = pend ? '<div class="hint" style="margin-bottom:10px;">' + DRAFT_YEAR + ' 學年度課程計畫表讀取中（還有 ' + pend + ' 個系組），數字會陸續更新…</div>' : '';
     if(!S.college){
       var all = []; T.order.forEach(function(c){ Object.keys(T.tree[c].depts).forEach(function(d){ all = all.concat(T.tree[c].depts[d]); }); });
       var st = hmStats(all);
@@ -5077,7 +5089,7 @@
         var cp = COMPS[d], cn = cp ? cp.filter(function(a){ return a && a.name; }).length : null;
         if(!cp) loadComps(d, renderHomeMap);
         return '<button type="button" class="hm-card" data-hmdept="' + escapeHtml(d) + '"><div class="nm">' + escapeHtml(d) + '</div><div class="sub">' +
-          (cn === null ? '專業 AI 能力讀取中…' : (cn ? '專業 AI 能力 ' + cn + ' 項' : '尚未建立專業 AI 能力')) + '</div>' + hmMini(hmStats(C.depts[d])) + '</button>';
+          (hmNoPlan(C.depts[d]) ? '尚未建立 ' + DRAFT_YEAR + ' 課程計畫表・' : '') + (cn === null ? '專業 AI 能力讀取中…' : (cn ? '專業 AI 能力 ' + cn + ' 項' : '尚未建立專業 AI 能力')) + '</div>' + hmMini(hmStats(C.depts[d])) + '</button>';
       }).join('') + '</div></div>';
     } else {
       var trs = (T.tree[S.college] || {depts:{}}).depts[S.dept] || [];
@@ -5086,14 +5098,14 @@
       h += '<details class="hm-det" open><summary>' + escapeHtml(S.dept) + '｜11 項 AI 核心能力（點此收合）</summary>' + hmInfo(st3, S.dept) + '</details>';
       h += '<div class="hm-sec"><h2>' + escapeHtml(S.dept) + ' AI 賦能課程地圖</h2>' + hmMini(st3) + '</div>';
       if(trs.length > 1) h += '<div class="hm-tools">' + trs.map(function(t){ return '<button type="button" class="btn' + (t === S.track ? ' primary' : '') + '" data-hmtrack="' + escapeHtml(t) + '">' + escapeHtml(t.replace(S.dept, '') || t) + '</button>'; }).join('') + '</div>';
-      h += '<div id="hmMapBox"><div class="hint">地圖產生中…</div></div>';
+      h += S.year === DRAFT_YEAR ? '<div id="hmMapBox"><div class="hint">地圖產生中…</div></div>' : '<div class="hm-empty">AI 賦能課程地圖以 ' + DRAFT_YEAR + ' 學年度課程計畫表產生，請切換到上方「' + DRAFT_YEAR + ' 學年度」。</div>';
     }
     body.innerHTML = h;
     Array.prototype.forEach.call(document.querySelectorAll('[data-hm]'), function(b){ b.onclick = function(){ if(b.dataset.hm === 'top'){ S.college = ''; } S.dept = ''; renderHomeMap(); window.scrollTo(0, 0); }; });
     Array.prototype.forEach.call(body.querySelectorAll('[data-hmcol]'), function(b){ b.onclick = function(){ S.college = b.dataset.hmcol; S.dept = ''; renderHomeMap(); window.scrollTo(0, 0); }; });
     Array.prototype.forEach.call(body.querySelectorAll('[data-hmdept]'), function(b){ b.onclick = function(){ S.dept = b.dataset.hmdept; S.track = ''; hmTry = 0; renderHomeMap(); window.scrollTo(0, 0); }; });
     Array.prototype.forEach.call(body.querySelectorAll('[data-hmtrack]'), function(b){ b.onclick = function(){ S.track = b.dataset.hmtrack; hmTry = 0; renderHomeMap(); }; });
-    if(S.dept) hmLoadMap();
+    if(S.dept && S.year === DRAFT_YEAR) hmLoadMap();
   }
   function hmLoadMap(){
     clearTimeout(hmTimer);
