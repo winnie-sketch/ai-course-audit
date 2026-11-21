@@ -4915,7 +4915,7 @@
       var code = c.code || c.abbr || ''; if(!code) return;
       if(c.del){ names[code] = (c.orig && c.orig.name) || c.name; return; }
       courses.push({cat:c.cat, g:Number(c.grade)||1, s:c.sem === '下' ? '下' : '上', name:c.name, cr:Number(c.credits)||0, code:code, 'new':!c.orig});
-      var t = T116[code] || T115[code];
+      var t = T116[code];  // 只採計 116 學年度標註，不與 115 累計
       if(t) tags[code] = {ai: t.ai === true ? '是' : (t.ai === false ? '否' : ''), r: CM_KEYS.map(function(k){ return Number((t.ratings||{})[k]) || 0; })};
     });
     var comp = (COMPS[dept] || []).filter(function(a){ return a && a.name; }).map(function(a, i){
