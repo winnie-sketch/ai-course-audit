@@ -880,12 +880,12 @@
               </details>
 
               <div class="chef-box" id="chefBox" style="display:none;">
-                <div class="chef-head">🧂 調味師（AI 建議草稿）</div>
+                <div class="chef-head">🧂 課程標註助手（AI 建議草稿）</div>
                 <div class="hint" style="margin:0;">把本課資料複製給學校帳號的 Gemini，取得等級、具體能力表述與教學評量方式的建議；貼回後<b>已填的內容不會被覆蓋</b>，請逐項確認再存檔。</div>
                 <div class="chef-btns">
-                  <button type="button" class="btn" id="chefCopy" data-view="1">① 複製給調味師</button>
+                  <button type="button" class="btn" id="chefCopy" data-view="1">① 複製給課程標註助手</button>
                   <a class="btn" href="https://gemini.google.com/app" target="_blank" rel="noopener" data-view="1">② 開啟 Gemini ↗</a>
-                  <button type="button" class="btn" id="chefPasteToggle">③ 貼上調味師建議</button>
+                  <button type="button" class="btn" id="chefPasteToggle">③ 貼上課程標註助手建議</button>
                 </div>
                 <textarea id="chefPrompt" readonly data-view="1" style="display:none;"></textarea>
                 <div id="chefPasteBox" style="display:none;">
@@ -3101,7 +3101,7 @@
     var dcx = draftCourseByCode(code), own = dcx && String(dcx.c.syllabus || '').trim();
     var off = own ? {academicYear:DRAFT_YEAR, term:'', code:'', syllabus:dcx.c.syllabus, own:true} : latestOfferingOf(code);
     document.getElementById('dcSyllabus').textContent = own ? ('（' + DRAFT_YEAR + ' 學年度學系填寫的課程大綱）\n' + dcx.c.syllabus) :
-      (off ? ('（取自 ' + off.academicYear + ' ' + off.term + ' 開課 ' + off.code + '）\n' + off.syllabus) : '（尚無開課紀錄可供參考的課程大綱。新課請按下方「填寫／修改課程大綱」，填好後調味師就能幫忙。）');
+      (off ? ('（取自 ' + off.academicYear + ' ' + off.term + ' 開課 ' + off.code + '）\n' + off.syllabus) : '（尚無開課紀錄可供參考的課程大綱。新課請按下方「填寫／修改課程大綱」，填好後課程標註助手就能幫忙。）');
     var note = document.getElementById('dcTeacherChg');
     var k = tagKind(code);
     if(t && t.inherit){
@@ -3128,7 +3128,7 @@
       var miss = rec.aiInvolved ? INDICATORS.filter(function(i){ return (rec.ratings[i.code] || 0) >= 3 && !String((rec.stmt || {})[i.code] || '').trim(); }) : [];
       if(miss.length){
         warn.innerHTML = '提醒：以下 ' + miss.length + ' 項等級 3 以上，還沒寫「具體能力表述」：' + miss.map(function(i){ return i.code; }).join('、') +
-          '<div style="font-weight:400;margin-top:4px;">建議補上，課程委員會與產業對接才看得到學生「能做到什麼」；可用上方「調味師」產生草稿。</div>' +
+          '<div style="font-weight:400;margin-top:4px;">建議補上，課程委員會與產業對接才看得到學生「能做到什麼」；可用上方「課程標註助手」產生草稿。</div>' +
           '<div class="chef-btns"><button type="button" class="btn" id="stmtBack" data-view="1" style="width:auto;">回去補寫</button><button type="button" class="btn primary" id="stmtGo" style="width:auto;">仍要確認標註</button></div>';
         warn.style.display = 'block';
         document.getElementById('stmtBack').onclick = function(){ warn.style.display = 'none'; var ta = document.querySelector('#dimGroups textarea[data-stmt="' + miss[0].code + '"]'); if(ta){ ta.focus(); if(ta.scrollIntoView) ta.scrollIntoView({behavior:'smooth', block:'center'}); } };
@@ -3186,12 +3186,12 @@
     try{ var o2 = JSON.parse(s.slice(a, b + 1)); return (o2 && typeof o2 === 'object') ? o2 : null; }catch(e){ return null; }
   }
   var AGENT_CARDS = {
-    chef:{name:'調味師 2.0', type:'半 agent（員工代理人）', purpose:'尊重學系規劃的等級，逐項對照課程大綱：有寫的指出依據，沒寫的提出教法建議，交給授課教師與食譜教練',
+    chef:{name:'課程標註助手 2.0', type:'半 agent（員工代理人）', purpose:'尊重學系規劃的等級，逐項對照課程大綱：有寫的指出依據，沒寫的提出教法建議，交給授課教師與食譜教練',
       scope:'讀：課程大綱、教育部指標與量尺｜寫：只回傳草稿，由學系確認存檔（須登入）', owner:'維護：教務處註冊課務一組｜確認：學系',
       coord:'大綱沒寫的規劃等級 → 教法建議存入標註，授課教師的食譜教練據以陪老師設計；結果供試菜員對照', life:'教育部指標或量尺改版時更新'},
     coach:{name:'食譜教練 2.0', type:'半 agent（員工代理人）', purpose:'先陪授課教師設計怎麼教（學生做什麼、交什麼、怎麼評），培養未來人才 AI 能力；再如實寫進教學計畫表，自然達到輔導團 3 分',
       scope:'讀：學系標註、過去教學計畫、輔導團規準｜寫：只產生課程大綱檔，由老師自行上傳學校系統', owner:'維護：教務處｜確認：授課教師',
-      coord:'目標能力來自學系標註（調味師）；試吃沿用試菜員規準；落差名單來自試菜員', life:'輔導團規準或學校課程大綱範本更新時更新'},
+      coord:'目標能力來自學系標註（課程標註助手）；試吃沿用試菜員規準；落差名單來自試菜員', life:'輔導團規準或學校課程大綱範本更新時更新'},
     taste:{name:'試菜員 2.0', type:'半 agent（領域代理人）', purpose:'依輔導團規準預評 115-2 課程；與學系標註落差大的課，自動排入第二輪複查',
       scope:'讀：課名＋合併大綱、62 個關鍵詞｜寫：試菜員初評分頁（須登入）；不改學系標註', owner:'維護：教務處',
       coord:'落差與證據不足處 → 學系（📣 請老師寫大綱）與授課教師（食譜教練）', life:'輔導團提供新版提示詞或關鍵詞時更新'},
@@ -3208,7 +3208,7 @@
 
   /* 給使用者自己的 AI 代理（瀏覽器型代理）的操作說明：人也能照著做 */
   var AGENT_GUIDE = {
-    chef:{who:'系主任、執秘', copy:'① 複製給調味師', paste:'③ 貼上調味師建議', apply:'帶入建議', human:['檢查帶入的等級與表述','按「儲存草稿」或「標記完成」']},
+    chef:{who:'系主任、執秘', copy:'① 複製給課程標註助手', paste:'③ 貼上課程標註助手建議', apply:'帶入建議', human:['檢查帶入的等級與表述','按「儲存草稿」或「標記完成」']},
     menu:{who:'系主任、執秘', copy:'① 複製給菜單設計師', paste:'③ 貼上菜單設計師建議', apply:'帶入建議', human:['勾選每個層次的承載課程','確認或修改後存檔']},
     nutri:{who:'系主任、執秘', copy:'請菜單健檢師寫觀察與討論問題（複製給 Gemini）', paste:'', apply:'', human:['閱讀 AI 的觀察與討論問題，帶到系課程委員會討論']},
     syl:{who:'系主任、執秘', copy:'複製概要修訂提示詞', paste:'貼上 AI 回傳的 JSON', apply:'帶入下方', human:['檢查修訂後的概要','按「存為 116 概要草稿」']},
@@ -3706,7 +3706,7 @@
       var st = info.tag && info.tag.stmt ? Object.keys(info.tag.stmt).filter(function(k){ return String(info.tag.stmt[k] || '').trim(); }) : [];
       if(st.length) L.push('學系寫的具體能力表述：' + st.map(function(k){ return k + ' ' + String(info.tag.stmt[k]).trim(); }).join('；'));
       var sg = info.tag && info.tag.evidence ? Object.keys(info.tag.evidence).filter(function(k){ return /【大綱未寫/.test(String(info.tag.evidence[k] || '')); }) : [];
-      if(sg.length) L.push('學系規劃了、但目前教學計畫表還沒寫的能力（調味師的教法建議，供階段一設計參考；教師確認會做才寫入）：' + sg.map(function(k){ return k + ' ' + String(info.tag.evidence[k]).replace(/^【大綱未寫・建議】/, '').trim(); }).join('；'));
+      if(sg.length) L.push('學系規劃了、但目前教學計畫表還沒寫的能力（課程標註助手的教法建議，供階段一設計參考；教師確認會做才寫入）：' + sg.map(function(k){ return k + ' ' + String(info.tag.evidence[k]).replace(/^【大綱未寫・建議】/, '').trim(); }).join('；'));
     }
     L.push('', '【教師目前的內容】', '教學目標：' + (coach.f.obj || '（空白）'), '授課方式：' + (coach.f.appr || '（空白）'));
     GRADE_PARTS.forEach(function(x){ L.push(x[1] + '評分方式：' + (coach.f['m' + x[0]] || '（空白）') + '；百分比：' + (coach.f['p' + x[0]] || '（空白）')); });
@@ -3940,7 +3940,7 @@
         '<div class="hint" style="margin:0;">' + DIM_PLAIN[dm] + '</div>' +
         (st.length ? '<div style="margin-top:2px;">學系寫的具體能力：' + st.map(escapeHtml).join('；') + '</div>' : '') +
         (function(){ var ev = info.tag.evidence || {}, sg = Object.keys(ev).filter(function(k){ return k.charAt(0) === dm && /【大綱未寫/.test(String(ev[k] || '')); });
-          return sg.length ? '<div style="margin-top:2px;color:#9a5b00;">目前教學計畫表還沒寫到，調味師建議的教法：' + sg.map(function(k){ return escapeHtml(String(ev[k]).replace(/^【大綱未寫・建議】/, '')); }).join('；') + '</div>' : ''; })() + '</div>';
+          return sg.length ? '<div style="margin-top:2px;color:#9a5b00;">目前教學計畫表還沒寫到，課程標註助手建議的教法：' + sg.map(function(k){ return escapeHtml(String(ev[k]).replace(/^【大綱未寫・建議】/, '')); }).join('；') + '</div>' : ''; })() + '</div>';
     }).join('') + '<div class="hint" style="margin:4px 0 0;">「至少一項教學活動、作業或評量會用到」以上的能力，請在授課方式與成績評定寫清楚學生實際怎麼做。</div>';
   }
   function coachAgentResultHtml(info){
@@ -4302,7 +4302,7 @@
         document.getElementById('dcSyllabus').textContent = '（' + DRAFT_YEAR + ' 學年度學系填寫的課程大綱）\n' + v;
         bindChef(code, rec, nOff);
         bindSyllabusEditor(code, dcx, nOff, rec);
-        document.getElementById('dcSylNote').textContent = '已存檔（' + dcx.d.updatedAt + '）。現在可以請調味師幫忙了。';
+        document.getElementById('dcSylNote').textContent = '已存檔（' + dcx.d.updatedAt + '）。現在可以請課程標註助手幫忙了。';
       });
     };
   }
@@ -4346,7 +4346,7 @@
   function chefPromptText(code, rec, off){
     var name = document.getElementById('dcName').textContent, meta = document.getElementById('dcMeta').textContent.replace(/ ・ [^・]*$/, '');
     var done = INDICATORS.filter(function(i){ return rec.ratings[i.code] !== undefined; });
-    var L = agentFrame({role:'調味師', ask:'學系',
+    var L = agentFrame({role:'課程標註助手', ask:'學系',
       goal:'為本課程完成教育部「未來人才AI能力圖像」11 項指標的關聯等級、具體能力表述與教學評量方式。學系已規劃的等級予以尊重、不改；但要逐項對照大綱：大綱有寫的指出依據，大綱沒寫的提出本課可行的教法建議，交給授課教師與食譜教練寫進教學計畫表。',
       steps:['讀課程大綱，逐句找出與 AI 有關的教學內容、活動、作業與評量（列出原文短句）。', '依下方規則為 11 項指標初判等級。',
         '自我檢核：每個 1 級以上的等級都要對到一句依據；對不到就降為 0，或列入「待確認」。', '若大綱看起來有 AI 活動但寫得不清楚，向學系提問（例如「這門課學生實際會用 AI 做什麼？」）。',
@@ -4393,21 +4393,21 @@
     if(!document.getElementById('chefA3')){ var cb0 = document.getElementById('chefCopy'), b30 = document.createElement('button'); b30.type = 'button'; b30.className = 'btn a3-btn'; b30.id = 'chefA3'; b30.textContent = '🤖 3.0：AI 自己查資料起稿'; cb0.parentNode.insertBefore(b30, cb0); }
     var b3 = document.getElementById('chefA3'); b3.style.display = A3.key ? '' : 'none';
     b3.onclick = function(){
-      if(!off || !String(off.syllabus || '').trim()){ msg.className = 'chef-msg'; msg.textContent = '本科目還沒有課程大綱，調味師無法提供建議。'; return; }
+      if(!off || !String(off.syllabus || '').trim()){ msg.className = 'chef-msg'; msg.textContent = '本科目還沒有課程大綱，課程標註助手無法提供建議。'; return; }
       a3Run('chef', code, chefPromptText(code, rec, off), msg, function(c){
         document.getElementById('chefPasteTa').value = c; document.getElementById('chefApply').click();
-        var m = document.getElementById('chefMsg'); m.textContent = '🤖 調味師 3.0 已自己讀資料起稿。' + m.textContent;
+        var m = document.getElementById('chefMsg'); m.textContent = '🤖 課程標註助手 3.0 已自己讀資料起稿。' + m.textContent;
       });
     };
     document.getElementById('chefCopy').onclick = function(){
-      if(!off || !String(off.syllabus || '').trim()){ msg.className = 'chef-msg'; msg.textContent = '本科目還沒有課程大綱，調味師無法提供建議。請先在上方「課程大綱」按「填寫／修改課程大綱」，存檔後再請調味師。'; return; }
+      if(!off || !String(off.syllabus || '').trim()){ msg.className = 'chef-msg'; msg.textContent = '本科目還沒有課程大綱，課程標註助手無法提供建議。請先在上方「課程大綱」按「填寫／修改課程大綱」，存檔後再請課程標註助手。'; return; }
       pr.value = chefPromptText(code, rec, off); pr.style.display = 'block';
       pr.focus(); pr.select();
       var copied = false;
       try{ copied = document.execCommand('copy'); }catch(e){}
-      if(copied){ msg.className = 'chef-msg ok'; msg.textContent = '已複製！請開啟 Gemini 貼上送出，再把回答貼回「③ 貼上調味師建議」。'; return; }
+      if(copied){ msg.className = 'chef-msg ok'; msg.textContent = '已複製！請開啟 Gemini 貼上送出，再把回答貼回「③ 貼上課程標註助手建議」。'; return; }
       if(navigator.clipboard && navigator.clipboard.writeText){
-        navigator.clipboard.writeText(pr.value).then(function(){ msg.className = 'chef-msg ok'; msg.textContent = '已複製！請開啟 Gemini 貼上送出，再把回答貼回「③ 貼上調味師建議」。'; })
+        navigator.clipboard.writeText(pr.value).then(function(){ msg.className = 'chef-msg ok'; msg.textContent = '已複製！請開啟 Gemini 貼上送出，再把回答貼回「③ 貼上課程標註助手建議」。'; })
           .catch(function(){ msg.className = 'chef-msg'; msg.textContent = '無法自動複製，請在下方文字框按 Ctrl+A、Ctrl+C 複製。'; });
       } else { msg.className = 'chef-msg'; msg.textContent = '無法自動複製，請在下方文字框按 Ctrl+A、Ctrl+C 複製。'; }
     };
@@ -4431,10 +4431,10 @@
       renderSubjectAi(rec); renderDimGroups(rec); renderEvidence(rec); renderRadar(rec); if(typeof updateRatingProgress === 'function') updateRatingProgress(rec);
       var gapN = renderChefGap(rec, o);
       msg.className = 'chef-msg ok';
-      msg.textContent = rec.aiInvolved === false ? '調味師判斷本課程不涉及 AI。請確認後存檔。' :
+      msg.textContent = rec.aiInvolved === false ? '課程標註助手判斷本課程不涉及 AI。請確認後存檔。' :
         '已帶入：等級 ' + nR + ' 項、具體能力表述 ' + nS + ' 則、教學與評量方式 ' + nE + ' 則（已填的內容未覆蓋）。請逐項確認再按「確認標註」。' +
         (gapN ? ' 有 ' + gapN + ' 項規劃等級大綱還沒寫，下方列出教法建議；存檔後授課教師的食譜教練會看到。' : '') +
-        (Array.isArray(o['待確認']) && o['待確認'].length ? ' 調味師提醒待確認：' + o['待確認'].join('；') : '');
+        (Array.isArray(o['待確認']) && o['待確認'].length ? ' 課程標註助手提醒待確認：' + o['待確認'].join('；') : '');
       pb.style.display = 'none';
     };
   }
