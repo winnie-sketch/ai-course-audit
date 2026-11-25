@@ -1279,6 +1279,68 @@
     return null;
   }
   function authToken(){ var a = readAuth(); return a ? a.token : ''; }
+  /* ---------- 學系權限：只能改自己學系（後端「權限名單」把關；其他學系唯讀） ---------- */
+  var PERM = null;
+  function permEsc(x){ return String(x == null ? '' : x).replace(/[&<>"]/g, function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]; }); }
+  function loadPerm(){
+    var tok = authToken();
+    if(!tok || !WEBAPP_URL){ PERM = null; renderAuthBox(); updateReadOnlyBar(); return; }
+    fetch(WEBAPP_URL, {method:'POST', headers:{'Content-Type':'text/plain;charset=utf-8'}, body:JSON.stringify({type:'perm', auth:tok}), credentials:'omit'})
+      .then(function(r){ return r.text(); })
+      .then(function(t){ var d = JSON.parse(t); PERM = (d && d.ok) ? d : null; renderAuthBox(); updateReadOnlyBar(); })
+      .catch(function(){});
+  }
+  function editDeptNow(){ return currentDept || (planSel && planSel.track) || ''; }
+  function canEditDept(dept){
+    if(!PERM || PERM.admin) return true;   // 尚未取得權限資訊時交由後端把關
+    dept = String(dept || '');
+    if(!dept) return true;
+    return (PERM.depts || []).some(function(a){ return dept === a || dept.indexOf(a) === 0; });
+  }
+  function showReadOnlyAlert(dept){
+    var el = document.getElementById('roAlert');
+    if(!el){
+      el = document.createElement('div'); el.id = 'roAlert'; el.className = 'login-alert'; el.setAttribute('role', 'alert');
+      el.innerHTML = '<div style="font-weight:800;font-size:14.5px;margin-bottom:4px;">🔒 這個學系僅能查看</div><div class="la-msg"></div>' +
+        '<div class="la-btns"><button type="button" class="later">知道了</button></div>';
+      document.body.appendChild(el);
+      el.querySelector('.later').onclick = function(){ el.classList.remove('show'); };
+    }
+    var d = dept || editDeptNow(), mine = (PERM && PERM.depts) || [];
+    el.querySelector('.la-msg').innerHTML = (mine.length
+      ? '你的帳號只能修改 <b>' + permEsc(mine.join('、')) + '</b>；「' + permEsc(d) + '」的資料可以查看，但不能新增、修改或刪除。'
+      : '你的帳號不在權限名單上：可以查看各學系資料，但不能新增、修改或刪除。') + '如需權限請洽教務處註冊課務組。';
+    el.classList.add('show');
+  }
+  function updateReadOnlyBar(){
+    var t = document.getElementById('topbarDept'); if(!t || !t.parentNode) return;
+    var b = document.getElementById('roBadge');
+    if(!b){
+      b = document.createElement('span'); b.id = 'roBadge'; b.textContent = '🔒 僅能查看';
+      b.title = '你的帳號沒有這個學系的編輯權限';
+      b.style.cssText = 'margin-left:8px;padding:2px 9px;border-radius:10px;background:#FCE4D6;color:#8a3b12;font-size:12px;font-weight:700;white-space:nowrap;vertical-align:middle;';
+      t.parentNode.insertBefore(b, t.nextSibling);
+    }
+    b.style.display = (authToken() && PERM && currentDept && !canEditDept(currentDept)) ? 'inline-block' : 'none';
+  }
+  // 最後一道：送往雲端的寫入若不是自己學系就不送出（後端也會拒絕）
+  (function(){
+    if(!window.fetch) return;
+    var rawFetch = window.fetch;
+    window.fetch = function(url, opt){
+      try{
+        if(url === WEBAPP_URL && opt && opt.method === 'POST' && typeof opt.body === 'string'){
+          var b = JSON.parse(opt.body);
+          if(b && b.type !== 'perm' && b.auth){
+            var d = b.dept || editDeptNow();
+            if(!canEditDept(d)){ showReadOnlyAlert(d); return Promise.reject(new Error('readonly')); }
+          }
+        }
+      }catch(e){}
+      return rawFetch.apply(this, arguments);
+    };
+  })();
+  window.addEventListener('load', function(){ if(authToken()) loadPerm(); });
   function captureAuthFromHash(){
     var m = location.hash.match(/g2auth=([^&]+)/);
     if(!m) return false;
@@ -1330,13 +1392,14 @@
         }).catch(function(){});
     }, 2000);
   }
-  function g2Logout(){ try{ localStorage.removeItem(AUTH_KEY); }catch(e){} renderAuthBox(); }
+  function g2Logout(){ try{ localStorage.removeItem(AUTH_KEY); }catch(e){} PERM = null; renderAuthBox(); updateReadOnlyBar(); }
   function renderAuthBox(){
     var el = document.getElementById('authBox');
     if(!el) return;
     var a = readAuth();
     el.innerHTML = a
-      ? '<div class="sync-note" style="margin:0;">已以 G2 帳號登入：<br><b>' + String(a.email).replace(/[&<>"]/g, '') + '</b>　<a href="#" id="g2LogoutLink">登出</a></div>'
+      ? '<div class="sync-note" style="margin:0;">已以 G2 帳號登入：<br><b>' + String(a.email).replace(/[&<>"]/g, '') + '</b>　<a href="#" id="g2LogoutLink">登出</a>' +
+        (PERM ? '<br><span style="font-size:12px;">可編輯：' + (PERM.admin ? '全部學系（管理員）' : (PERM.depts && PERM.depts.length ? permEsc(PERM.depts.join('、')) : '無（僅能查看）')) + '</span>' : '') + '</div>'
       : '<button type="button" class="btn-inline" id="g2LoginBtn" style="width:100%;">以 G2 帳號登入（編輯需要）</button>' +
         '<div class="sync-note" style="margin-top:6px;">查看不需登入；新增或修改資料需以實踐大學 G2 帳號登入。</div>';
     var b = document.getElementById('g2LoginBtn'); if(b) b.onclick = function(e){ if(e) e.preventDefault(); g2Login(); };
@@ -1366,11 +1429,18 @@
     '#courseDetailCard .option-card', '#courseDetailCard .level-btn', '#courseDetailCard textarea', '#courseDetailCard input', '#courseDetailCard select',
     '#saveDraftBtn', '#markDoneBtn', '#tsPasteToggle', '#tsApply', '#tsZero', '#tsRevApply', '#tsRevToggle', '#nuSave', '#nuNew', '#nuWhy', '#tsPasteTa', '#dcSylEditBtn', '#dcSylSave', '#chefPasteToggle', '#chefApply', '#mdPasteToggle', '#mdApply', '#mdPasteTa', '#cpAdd', '#compCard [data-cp="edit"]', '#compCard [data-cp="confirm"]', '#compCard [data-cp="del"]',
     '#compCard .cp-ed input', '#compCard .cp-ed textarea', '#compCard .cp-ed select',
-    '#draftCard .dr-card', '#draftCard .dr-add', '#draftCard button', '#draftCard input', '#draftCard select'].join(',');
+    '#draftCard .dr-card', '#draftCard .dr-add', '#draftCard button', '#draftCard input', '#draftCard select', '#adoptAll', '.a3-btn'].join(',');
   function editGate(e){
-    if(authToken()) return;
     var t = e.target;
     if(!t || !t.closest || !t.closest(EDIT_SEL) || t.closest('input[type=search]') || t.closest('[data-view]')) return;
+    if(authToken()){
+      if(canEditDept(editDeptNow())) return;
+      // 已登入但不是自己的學系：可以看，不能改
+      e.preventDefault(); e.stopPropagation();
+      if(e.type === 'focusin' && t.blur) t.blur();
+      if(e.type !== 'mousedown') showReadOnlyAlert();
+      return;
+    }
     e.preventDefault(); e.stopPropagation();
     if(e.type === 'focusin' && t.blur) t.blur();
     if(e.type !== 'mousedown') showLoginAlert();
@@ -1396,7 +1466,7 @@
   }
   function afterLogin(){
     renderAuthBox();
-    if(authToken()){ hideLoginAlert(); toast('已登入，可以開始編輯'); }
+    if(authToken()){ hideLoginAlert(); toast('已登入，可以開始編輯'); loadPerm(); }
   }
   window.addEventListener('storage', function(e){ if(e.key === AUTH_KEY) afterLogin(); });
   /* 盤點結果讀取（各校院盤點彙整儀表板）：試算表「發布到網路」的公開 CSV 網址，用 fetch 讀取。
@@ -1743,6 +1813,7 @@
     document.getElementById('noDeptState').style.display = dept ? 'none' : 'block';
     document.getElementById('deptContent').style.display = dept ? 'block' : 'none';
     document.getElementById('topbarDept').textContent = dept || '請選擇開課學年度 > 校區 > 學院 > 學系';
+    updateReadOnlyBar();
     if(!dept){ if(dashboardScope === 'dept') clearTopbarStatus(); return; }
     setScope('dept'); // 選好系所後自動切到「學系儀表板」，直接進入填課程的工作區
     try{ localStorage.setItem(LAST_DEPT_KEY, JSON.stringify({year:yearSel.value, campus:campusSel.value, college:collegeSel.value, dept:dept})); }catch(e){}
@@ -3040,7 +3111,7 @@
       var rec = {year:year, name:t.name || '', ai:t.ai, ratings:ratings, evidence:Object.assign({}, ai ? (t.evidence || {}) : {}), stmt:Object.assign({}, ai ? (t.stmt || {}) : {}),
         st:'已確認', src:'學系填寫', srcCode:'', srcTerm:'', at:fmtTime(new Date())};
       TAGS[code] = rec; (TAGS_BY_YEAR[year] = TAGS_BY_YEAR[year] || {})[code] = rec;
-      var body = {type:'tag', fw:TAG_FW, code:code, year:year, backfill:'', name:rec.name, aiInvolved:t.ai === true ? true : (t.ai === false ? false : null), ratings:ratings,
+      var body = {type:'tag', fw:TAG_FW, code:code, dept:planSel.track, year:year, backfill:'', name:rec.name, aiInvolved:t.ai === true ? true : (t.ai === false ? false : null), ratings:ratings,
         evidence:serializeEvidence(rec.evidence), stmt:rec.stmt, status:'已確認', auth:authToken()};
       var go = function(){ setTimeout(next, 120); };
       if(WEBAPP_URL) fetch(WEBAPP_URL, {method:'POST', mode:'no-cors', headers:{'Content-Type':'text/plain;charset=utf-8'}, body:JSON.stringify(body)}).then(go).catch(function(){ toast('雲端儲存失敗：' + rec.name); go(); });
@@ -4472,7 +4543,7 @@
     if(backfill) (TAGS_BY_YEAR[backfill] = TAGS_BY_YEAR[backfill] || {})[code] = Object.assign({}, TAGS[code], {year:backfill, src:'由' + year + '回填'});
     if(WEBAPP_URL){
       fetch(WEBAPP_URL, {method:'POST', mode:'no-cors', headers:{'Content-Type':'text/plain;charset=utf-8'},
-        body: JSON.stringify({type:'tag', fw:TAG_FW, code:code, year:year, backfill:backfill, name:name, aiInvolved:rec.aiInvolved, ratings:ratings,
+        body: JSON.stringify({type:'tag', fw:TAG_FW, code:code, dept:planSel.track, year:year, backfill:backfill, name:name, aiInvolved:rec.aiInvolved, ratings:ratings,
           evidence:serializeEvidence(rec.aiInvolved ? rec.evidence : {}), stmt:stmt, status:status, auth:authToken()})})
         .then(function(){ toast(status === '已確認' ? '已確認並存檔' : '草稿已存檔'); })
         .catch(function(){ toast('雲端儲存失敗，請稍後再試'); });
